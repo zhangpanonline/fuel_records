@@ -1,0 +1,68 @@
+# services 下面定义"有哪些服务"
+services:
+  # ─── 数据库服务 ──────────────────────────────────────
+  # db 是服务的名称，DNS 名 = "db"，FastAPI 容器里可以通过 hostname "db" 访问它
+  db:
+    # 使用 MySQL 8.0 官方镜像
+    image: mysql:8.0
+    # 容器名字，方便查看日志时识别
+    container_name: fuel_records_db
+    # 环境变量——MySQL 镜像启动时会读取这些变量来初始化数据库
+    environment:
+      # root 用户的密码
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD:-root123}
+      # 启动时自动创建的数据库名
+      MYSQL_DATABASE: ${DB_NAME:-fuel_records}
+      # 时区
+      TZ: Asia/Shanghai
+    # 端口映射："宿主机端口:容器内端口"
+    # 宿主机 3307 → 容器 3306（用 3307 避免和本地可能已装的 MySQL 冲突）
+    ports:
+      - "3307:3306"
+    # 数据持久化——容器删了数据不丢
+    # 冒号左边是宿主机路径（docker volume 名称），右边是容器内 MySQL 数据目录
+    volumes:
+      - mysql_data:/var/lib/mysql
+    # 健康检查——MySQL 启动比较慢，告诉 Docker 怎么判断 MySQL 准备好了
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${DB_PASSWORD:-root123}"]
+      interval: 5s  # 每 5 秒检查一次 MySQL 是否健康
+      timeout: 5s  # 超时时间，等待 5 秒后认为检查失败
+      retries: 10  # 最多尝试 10 次，认为 MySQL 未启动
+      start_period: 30s  # 启动后等待 30 秒，确保 MySQL 启动完成
+
+  # ─── 后端应用服务 ────────────────────────────────────
+  app:
+    # 用当前目录下的 backend/Dockerfile 构建镜像
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: fuel_records_app
+    # 依赖关系：app 在 db 启动后再启动
+    depends_on:
+      db:
+        condition: service_healthy
+    # 环境变量——会覆盖 .env 文件里的同名配置
+    # 因为 config.py 用的是 pydantic-settings，环境变量优先级高于 .env 文件
+    environment:
+      # 切换为 MySQL 模式
+      DB_TYPE: mysql
+      # db 是 docker-compose 内部 DNS 名，解析到 db 容器的 IP
+      DB_HOST: db
+      DB_PORT: 3306
+      DB_USER: root
+      DB_PASSWORD: ${DB_PASSWORD:-root123}
+      DB_NAME: ${DB_NAME:-fuel_records}
+      # 容器内不开启热重载
+      APP_DEBUG: "false"
+    ports:
+      - "8000:8000"
+    # 挂载日志目录，方便宿主机查看
+    volumes:
+      - app_logs:/app/logs
+
+# 定义 volumes（卷）
+# Docker 会在宿主机上创建命名卷来持久化数据
+volumes:
+  mysql_data:
+  app_logs:

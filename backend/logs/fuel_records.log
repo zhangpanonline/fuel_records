@@ -50,3 +50,28 @@
 2026-07-22 08:48:40 | INFO     | main:lifespan:19 - 应用启动中...
 2026-07-22 08:48:40 | INFO     | database:init_db:63 - 数据库表结构已创建/验证完成
 2026-07-22 08:48:40 | INFO     | main:lifespan:21 - 应用启动完成
+2026-07-22 17:22:26 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-07-22 17:22:26 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-07-22 17:22:26 | INFO     | main:lifespan:19 - 应用启动中...
+2026-07-22 17:22:26 | INFO     | database:init_db:63 - 数据库表结构已创建/验证完成
+2026-07-22 17:22:26 | INFO     | main:lifespan:21 - 应用启动完成
+2026-07-22 17:22:49 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-07-22 17:22:49 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-07-22 17:22:50 | INFO     | main:lifespan:19 - 应用启动中...
+2026-07-22 17:22:50 | INFO     | database:init_db:63 - 数据库表结构已创建/验证完成
+2026-07-22 17:22:50 | INFO     | main:lifespan:21 - 应用启动完成
+2026-07-22 17:22:56 | INFO     | main:lifespan:23 - 应用关闭
+2026-07-22 17:23:10 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-07-22 17:23:10 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-07-22 17:23:10 | INFO     | main:lifespan:19 - 应用启动中...
+2026-07-22 17:23:10 | INFO     | database:init_db:63 - 数据库表结构已创建/验证完成
+2026-07-22 17:23:10 | INFO     | main:lifespan:21 - 应用启动完成
+2026-07-22 17:38:31 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-07-22 17:38:31 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-07-22 17:38:32 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-07-22 17:38:32 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-07-22 17:38:32 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-07-22 17:38:32 | INFO     | main:lifespan:19 - 应用启动中...
+2026-07-22 17:38:32 | INFO     | database:init_db:63 - 数据库表结构已创建/验证完成
+2026-07-22 17:38:32 | INFO     | main:lifespan:21 - 应用启动完成
+2026-07-22 17:50:08 | INFO     | main:lifespan:23 - 应用关闭

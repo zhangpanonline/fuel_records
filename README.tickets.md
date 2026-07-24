@@ -108,14 +108,14 @@
 
 ### Ticket 1.3: 本地开发环境搭建
 
-- [ ] **1.3.1 本地启动 MySQL**
+- [x] **1.3.1 本地启动 MySQL**
   - 检查本地是否已安装 MySQL，如未安装用 `brew install mysql`
   - 创建数据库 `fuel_records`（字符集 `utf8mb4`）
   - 创建数据库用户（可选）
   - **依赖**：无
   - **难度**：★
 
-- [ ] **1.3.2 本地验证后端**
+- [x] **1.3.2 本地验证后端**
   - `pip install -r requirements.txt`
   - `uvicorn main:app --reload`
   - 访问 `http://127.0.0.1:8000/docs` 打开 Swagger
@@ -126,7 +126,7 @@
 
 ### Ticket 1.4: Docker 容器化
 
-- [ ] **1.4.1 编写 Dockerfile**
+- [x] **1.4.1 编写 Dockerfile**
   - 基于 `python:3.12-slim`
   - 复制 `requirements.txt` 并 `pip install`
   - 复制后端代码
@@ -134,14 +134,14 @@
   - **依赖**：1.1.2, 1.2.4
   - **难度**：★★
 
-- [ ] **1.4.2 编写 docker-compose.yml**
+- [x] **1.4.2 编写 docker-compose.yml**
   - 定义两个 service：`app`（FastAPI）+ `db`（MySQL 8.0）
   - `db`：挂载 volume 持久化数据，配置环境变量（MYSQL_ROOT_PASSWORD, MYSQL_DATABASE）
   - `app`：映射端口 8000:8000，依赖 db，读取 `.env`
   - **依赖**：1.4.1
   - **难度**：★★
 
-- [ ] **1.4.3 本地 Docker 验证**
+- [x] **1.4.3 本地 Docker 验证**
   - `docker-compose up -d` 启动
   - 验证 MySQL 和 FastAPI 均正常运行
   - 调用 API 验证数据写入/读取

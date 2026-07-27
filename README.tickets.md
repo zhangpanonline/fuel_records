@@ -25,7 +25,7 @@
    - 你说"理解了"，我才进入下一个 Ticket
    - 你说"还有不明白"，我会继续讲，直到你彻底搞懂
    - **我绝不默认你懂了，也绝不自己判断你懂了**
-6. **同步更新 DIR.md**：每个 Ticket 完成后，进行打钩，同步更新 [DIR.md](file:///Users/zp/Code/fuel_records/DIR.md)，补充新增的文件/目录说明
+6. **更新 DIR.md**：每个 Ticket 完成后，我会同步更新 [`DIR.md`](file:///Users/zp/Code/fuel_records/DIR.md)，将本次新增或修改的目录/文件信息写进去，方便你日后回顾整个项目结构
 
 > **核心原则**：不走"先抄后理解"的路，而是每一步都理解透了再走下一步。哪怕一个 Ticket 花几个小时，也要确保你是真懂了，而不是"跑通了但不知道为什么"。
 
@@ -148,42 +148,57 @@
   - **依赖**：1.4.2
   - **难度**：★
 
-### Ticket 1.5: Oracle Cloud VPS 部署（Phase 1 最终上线）
+### Ticket 1.5: Render + Supabase 部署（Phase 1 最终上线）
 
-- [ ] **1.5.1 注册 Oracle Cloud 账号**
-  - 准备信用卡，填写注册信息
-  - 如注册失败，切换备用方案（Render + PlanetScale）
+> **背景**：原计划使用 Oracle Cloud VPS，但因注册失败（免费 4 核 24G 审核严格），切换为 Render（免费后端托管）+ Supabase（免费 PostgreSQL）方案。
+
+- [ ] **1.5.1 注册 Supabase 并创建项目**
+  - 访问 [supabase.com](https://supabase.com)，GitHub 账号登录
+  - 创建新项目（选一个 Region，设数据库密码）
+  - 项目创建后，进入 **Project Settings → Database → Connection string**
+  - 复制 `URI` 格式的连接串（`postgresql://postgres:xxxx@xxxx:6543/postgres`）
   - **依赖**：无
+  - **难度**：★
+
+- [ ] **1.5.2 注册 Render 并连接 GitHub**
+  - 访问 [render.com](https://render.com)，GitHub 账号登录
+  - 点击 **New + → Web Service**
+  - 连接 GitHub，选择本项目仓库
+  - 填写配置：
+    - **Name**: `fuel-records-api`
+    - **Region**: 选最近的（如 Singapore）
+    - **Branch**: `main`
+    - **Runtime**: `Python 3`
+    - **Build Command**: `pip install -r backend/requirements.txt`
+    - **Start Command**: `cd backend && uvicorn main:app --host 0.0.0.0 --port 10000`
+  - 选择 **Free** 计划
+  - 点击 **Create Web Service**
+  - **依赖**：1.5.1, 需要代码已推送到 GitHub
   - **难度**：★★
 
-- [ ] **1.5.2 创建 VPS 实例**
-  - 选择 Ubuntu 22.04，ARM 架构（免费 4 核 24G）
-  - 配置 SSH 密钥对
-  - 开放端口：22（SSH）、80（HTTP）、443（HTTPS）、8000（API 直连调试）
-  - **依赖**：1.5.1
-  - **难度**：★★
-
-- [ ] **1.5.3 VPS 基础配置**
-  - SSH 登录，更新系统 `apt update && apt upgrade`
-  - 安装 Docker + docker-compose
-  - 配置 `ufw` 防火墙
+- [ ] **1.5.3 配置环境变量**
+  - 在 Render Dashboard → **Environment** 页面添加：
+    - `DB_TYPE`: `postgresql`
+    - `DB_PG_URL`: 从 Supabase 复制的连接串
+    - `APP_DEBUG`: `false`
+  - 保存后 Render 自动重新部署
   - **依赖**：1.5.2
-  - **难度**：★★
+  - **难度**：★
 
-- [ ] **1.5.4 部署后端到 VPS**
-  - 将项目通过 git clone 或 scp 传到 VPS
-  - 配置生产环境 `.env`
-  - `docker-compose up -d` 启动
-  - 验证 API 可通过 VPS 公网 IP 访问
-  - **依赖**：1.5.3, 1.4.2
-  - **难度**：★★
+- [ ] **1.5.4 验证 API 在线可用**
+  - Render 部署完成后，访问 `https://fuel-records-api.onrender.com/api/v1/health`
+  - 应返回 `{"status": "ok", "version": "1.0.0"}`
+  - 调用 `POST /api/v1/records` 测试数据写入
+  - 调用 `GET /api/v1/records` 验证数据返回
+  - **依赖**：1.5.3
+  - **难度**：★
 
-- [ ] **1.5.5 配置 Nginx 反向代理 + SSL**
-  - 安装 Nginx，配置反向代理 `api.fuel-records.com` → `127.0.0.1:8000`
-  - 安装 certbot，申请 Let's Encrypt SSL 证书
-  - 配置 HTTP → HTTPS 自动跳转
+- [ ] **1.5.5 （可选）配置自定义域名**
+  - 在 Render Dashboard → **Settings → Custom Domain** 添加域名
+  - 在域名 DNS 管理平台添加 CNAME 记录指向 Render 服务
+  - Render 自动申请并续期 SSL 证书（免费自带）
   - **依赖**：1.5.4
-  - **难度**：★★★
+  - **难度**：★★
 
 ### Ticket 1.6: React + Capacitor 前端 — 第一个页面
 
@@ -276,21 +291,20 @@
 
 ## Phase 3 — "上云"（已含在 Phase 1 Ticket 1.5）
 
-> **注意**：Phase 1 已经包含了 Oracle Cloud 注册、VPS 建站、Docker 部署、Nginx+SSL 的所有任务。
-> 如果在 Phase 1 部署环节遇到困难，此阶段作为兜底强化。
+> **注意**：Phase 1 已经包含了 Render + Supabase 注册、部署、环境配置的所有任务。
+> 此阶段作为部署后的运维巩固。
 
-- [ ] **3.1 VPS 运维巩固**
-  - 学会查看 Docker 日志：`docker-compose logs -f`
-  - 学会重启服务：`docker-compose restart`
-  - 学会更新代码：`git pull && docker-compose up -d --build`
-  - 配置日志轮转（loguru 自带）
+- [ ] **3.1 部署运维巩固**
+  - 学会查看 Render 日志：Render Dashboard → Logs
+  - 学会手动重新部署：Render Dashboard → Manual Deploy → Clear Build Cache & Deploy
+  - 学会更新代码：`git push` 到 main → Render 自动重新部署
   - **依赖**：1.5.4
   - **难度**：★★
 
 - [ ] **3.2 域名绑定（可选）**
   - 购买或使用免费域名（如 duckdns.org）
-  - 配置 DNS A 记录指向 VPS IP
-  - 更新 Nginx server_name
+  - 在 Render Dashboard → Settings → Custom Domain 绑定域名
+  - Render 自动配置 SSL 证书
   - **依赖**：1.5.5
   - **难度**：★
 
@@ -597,7 +611,7 @@ Phase 1 ──→ Phase 2 ──→ Phase 3 ──→ Phase 4 ──→ Phase 5 
   │                        │
   └── Docker ──────────────┘
        │
-       └── VPS 部署 ────→ Phase 4 需要 VPS 上线 ────→ Phase 7 CI/CD 需要 VPS
+       └── Render + Supabase 部署 ──→ Phase 4 需要线上 API ──→ Phase 7 CI/CD 需要 Render
 ```
 
 **Phase 1 是绝对基础**，建议按 Ticket 1.1 → 1.2 → 1.3 → 1.4 → 1.5 → 1.6 的顺序依次推进。

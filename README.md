@@ -13,12 +13,14 @@
 通过手把手逐行写代码的方式，从零掌握以下后端技能：
 
 > **教学承诺**：每一行代码都会讲解为什么这么写，每个概念都会从零开始解释清楚再动手。不跳步，不默认你懂任何前置知识。写完一个 Ticket 后，我会明确问你"这个 Ticket 的所有内容你都完全理解了吗？"，你说"理解了"我才进下一个——绝不自作主张帮你跳到下一关。
+>
+> **知识沉淀**：每个 Ticket 完成后，我会同步更新 [`DIR.md`](file:///Users/zp/Code/fuel_records/DIR.md)，详细说明本次新增或修改的每个目录和文件是做什么的、关键函数是什么、为什么这么设计。你任何时候回头看 `DIR.md`，就能快速回忆起整个项目的结构和设计意图。
 - **API 设计**：FastAPI 路由、请求/响应模型
 - **数据库操作**：MySQL + SQLAlchemy ORM、表设计、CRUD
 - **数据校验**：Pydantic 模型
 - **日志**：loguru 结构化日志
 - **认证鉴权**：JWT（PyJWT）
-- **部署运维**：Docker + docker-compose、Oracle Cloud VPS、Linux 基础运维
+- **部署运维**：Render + Supabase、Docker + docker-compose、Linux 基础运维
 - **容器化**：Dockerfile、多容器编排
 - **CI/CD**（后期）：自动化部署流水线
 
@@ -38,7 +40,7 @@
 | 数据校验 | Pydantic | 2.x | ✅ 对齐 |
 | 日志 | loguru | latest | ✅ 对齐 |
 | 认证 | PyJWT | latest | ✅ 对齐 |
-| 部署 | Docker + docker-compose | latest | ✅ 对齐（公司 Docker 部署） |
+| 部署 | Render + Supabase | latest | ✅ 对齐（公司 Docker 部署，Render 自动容器化） |
 | 前端 | React + Capacitor | latest | 你已掌握 React，Capacitor 将网页包为 APK |
 
 **不涉及的**：AI/ML、LLM、SSE、定时任务、缓存层——这些是公司业务特有，本 app 不需要。
@@ -322,8 +324,8 @@ DEL  /api/v1/vehicles/{id}    删除车辆
 - 集成 Capacitor，打包 APK 安装到手机
 
 **部署**：
-- Dockerfile + docker-compose（FastAPI + MySQL）
-- Oracle Cloud VPS 上线
+- Dockerfile + docker-compose（本地开发用）
+- Render + Supabase 线上部署（免费托管 + 免费 PostgreSQL）
 
 **学到的知识点**：
 1. FastAPI 路由定义（`@app.get`, `@app.post`）
@@ -358,18 +360,15 @@ DEL  /api/v1/vehicles/{id}    删除车辆
 **目标**：从本地开发转移到线上部署。
 
 **新增工作**：
-- 注册 Oracle Cloud 账号
-- 创建 VPS（Ubuntu）
-- SSH 连接、安装 Docker / docker-compose
-- 在 VPS 上运行 docker-compose
-- 配置 Nginx 反向代理 + SSL（Let's Encrypt）
-- 域名（可选）绑定
+- 注册 Supabase 创建 PostgreSQL 数据库
+- 注册 Render 并连接 GitHub 仓库
+- 一键自动部署（Git push 触发自动构建）
+- Render 自动配置 HTTPS（SSL 证书自动管理）
 
 **学到的知识点**：
-1. Linux 基础命令
-2. Nginx 基础配置
-3. SSL 证书申请与续期
-4. 服务进程管理（systemd）
+1. Render 平台部署流程
+2. Supabase 数据库管理（网页 Dashboard）
+3. 环境变量配置与自动部署
 
 ---
 
@@ -507,7 +506,7 @@ Phase 1 ──→  FastAPI 入门 + React 入门 + MySQL 基础 + Capacitor APK
    │
 Phase 2 ──→  CRUD 进阶 + SQLAlchemy 熟练
    │
-Phase 3 ──→  Linux + Docker + Nginx + SSL（最陡的一期）
+Phase 3 ──→  Render + Supabase 部署 + 自动 HTTPS（最陡的一期？不，比 VPS 简单多了）
    │
 Phase 4 ──→  JWT + 密码学基础 + 依赖注入
    │

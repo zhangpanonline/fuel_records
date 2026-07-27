@@ -4,10 +4,15 @@ from pydantic_settings import BaseSettings
 
 
 class Settings(BaseSettings):
-    # 数据库类型: sqlite | mysql
-    # - sqlite: 本地开发，无需安装数据库
-    # - mysql:  生产/部署，需要 MySQL 服务
+    # 数据库类型: sqlite | postgresql | mysql
+    # - sqlite:     本地开发，无需安装数据库
+    # - postgresql: Render + Supabase 部署
+    # - mysql:      自建服务器/其他部署
     DB_TYPE: str = "sqlite"
+
+    # Supabase / PostgreSQL 配置（DB_TYPE=postgresql 时生效）
+    # 从 Supabase 项目 Settings → Database → Connection string 获取完整连接串
+    DB_PG_URL: str = ""
 
     # MySQL 配置（DB_TYPE=mysql 时生效）
     DB_HOST: str = "127.0.0.1"
@@ -28,6 +33,8 @@ class Settings(BaseSettings):
     @property
     def DATABASE_URL(self) -> str:
         """根据 DB_TYPE 返回对应的数据库连接字符串"""
+        if self.DB_TYPE == "postgresql":
+            return self.DB_PG_URL
         if self.DB_TYPE == "mysql":
             return (
                 f"mysql+pymysql://{self.DB_USER}:{self.DB_PASSWORD}"

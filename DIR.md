@@ -2,7 +2,7 @@
 fuel_records/
 │
 ├── .env                          # 环境变量配置（不上 Git）
-│                                 # └ DB_TYPE=sqlite, APP_PORT=8000 等
+│                                 # └ DB_TYPE=sqlite（本地）/ postgresql（部署）
 │
 ├── .env.example                  # .env 模板，供其他人参考
 │
@@ -16,7 +16,8 @@ fuel_records/
 │
 ├── company.md                    # 公司项目架构参考，本项目对齐目标
 │
-├── docker-compose.yml            # Docker 编排（FastAPI + MySQL），后续部署使用
+├── docker-compose.yml            # Docker 编排（FastAPI + MySQL），仅本地开发/自建服务器用
+│                                 # 线上部署使用 Render + Supabase（免费替代方案）
 │
 ├── backend/                      # 后端代码（FastAPI + SQLAlchemy）
 │   │
@@ -26,7 +27,8 @@ fuel_records/
 │   │
 │   ├── config.py                 # 配置管理：读取 .env，提供 Settings 单例
 │   │                             # 关键类：Settings(BaseSettings)
-│   │                             # 支持：DB_TYPE 自动切换 sqlite/mysql 连接串
+│   │                             # 支持：DB_TYPE 自动切换 sqlite/postgresql/mysql 连接串
+│   │                             #       新增 DB_PG_URL 接收 Supabase 连接串
 │   │
 │   ├── database.py               # 数据库连接管理
 │   │                             # 关键对象：engine（连接池）、SessionLocal（会话工厂）
@@ -38,6 +40,7 @@ fuel_records/
 │   │                             # 行为：控制台彩色输出 + 文件输出（10MB 轮转、30 天保留）
 │   │
 │   ├── requirements.txt          # Python 依赖列表
+│   │                             # └ 新增 psycopg2-binary（PostgreSQL 驱动，部署用）
 │   │
 │   ├── .venv/                    # Python 虚拟环境（本地开发用，不上 Git）
 │   │

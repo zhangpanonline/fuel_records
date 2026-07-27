@@ -14,5 +14,8 @@ pydantic-settings==2.7.1  # 读取 .env 配置
 # 日志
 loguru==0.7.3
 
+# PostgreSQL 驱动（Render + Supabase 部署用）
+psycopg2-binary==2.9.10
+
 # 工具
 python-dotenv==1.1.0

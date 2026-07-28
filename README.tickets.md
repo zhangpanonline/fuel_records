@@ -152,7 +152,7 @@
 
 > **背景**：原计划使用 Oracle Cloud VPS，但因注册失败（免费 4 核 24G 审核严格），切换为 Render（免费后端托管）+ Supabase（免费 PostgreSQL）方案。
 
-- [ ] **1.5.1 注册 Supabase 并创建项目**
+- [x] **1.5.1 注册 Supabase 并创建项目**
   - 访问 [supabase.com](https://supabase.com)，GitHub 账号登录
   - 创建新项目（选一个 Region，设数据库密码）
   - 项目创建后，进入 **Project Settings → Database → Connection string**
@@ -160,7 +160,7 @@
   - **依赖**：无
   - **难度**：★
 
-- [ ] **1.5.2 注册 Render 并连接 GitHub**
+- [x] **1.5.2 注册 Render 并连接 GitHub**
   - 访问 [render.com](https://render.com)，GitHub 账号登录
   - 点击 **New + → Web Service**
   - 连接 GitHub，选择本项目仓库
@@ -176,7 +176,7 @@
   - **依赖**：1.5.1, 需要代码已推送到 GitHub
   - **难度**：★★
 
-- [ ] **1.5.3 配置环境变量**
+- [x] **1.5.3 配置环境变量**
   - 在 Render Dashboard → **Environment** 页面添加：
     - `DB_TYPE`: `postgresql`
     - `DB_PG_URL`: 从 Supabase 复制的连接串
@@ -185,7 +185,7 @@
   - **依赖**：1.5.2
   - **难度**：★
 
-- [ ] **1.5.4 验证 API 在线可用**
+- [x] **1.5.4 验证 API 在线可用**
   - Render 部署完成后，访问 `https://fuel-records-api.onrender.com/api/v1/health`
   - 应返回 `{"status": "ok", "version": "1.0.0"}`
   - 调用 `POST /api/v1/records` 测试数据写入

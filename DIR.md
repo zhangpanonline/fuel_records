@@ -8,6 +8,8 @@ fuel_records/
 │
 ├── .gitignore                    # Git 忽略规则
 │
+├── runtime.txt                   # Render 部署用：指定 Python 3.12 版本
+│
 ├── README.md                     # 项目规格书：架构、数据库设计、API、迭代计划
 │
 ├── README.tickets.md             # 任务拆解清单：8 个 Phase 的原子 Ticket，教学进度
@@ -18,6 +20,7 @@ fuel_records/
 │
 ├── docker-compose.yml            # Docker 编排（FastAPI + MySQL），仅本地开发/自建服务器用
 │                                 # 线上部署使用 Render + Supabase（免费替代方案）
+│                                 # Render URL: https://fuel-records-api.onrender.com
 │
 ├── backend/                      # 后端代码（FastAPI + SQLAlchemy）
 │   │
@@ -27,13 +30,14 @@ fuel_records/
 │   │
 │   ├── config.py                 # 配置管理：读取 .env，提供 Settings 单例
 │   │                             # 关键类：Settings(BaseSettings)
-│   │                             # 支持：DB_TYPE 自动切换 sqlite/postgresql/mysql 连接串
-│   │                             #       新增 DB_PG_URL 接收 Supabase 连接串
+│   │                             # 支持 DB_TYPE：sqlite（本地开发）/ postgresql（Render+Supabase部署）/ mysql（Docker 自建）
+│   │                             #        DB_PG_URL → Supabase/PostgreSQL 连接串（部署用）
 │   │
 │   ├── database.py               # 数据库连接管理
 │   │                             # 关键对象：engine（连接池）、SessionLocal（会话工厂）
 │   │                             #          Base（ORM 基类）
 │   │                             # 关键函数：init_db()（建表）、get_db()（依赖注入）
+│   │                             # connect_args: check_same_thread 仅对 SQLite 生效，PostgreSQL 不走此参数
 │   │
 │   ├── logger.py                 # 日志配置：loguru
 │   │                             # 关键函数：setup_logger()

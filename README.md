@@ -35,7 +35,7 @@
 |------|------|------|---------|
 | 语言 | Python | 3.12 | ✅ 对齐 |
 | Web 框架 | FastAPI + Uvicorn | latest | ✅ 对齐 |
-| 数据库 | MySQL (PyMySQL) | 8.0+ | ✅ 对齐 |
+| 数据库 | SQLite / PostgreSQL / MySQL | 本地/部署/Docker | ✅ 对齐（公司 MySQL，本项目兼容三种） |
 | ORM | SQLAlchemy | 2.x | ✅ 对齐 |
 | 数据校验 | Pydantic | 2.x | ✅ 对齐 |
 | 日志 | loguru | latest | ✅ 对齐 |

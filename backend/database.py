@@ -21,9 +21,10 @@ if settings.DB_TYPE == "mysql":
         "max_overflow": 10,    # 高峰期最多再多创建 10 个
         "pool_pre_ping": True, # 每次用连接前先测试是否还活着
     })
-else:
+elif settings.DB_TYPE == "sqlite":
     # SQLite 默认只允许创建它的那个线程访问。但 FastAPI 是 多线程 处理请求的，所以要加这个参数告诉 SQLite："允许多个线程访问这个数据库文件"。
     engine_kwargs["connect_args"] = {"check_same_thread": False}
+# PostgreSQL 不需要额外参数
 
 engine = create_engine(settings.DATABASE_URL, **engine_kwargs)
 

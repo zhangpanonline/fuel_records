@@ -20,7 +20,7 @@ fuel_records/
 │
 ├── docker-compose.yml            # Docker 编排（FastAPI + MySQL），仅本地开发/自建服务器用
 │                                 # 线上部署使用 Render + Supabase（免费替代方案）
-│                                 # Render URL: https://fuel-records-api.onrender.com
+│                                 # Render URL: https://fuel-records.onrender.com
 │
 ├── backend/                      # 后端代码（FastAPI + SQLAlchemy）
 │   │
@@ -81,6 +81,36 @@ fuel_records/
 │       └── __init__.py           # Python 包标记
 │                                 # （后续：security.py、deps.py、exceptions.py）
 │
-└── frontend/                     # 前端代码（预留，Phase 1.6 开始创建）
-    └── (React + Capacitor)
+├── apk-build-guide.md            # APK 打包完整指南：环境依赖、打包步骤、常见坑及修复
+│
+├── frontend/                     # 前端代码（React + Vite + Capacitor）
+│   │
+│   ├── .env.production           # 生产环境变量：VITE_API_BASE_URL = Render 线上地址
+│   │
+│   ├── index.html                # Vite 入口 HTML
+│   │
+│   ├── package.json              # 前端依赖：React 19 + axios + Capacitor
+│   │
+│   ├── vite.config.ts            # Vite 配置：React 插件 + /api 代理到 localhost:8000
+│   │
+│   ├── capacitor.config.ts       # Capacitor 配置：appId = com.fuelrecords.app
+│   │
+│   ├── dist/                     # 生产构建输出（npm run build）
+│   │
+│   ├── android/                  # Capacitor 生成的 Android 原生项目
+│   │   ├── app/build/outputs/apk/debug/app-debug.apk  # 最终 APK
+│   │   ├── build.gradle          # 顶层 Gradle：Kotlin stdlib 冲突排除
+│   │   └── gradle/wrapper/gradle-wrapper.properties  # Gradle 腾讯云镜像加速
+│   │
+│   └── src/                      # React 源码
+│       ├── main.tsx              # React 入口：createRoot 挂载 App
+│       ├── App.tsx               # 主页面：加油表单 + 记录列表（加载/空/错误状态）
+│       ├── App.css               # 样式：卡片布局、按钮、基线标记
+│       └── services/
+│           └── api.ts            # API 服务层
+│                                 # ├ FuelRecord 类型定义（对齐后端 Pydantic Schema）
+│                                 # ├ createRecord() → POST /api/v1/records
+│                                 # ├ fetchRecords()  → GET  /api/v1/records（分页）
+│                                 # └ parseRecord()   → Decimal 字符串转数字
+│
 ```

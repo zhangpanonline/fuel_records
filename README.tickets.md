@@ -186,7 +186,7 @@
   - **难度**：★
 
 - [x] **1.5.4 验证 API 在线可用**
-  - Render 部署完成后，访问 `https://fuel-records-api.onrender.com/api/v1/health`
+  - Render 部署完成后，访问 `https://fuel-records.onrender.com/api/v1/health`
   - 应返回 `{"status": "ok", "version": "1.0.0"}`
   - 调用 `POST /api/v1/records` 测试数据写入
   - 调用 `GET /api/v1/records` 验证数据返回
@@ -202,14 +202,14 @@
 
 ### Ticket 1.6: React + Capacitor 前端 — 第一个页面
 
-- [ ] **1.6.1 初始化 React + Vite 项目**
+- [x] **1.6.1 初始化 React + Vite 项目**
   - `npm create vite@latest frontend -- --template react-ts`
   - 安装依赖：`axios`（HTTP 请求）
   - 配置 Vite 代理（开发时转发 `/api` 到后端 `localhost:8000`）
   - **依赖**：无
   - **难度**：★
 
-- [ ] **1.6.2 实现记录录入表单**
+- [x] **1.6.2 实现记录录入表单**
   - 一个页面：顶部表单 + 底部记录列表
   - 三个输入框：里程（type=number）、油量（type=number）、金额（type=number）
   - 一个"提交"按钮，提交后调用 `POST /api/v1/records`
@@ -219,7 +219,7 @@
   - **依赖**：1.6.1, 1.2.4
   - **难度**：★★
 
-- [ ] **1.6.3 实现记录列表**
+- [x] **1.6.3 实现记录列表**
   - 表单下方展示所有加油记录（倒序排列）
   - 每行显示：里程、油量、金额、油耗（如有）、日期
   - 基线记录特殊标记（灰色显示"基线"）
@@ -227,16 +227,16 @@
   - **依赖**：1.6.1, 1.2.4
   - **难度**：★★
 
-- [ ] **1.6.4 集成 Capacitor 打包 APK**
+- [x] **1.6.4 集成 Capacitor 打包 APK**
   - `npm install @capacitor/core @capacitor/cli @capacitor/android`
   - `npx cap init` + `npx cap add android`
   - 构建前端：`npm run build`
   - 同步到原生：`npx cap sync`
-  - 用 Android Studio 打开 `android/` 目录
-  - 配置 AndroidManifest.xml 允许 HTTP 请求（开发阶段）
-  - 编译 APK：Android Studio → Build → Build APK
+  - 配置 Gradle 腾讯云镜像（国内网络加速）
+  - 编译 APK：`./gradlew assembleDebug`
   - 将 APK 传到 Huawei Mate40 Pro 安装
   - 验证 API 连通性
+  - 踩坑记录及修复：Gradle 下载超时、JDK 24 不兼容、Kotlin stdlib 冲突 → 见 `apk-build-guide.md`
   - **依赖**：1.6.2, 1.6.3, 1.5.4
   - **难度**：★★
 

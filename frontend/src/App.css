@@ -1,0 +1,172 @@
+/* ---- 全局 ---- */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+    'Helvetica Neue', Arial, sans-serif;
+  background: #f5f5f5;
+  color: #333;
+  line-height: 1.5;
+}
+
+.app {
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 16px;
+}
+
+.title {
+  font-size: 22px;
+  text-align: center;
+  margin: 16px 0;
+  color: #1a1a1a;
+}
+
+/* ---- 表单 ---- */
+.record-form {
+  background: white;
+  border-radius: 12px;
+  padding: 16px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  margin-bottom: 16px;
+}
+
+.form-row {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.form-row label {
+  font-size: 14px;
+  font-weight: 500;
+  color: #555;
+}
+
+.form-row input {
+  width: 100%;
+  padding: 10px 12px;
+  font-size: 16px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  margin-top: 4px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.form-row input:focus {
+  border-color: #4a90d9;
+}
+
+.submit-btn {
+  width: 100%;
+  padding: 12px;
+  margin-top: 16px;
+  font-size: 16px;
+  font-weight: 600;
+  background: #4a90d9;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.submit-btn:hover {
+  background: #357abd;
+}
+
+.submit-btn:disabled {
+  background: #a0c4e8;
+  cursor: not-allowed;
+}
+
+/* ---- 记录列表 ---- */
+.records-section {
+  background: white;
+  border-radius: 12px;
+  padding: 16px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.records-section h2 {
+  font-size: 18px;
+  margin-bottom: 12px;
+  color: #1a1a1a;
+}
+
+.status-text {
+  text-align: center;
+  padding: 32px 0;
+  color: #888;
+  font-size: 14px;
+}
+
+.status-text.error {
+  color: #e74c3c;
+}
+
+.records-list {
+  list-style: none;
+}
+
+.record-item {
+  padding: 12px 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.record-item:last-child {
+  border-bottom: none;
+}
+
+.record-item.baseline {
+  opacity: 0.6;
+}
+
+.record-main {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4px;
+}
+
+.record-mileage {
+  font-weight: 600;
+  font-size: 16px;
+}
+
+.record-vol,
+.record-cost {
+  font-size: 14px;
+  color: #555;
+}
+
+.record-detail {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 13px;
+  color: #888;
+}
+
+.record-consumption {
+  color: #27ae60;
+  font-weight: 500;
+}
+
+.record-consumption.no-data {
+  color: #aaa;
+  font-weight: 400;
+}
+
+.baseline-tag {
+  background: #eee;
+  color: #999;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+}

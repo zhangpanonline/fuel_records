@@ -1,5 +1,5 @@
 """加油记录 API 路由"""
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from database import get_db
 from schemas.record import FuelRecordCreate, FuelRecordResponse
@@ -14,7 +14,10 @@ def api_create_record(
     db: Session = Depends(get_db),
 ):
     """创建加油记录"""
-    return create_record(db=db, record_in=record_in)
+    try:
+        return create_record(db=db, record_in=record_in)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
 
 @router.get("/", response_model=dict)

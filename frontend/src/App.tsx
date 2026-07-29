@@ -5,10 +5,8 @@ import {
   createRecord,
   updateRecord,
   deleteRecord,
-  isLoggedIn,
   clearToken,
   type FuelRecord,
-  type UpdateRecordPayload,
 } from './services/api'
 import './App.css'
 

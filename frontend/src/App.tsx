@@ -5,6 +5,8 @@ import {
   createRecord,
   updateRecord,
   deleteRecord,
+  isLoggedIn,
+  clearToken,
   type FuelRecord,
   type UpdateRecordPayload,
 } from './services/api'
@@ -23,7 +25,6 @@ function App() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
 
-  // ---- 首次加载：获取记录列表 ----
   useEffect(() => {
     loadRecords()
   }, [])
@@ -41,11 +42,9 @@ function App() {
     }
   }
 
-  // ---- 提交表单（新建 / 修改） ----
   async function handleSubmit(e: FormEvent) {
     e.preventDefault()
 
-    // 基本校验
     const km = Number(mileage)
     const vol = Number(fuelVolume)
     const cost = Number(fuelCost)
@@ -57,26 +56,22 @@ function App() {
     setSubmitting(true)
     try {
       if (editingId !== null) {
-        // 修改模式
         await updateRecord(editingId, {
           mileage: km,
           fuel_volume: vol,
           fuel_cost: cost,
         })
       } else {
-        // 新建模式
         await createRecord({
           mileage: km,
           fuel_volume: vol,
           fuel_cost: cost,
         })
       }
-      // 清空表单 + 退出编辑
       setMileage('')
       setFuelVolume('')
       setFuelCost('')
       setEditingId(null)
-      // 刷新列表
       await loadRecords()
     } catch (err: unknown) {
       let msg = '操作失败，请重试'
@@ -91,10 +86,8 @@ function App() {
     }
   }
 
-  // ---- 删除记录 ----
   async function handleDelete(id: number) {
     if (!window.confirm('确定要删除这条加油记录吗？')) return
-
     try {
       await deleteRecord(id)
       await loadRecords()
@@ -109,7 +102,6 @@ function App() {
     }
   }
 
-  // ---- 编辑 / 取消编辑 ----
   function handleEdit(record: FuelRecord) {
     setEditingId(record.id)
     setMileage(record.mileage.toString())
@@ -124,7 +116,11 @@ function App() {
     setFuelCost('')
   }
 
-  // ---- 格式化日期 ----
+  function handleLogout() {
+    clearToken()
+    window.location.href = '/login'
+  }
+
   function formatDate(iso: string) {
     const d = new Date(iso)
     return `${d.getMonth() + 1}月${d.getDate()}日 ${d.getHours().toString().padStart(2, '0')}:${d.getMinutes().toString().padStart(2, '0')}`
@@ -132,9 +128,14 @@ function App() {
 
   return (
     <div className="app">
-      <h1 className="title">⛽ 油耗记录</h1>
+      <div className="header">
+        <h1 className="title">⛽ 油耗记录</h1>
+        <button className="logout-btn" onClick={handleLogout}>
+          退出
+        </button>
+      </div>
 
-      {/* ---- 录入表单 ---- */}
+      {/* 录入表单 */}
       <form className="record-form" onSubmit={handleSubmit} key={editingId ?? 'new'}>
         <div className="form-row">
           <label>
@@ -178,17 +179,13 @@ function App() {
           {submitting ? '提交中...' : editingId !== null ? '更新记录' : '提交记录'}
         </button>
         {editingId !== null && (
-          <button
-            type="button"
-            className="cancel-btn"
-            onClick={handleCancelEdit}
-          >
+          <button type="button" className="cancel-btn" onClick={handleCancelEdit}>
             取消编辑
           </button>
         )}
       </form>
 
-      {/* ---- 记录列表 ---- */}
+      {/* 记录列表 */}
       <section className="records-section">
         <h2>历史记录</h2>
 
@@ -196,28 +193,17 @@ function App() {
         {error && <p className="status-text error">{error}</p>}
 
         {!loading && !error && records?.length === 0 && (
-          <p className="status-text empty">
-            还没记录，去加一箱油吧 🏍️
-          </p>
+          <p className="status-text empty">还没记录，去加一箱油吧 🏍️</p>
         )}
 
         {!loading && records?.length > 0 && (
           <ul className="records-list">
             {records.map((r) => (
-              <li
-                key={r.id}
-                className={`record-item ${r.is_baseline ? 'baseline' : ''}`}
-              >
+              <li key={r.id} className={`record-item ${r.is_baseline ? 'baseline' : ''}`}>
                 <div className="record-main">
-                  <span className="record-mileage">
-                    {r.mileage.toFixed(1)} km
-                  </span>
-                  <span className="record-vol">
-                    {r.fuel_volume.toFixed(2)} L
-                  </span>
-                  <span className="record-cost">
-                    ¥{r.fuel_cost.toFixed(2)}
-                  </span>
+                  <span className="record-mileage">{r.mileage.toFixed(1)} km</span>
+                  <span className="record-vol">{r.fuel_volume.toFixed(2)} L</span>
+                  <span className="record-cost">¥{r.fuel_cost.toFixed(2)}</span>
                 </div>
                 <div className="record-detail">
                   {r.is_baseline ? (
@@ -234,16 +220,10 @@ function App() {
                   <span className="record-date">{formatDate(r.record_date)}</span>
                 </div>
                 <div className="record-actions">
-                  <button
-                    className="edit-btn"
-                    onClick={() => handleEdit(r)}
-                  >
+                  <button className="edit-btn" onClick={() => handleEdit(r)}>
                     编辑
                   </button>
-                  <button
-                    className="delete-btn"
-                    onClick={() => handleDelete(r.id)}
-                  >
+                  <button className="delete-btn" onClick={() => handleDelete(r.id)}>
                     删除
                   </button>
                 </div>

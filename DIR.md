@@ -53,38 +53,60 @@ fuel_records/
 │   │
 │   ├── models/                   # ORM 模型层：定义数据库表结构
 │   │   ├── __init__.py           # Python 包标记
+│   │   ├── user.py               # User 模型：用户表（P4 新增）
+│   │   │                         # └ 字段：id, username(unique), email(unique),
+│   │   │                         #          hashed_password, is_active, created_at, updated_at
+│   │   │                         # └ 关系：records → FuelRecord（一对多）
 │   │   └── fuel_record.py        # FuelRecord 模型：加油记录表
-│   │                             # └ 字段：id, mileage, fuel_volume, fuel_cost,
+│   │                             # └ 字段：id, user_id(FK), mileage, fuel_volume, fuel_cost,
 │   │                             #          unit_price, is_full_tank, is_baseline,
 │   │                             #          fuel_consumption, note, record_date, created_at
+│   │                             # └ 关系：user → User（多对一，P4 新增）
 │   │
 │   ├── schemas/                  # Pydantic Schema 层：API 请求/响应数据格式
 │   │   ├── __init__.py           # Python 包标记
-│   │   └── record.py             # 加油记录 Schema
-│   │                             # ├ FuelRecordCreate → 创建记录（校验 mileage>0 等）
-│   │                             # ├ FuelRecordResponse → 响应格式（含 id, unit_price 等）
-│   │                             # └ FuelRecordUpdate → 修改记录（所有字段可选）
+│   │   ├── record.py             # 加油记录 Schema
+│   │   │                         # ├ FuelRecordCreate → 创建记录（校验 mileage>0 等）
+│   │   │                         # ├ FuelRecordResponse → 响应格式（含 id, user_id, unit_price 等）
+│   │   │                         # └ FuelRecordUpdate → 修改记录（所有字段可选）
+│   │   └── auth.py               # 认证 Schema（P4 新增）
+│   │                             # ├ UserRegister → 注册请求（username + password）
+│   │                             # ├ UserLogin → 登录请求
+│   │                             # ├ TokenResponse → JWT 响应
+│   │                             # └ UserResponse → 用户信息响应
 │   │
 │   ├── routers/                  # API 路由层：定义 HTTP 端点
 │   │   ├── __init__.py           # Python 包标记
-│   │   └── records.py            # 加油记录路由
-│   │                             # ├ POST   /api/v1/records → 创建记录
-│   │                             # ├ GET    /api/v1/records → 获取列表（分页）
-│   │                             # ├ PUT    /api/v1/records/{id} → 修改记录（P2 新增）
-│   │                             # └ DELETE /api/v1/records/{id} → 删除记录（P2 新增）
+│   │   ├── records.py            # 加油记录路由
+│   │   │                         # ├ POST   /api/v1/records → 创建记录（需 JWT）
+│   │   │                         # ├ GET    /api/v1/records → 获取列表（按 user_id 过滤）
+│   │   │                         # ├ PUT    /api/v1/records/{id} → 修改记录（校验归属）
+│   │   │                         # └ DELETE /api/v1/records/{id} → 删除记录（校验归属）
+│   │   └── auth.py               # 认证路由（P4 新增）
+│   │                             # ├ POST /api/v1/auth/register → 注册（返回 JWT）
+│   │                             # └ POST /api/v1/auth/login → 登录（返回 JWT）
 │   │
 │   ├── services/                 # 业务逻辑层：核心算法
 │   │   ├── __init__.py           # Python 包标记
-│   │   └── record_service.py     # 油耗计算服务
-│   │                             # ├ create_record()            → 创建 + 油耗计算 + 里程校验
-│   │                             # ├ get_records()              → 分页查询（按时间倒序）
-│   │                             # ├ recalculate_consumption()  → 级联重算油耗（P2 新增）
-│   │                             # ├ update_record()            → 修改记录（P2 新增）
-│   │                             # └ delete_record()            → 删除记录 + 基线保护（P2 新增）
+│   │   ├── record_service.py     # 油耗计算服务
+│   │   │                         # ├ create_record()            → 创建 + 油耗计算 + 里程校验（P4: 加 user_id）
+│   │   │                         # ├ get_records()              → 分页查询（P4: 按 user_id 过滤）
+│   │   │                         # ├ recalculate_consumption()  → 级联重算油耗（P2 新增）
+│   │   │                         # ├ update_record()            → 修改记录（P4: 校验归属）
+│   │   │                         # └ delete_record()            → 删除记录 + 基线保护（P4: 校验归属）
+│   │   └── auth_service.py        # 认证服务（P4 新增）
+│   │                             # ├ register_user() → 注册（用户名唯一性 + 密码哈希 + 签发 JWT）
+│   │                             # └ login_user()    → 登录（密码验证 + 签发 JWT）
 │   │
-│   └── core/                     # 基础设施层（预留）
-│       └── __init__.py           # Python 包标记
-│                                 # （后续：security.py、deps.py、exceptions.py）
+│   └── core/                     # 基础设施层
+│       ├── __init__.py           # Python 包标记
+│       ├── security.py           # 安全工具（P4 新增）
+│       │                         # ├ hash_password()    → bcrypt 密码哈希
+│       │                         # ├ verify_password()  → bcrypt 验证明文密码
+│       │                         # ├ generate_access_token() → JWT 签发
+│       │                         # └ verify_access_token()   → JWT 验证 + 过期检测
+│       └── deps.py               # FastAPI 依赖注入（P4 新增）
+│                                 # └ get_current_user() → 从 Authorization 头提取 JWT → 返回 User ORM
 │
 ├── apk-build-guide.md            # APK 打包完整指南：环境依赖、打包步骤、常见坑及修复
 │
@@ -108,20 +130,21 @@ fuel_records/
 │   │   └── gradle/wrapper/gradle-wrapper.properties  # Gradle 腾讯云镜像加速
 │   │
 │   └── src/                      # React 源码
-│       ├── main.tsx              # React 入口：createRoot 挂载 App
-│   ├── App.tsx               # 主页面：加油表单 + 记录列表（加载/空/错误状态）
-│   │                             # └ Phase 2 新增：编辑功能（editingId 状态驱动）+ 删除功能
-│   │                             # └ 2026-07-29 Bug 修复：给 <form> 添加 key={editingId ?? 'new'}
-│   │                             #            强制重挂载以修复退出编辑模式后输入框未清空问题
-│   ├── App.css               # 样式：卡片布局、按钮、基线标记
-│   │                             # └ Phase 2 新增：编辑/删除/取消按钮样式
-│   └── services/
-│       └── api.ts            # API 服务层
-│                                 # ├ FuelRecord 类型定义（对齐后端 Pydantic Schema）
-│                                 # ├ createRecord() → POST /api/v1/records
-│                                 # ├ fetchRecords()  → GET  /api/v1/records（分页）
-│                                 # ├ updateRecord()  → PUT  /api/v1/records/{id}（P2 新增）
-│                                 # ├ deleteRecord()  → DELETE /api/v1/records/{id}（P2 新增）
-│                                 # └ parseRecord()   → Decimal 字符串转数字
+│       ├── main.tsx              # React 入口：BrowserRouter + Routes 路由配置（P4 新增路由守卫）
+│       ├── App.tsx               # 主页面：加油表单 + 记录列表 + 退出登录按钮
+│       │                         # └ P4 新增：退出登录（clearToken + 跳转）
+│       ├── App.css               # 样式：卡片布局、按钮、基线标记 + 登录/注册表单（P4 新增）
+│       ├── pages/
+│       │   └── LoginPage.tsx     # 登录/注册页面（P4 新增）
+│       │                         # └ 两个 Tab 切换登录/注册，成功后存 token 并跳转首页
+│       └── services/
+│           └── api.ts            # API 服务层
+│                                 # ├ FuelRecord 类型定义
+│                                 # ├ Auth API: register(), login()（P4 新增）
+│                                 # ├ Token 管理: getToken(), setToken(), clearToken()（P4 新增）
+│                                 # ├ 请求拦截器：自动附加 Authorization: Bearer <token>（P4 新增）
+│                                 # ├ 响应拦截器：401 自动清除 token 并跳转登录页（P4 新增）
+│                                 # ├ Records CRUD: create/fetch/update/delete
+│                                 # └ parseRecord() → Decimal 字符串转数字
 │
 ```

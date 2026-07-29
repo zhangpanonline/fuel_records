@@ -2,7 +2,8 @@
 
 from datetime import datetime
 
-from sqlalchemy import Column, DateTime, Integer, Numeric, String, Text, Boolean
+from sqlalchemy import Column, DateTime, Integer, Numeric, String, Text, Boolean, ForeignKey
+from sqlalchemy.orm import relationship
 #func 提供了 SQL 函数，比如 func.now() 相当于 SQL 里的 NOW() ——返回数据库当前时间。
 from sqlalchemy.sql import func
 
@@ -14,6 +15,7 @@ class FuelRecord(Base):
     __tablename__ = "fuel_records"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=True, comment="所属用户")
     mileage = Column(Numeric(10, 1), nullable=False, comment="当前里程表读数 (km)")
     fuel_volume = Column(Numeric(10, 2), nullable=False, comment="加油量 (L)")
     fuel_cost = Column(Numeric(10, 2), nullable=False, comment="加油金额 (元)")
@@ -24,3 +26,7 @@ class FuelRecord(Base):
     note = Column(Text, nullable=True, comment="备注")
     record_date = Column(DateTime, default=datetime.now, comment="记录时间")
     created_at = Column(DateTime, server_default=func.now(), comment="创建时间")
+
+    # 多对一关系：多条加油记录属于同一个用户
+    # back_populates="records" 对应 User 模型里的 records 属性
+    user = relationship("User", back_populates="records")

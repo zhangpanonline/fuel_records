@@ -226,3 +226,107 @@ body {
 .cancel-btn:hover {
   background: #e0e0e0;
 }
+
+/* ---- 页面头部 ---- */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.header .title {
+  margin: 0;
+}
+
+.logout-btn {
+  padding: 6px 14px;
+  font-size: 13px;
+  color: #888;
+  background: #f5f5f5;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.logout-btn:hover {
+  color: #e74c3c;
+  border-color: #e74c3c;
+}
+
+/* ---- 认证 Tab ---- */
+.auth-tabs {
+  display: flex;
+  gap: 0;
+  margin-bottom: 0;
+  border-radius: 10px 10px 0 0;
+  overflow: hidden;
+}
+
+.auth-tab {
+  flex: 1;
+  padding: 12px;
+  font-size: 15px;
+  font-weight: 500;
+  text-align: center;
+  background: #eee;
+  border: none;
+  color: #888;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.auth-tab.active {
+  background: white;
+  color: #4a90d9;
+  font-weight: 600;
+}
+
+/* ---- 认证表单 ---- */
+.auth-form {
+  background: white;
+  border-radius: 0 0 12px 12px;
+  padding: 16px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  margin-bottom: 12px;
+}
+
+.auth-form label {
+  display: block;
+  font-size: 14px;
+  font-weight: 500;
+  color: #555;
+  margin-bottom: 12px;
+}
+
+.auth-form input {
+  width: 100%;
+  padding: 10px 12px;
+  font-size: 16px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  margin-top: 4px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.auth-form input:focus {
+  border-color: #4a90d9;
+}
+
+.auth-hint {
+  text-align: center;
+  font-size: 14px;
+  color: #888;
+}
+
+.link-btn {
+  background: none;
+  border: none;
+  color: #4a90d9;
+  font-size: 14px;
+  cursor: pointer;
+  padding: 0 4px;
+  text-decoration: underline;
+}

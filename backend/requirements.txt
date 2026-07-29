@@ -17,5 +17,9 @@ loguru==0.7.3
 # PostgreSQL 驱动（Render + Supabase 部署用）
 psycopg2-binary==2.9.10
 
+# 认证
+bcrypt==4.2.1   # 密码哈希
+PyJWT==2.10.1   # JWT 签发与验证
+
 # 工具
 python-dotenv==1.1.0

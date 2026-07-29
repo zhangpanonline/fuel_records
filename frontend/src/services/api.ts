@@ -8,9 +8,9 @@ import axios from 'axios'
 
 // ---- 类型定义（对齐后端 Pydantic Schema） ----
 
-/** 加油记录响应体 */
 export interface FuelRecord {
   id: number
+  user_id: number | null
   mileage: number
   fuel_volume: number
   fuel_cost: number
@@ -23,7 +23,6 @@ export interface FuelRecord {
   created_at: string
 }
 
-/** 创建记录的请求体 */
 export interface CreateRecordPayload {
   mileage: number
   fuel_volume: number
@@ -32,7 +31,6 @@ export interface CreateRecordPayload {
   note?: string
 }
 
-/** 分页查询的响应体 */
 export interface RecordsResponse {
   total: number
   page: number
@@ -40,21 +38,30 @@ export interface RecordsResponse {
   records: FuelRecord[]
 }
 
-// ---- 类型转换辅助函数 ----
+export interface UpdateRecordPayload {
+  mileage?: number
+  fuel_volume?: number
+  fuel_cost?: number
+  is_full_tank?: boolean
+  note?: string
+}
 
-/**
- * 后端 Decimal 类型序列化为 JSON 时是字符串（如 "52100.3"），
- * 此函数将字符串转数字，透传 null/undefined。
- */
+export interface TokenResponse {
+  access_token: string
+  token_type: string
+}
+
+// ---- 类型转换辅助 ----
+
 function parseDecimal(val: unknown): number | null {
   if (val == null || val === '') return null
   return Number(val)
 }
 
-/** 将后端原始记录（数字可能是字符串）转为前端 FuelRecord 类型 */
 function parseRecord(raw: Record<string, unknown>): FuelRecord {
   return {
     id: raw.id as number,
+    user_id: (raw.user_id as number) ?? null,
     mileage: Number(raw.mileage),
     fuel_volume: Number(raw.fuel_volume),
     fuel_cost: Number(raw.fuel_cost),
@@ -68,28 +75,93 @@ function parseRecord(raw: Record<string, unknown>): FuelRecord {
   }
 }
 
-// ---- Axios 实例 ----
+// ---- Token 管理 ----
+
+const TOKEN_KEY = 'fuel_records_token'
+
+export function getToken(): string | null {
+  return localStorage.getItem(TOKEN_KEY)
+}
+
+export function setToken(token: string): void {
+  localStorage.setItem(TOKEN_KEY, token)
+}
+
+export function clearToken(): void {
+  localStorage.removeItem(TOKEN_KEY)
+}
+
+export function isLoggedIn(): boolean {
+  return !!getToken()
+}
+
+// ---- Axios 实例（带 token 拦截器） ----
 
 const apiClient = axios.create({
-  // 开发环境用 Vite 代理（空 baseURL），生产环境用环境变量
   baseURL: import.meta.env.VITE_API_BASE_URL || '',
   timeout: 10000,
 })
 
-// ---- API 函数 ----
+// 请求拦截器：自动附加 Authorization 头
+apiClient.interceptors.request.use((config) => {
+  const token = getToken()
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`
+  }
+  return config
+})
 
-/** 创建加油记录 */
+// 响应拦截器：401 时自动清除 token
+apiClient.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (axios.isAxiosError(error) && error.response?.status === 401) {
+      clearToken()
+      // 如果不是在登录页，跳转到登录页
+      if (window.location.pathname !== '/login') {
+        window.location.href = '/login'
+      }
+    }
+    return Promise.reject(error)
+  },
+)
+
+// ---- Auth API ----
+
+export async function register(
+  username: string,
+  password: string,
+): Promise<TokenResponse> {
+  const res = await apiClient.post<TokenResponse>('/api/v1/auth/register', {
+    username,
+    password,
+  })
+  return res.data
+}
+
+export async function login(
+  username: string,
+  password: string,
+): Promise<TokenResponse> {
+  const res = await apiClient.post<TokenResponse>('/api/v1/auth/login', {
+    username,
+    password,
+  })
+  return res.data
+}
+
+// ---- Records API ----
+
 export async function createRecord(
-  payload: CreateRecordPayload
+  payload: CreateRecordPayload,
 ): Promise<FuelRecord> {
   const res = await apiClient.post<FuelRecord>('/api/v1/records/', payload)
   return parseRecord(res.data as unknown as Record<string, unknown>)
 }
 
-/** 获取加油记录列表（分页） */
 export async function fetchRecords(
   page = 1,
-  pageSize = 20
+  pageSize = 20,
 ): Promise<RecordsResponse> {
   const res = await apiClient.get<RecordsResponse>('/api/v1/records/', {
     params: { page, page_size: pageSize },
@@ -102,25 +174,14 @@ export async function fetchRecords(
   }
 }
 
-/** 修改记录的请求体（所有字段可选） */
-export interface UpdateRecordPayload {
-  mileage?: number
-  fuel_volume?: number
-  fuel_cost?: number
-  is_full_tank?: boolean
-  note?: string
-}
-
-/** 修改加油记录 */
 export async function updateRecord(
   id: number,
-  payload: UpdateRecordPayload
+  payload: UpdateRecordPayload,
 ): Promise<FuelRecord> {
   const res = await apiClient.put<FuelRecord>(`/api/v1/records/${id}`, payload)
   return parseRecord(res.data as unknown as Record<string, unknown>)
 }
 
-/** 删除加油记录 */
 export async function deleteRecord(id: number): Promise<void> {
   await apiClient.delete(`/api/v1/records/${id}`)
 }

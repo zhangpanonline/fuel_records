@@ -57,6 +57,7 @@ def init_db():
     # 延迟导入，避免循环依赖，因为 models/fuel_record.py 里会 from database import Base
     # noqa: F401 是给代码检查工具看的，意思是："我知道这个导入看起来没用（F401 警告），但它是故意这样写的，别报警告"。
     from models.fuel_record import FuelRecord  # noqa: F401
+    from models.user import User  # noqa: F401
 
     # Base.metadata 是 SQLAlchemy 自动收集的 所有表的元数据 ——每当有类继承 Base ，它就会被自动注册到 Base.metadata 里。
     # create_all() 的意思是： 检查数据库里有没有这些表，没有就自动创建 。

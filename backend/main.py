@@ -51,7 +51,9 @@ def health_check():
 
 # ─── 路由注册 ────────────────────────────────────────────
 from routers.records import router as records_router
+from routers.auth import router as auth_router
 app.include_router(records_router)
+app.include_router(auth_router)
 
 
 if __name__ == "__main__":

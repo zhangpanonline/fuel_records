@@ -16,6 +16,7 @@ class FuelRecordCreate(BaseModel):
 class FuelRecordResponse(FuelRecordCreate):
     """加油记录响应体"""
     id: int
+    user_id: int | None = None
     unit_price: Decimal | None = None
     is_baseline: bool = False
     fuel_consumption: Decimal | None = None

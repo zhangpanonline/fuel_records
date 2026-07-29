@@ -30,6 +30,11 @@ class Settings(BaseSettings):
     LOG_LEVEL: str = "DEBUG"
     LOG_FILE: str = "logs/fuel_records.log"
 
+    # JWT
+    JWT_SECRET: str = "change-me-in-production"
+    JWT_ALGORITHM: str = "HS256"
+    JWT_EXPIRE_MINUTES: int = 1440  # 24 小时
+
     @property
     def DATABASE_URL(self) -> str:
         """根据 DB_TYPE 返回对应的数据库连接字符串"""

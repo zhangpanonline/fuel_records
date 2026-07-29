@@ -135,7 +135,7 @@ function App() {
       <h1 className="title">⛽ 油耗记录</h1>
 
       {/* ---- 录入表单 ---- */}
-      <form className="record-form" onSubmit={handleSubmit}>
+      <form className="record-form" onSubmit={handleSubmit} key={editingId ?? 'new'}>
         <div className="form-row">
           <label>
             里程 (km)

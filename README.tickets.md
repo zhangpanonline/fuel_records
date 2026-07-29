@@ -301,7 +301,7 @@
 > **注意**：Phase 1 已经包含了 Render + Supabase 注册、部署、环境配置的所有任务。
 > 此阶段作为部署后的运维巩固。
 
-- [ ] **3.1 部署运维巩固**
+- [x] **3.1 部署运维巩固**
   - 学会查看 Render 日志：Render Dashboard → Logs
   - 学会手动重新部署：Render Dashboard → Manual Deploy → Clear Build Cache & Deploy
   - 学会更新代码：`git push` 到 main → Render 自动重新部署

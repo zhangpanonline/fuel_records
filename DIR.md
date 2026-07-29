@@ -111,6 +111,8 @@ fuel_records/
 │       ├── main.tsx              # React 入口：createRoot 挂载 App
 │   ├── App.tsx               # 主页面：加油表单 + 记录列表（加载/空/错误状态）
 │   │                             # └ Phase 2 新增：编辑功能（editingId 状态驱动）+ 删除功能
+│   │                             # └ 2026-07-29 Bug 修复：给 <form> 添加 key={editingId ?? 'new'}
+│   │                             #            强制重挂载以修复退出编辑模式后输入框未清空问题
 │   ├── App.css               # 样式：卡片布局、按钮、基线标记
 │   │                             # └ Phase 2 新增：编辑/删除/取消按钮样式
 │   └── services/

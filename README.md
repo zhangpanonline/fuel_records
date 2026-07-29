@@ -99,32 +99,20 @@ fuel_records/
 │   ├── database.py             # 数据库连接（SQLAlchemy engine + session）
 │   ├── logger.py               # loguru 日志配置
 │   ├── models/                 # ORM 模型
-│   │   ├── __init__.py
-│   │   ├── user.py             # User 模型
-│   │   ├── vehicle.py          # Vehicle 模型
-│   │   └── fuel_record.py      # FuelRecord 模型
+│   │   ├── user.py             # User 模型（P4）
+│   │   └── fuel_record.py      # FuelRecord 模型（P1，含 user_id 外键 P4）
 │   ├── schemas/                # Pydantic 请求/响应模型
-│   │   ├── __init__.py
 │   │   ├── record.py
-│   │   ├── auth.py
-│   │   └── vehicle.py
+│   │   └── auth.py             # 注册/登录 Schema（P4）
 │   ├── routers/                # API 路由
-│   │   ├── __init__.py
 │   │   ├── records.py
-│   │   ├── auth.py
-│   │   ├── vehicles.py
-│   │   └── stats.py
+│   │   └── auth.py             # 注册/登录路由（P4）
 │   ├── services/               # 业务逻辑层
-│   │   ├── __init__.py
 │   │   ├── record_service.py   # 油耗计算核心逻辑
-│   │   ├── auth_service.py
-│   │   ├── vehicle_service.py
-│   │   └── stats_service.py
+│   │   └── auth_service.py     # 认证逻辑（P4）
 │   ├── core/                   # 基础设施
-│   │   ├── __init__.py
-│   │   ├── security.py         # JWT 生成/验证
-│   │   ├── deps.py             # FastAPI 依赖注入
-│   │   └── exceptions.py       # 自定义异常
+│   │   ├── security.py         # bcrypt 密码哈希 + JWT 签发/验证（P4）
+│   │   └── deps.py             # FastAPI 依赖注入（get_current_user）（P4）
 │   ├── alembic/                # 数据库迁移（后期引入）
 │   ├── requirements.txt
 │   ├── Dockerfile
@@ -141,8 +129,16 @@ fuel_records/
 ├── docker-compose.yml          # 多容器编排（FastAPI + MySQL）
 ├── .env                        # 环境配置（不上仓库）
 ├── .gitignore
+├── .env.example
+├── .dockerignore
+├── runtime.txt
 ├── company.md                  # 公司项目架构参考
-└── README.md                   # 本文件
+├── README.md                   # 本文件 — 项目规格书
+├── README.tickets.md           # 任务拆解清单
+├── DIR.md                      # 目录结构说明
+├── TEST_CHECKLIST.md           # 功能测试清单（每次更新后逐项验证）
+├── test_all.sh                 # 一键自动化测试脚本
+├── docker-compose.yml          # Docker 编排（本地开发用）
 ```
 
 ---
@@ -275,22 +271,21 @@ DEL  /api/v1/records/{id}    删除记录
 | start_date | str | 可选 | 开始日期（筛选） |
 | end_date | str | 可选 | 结束日期（筛选） |
 
-### 5.3 统计 API（Phase 7/8）
+### 5.3 统计 API（Phase 6）
 
 ```
 GET /api/v1/stats/summary?vehicle_id=1    总里程、总油耗、总金额、平均油耗
 GET /api/v1/stats/monthly?vehicle_id=1    按月统计
 ```
 
-### 5.4 用户认证 API（Phase 6）
+### 5.4 用户认证 API（Phase 4）
 
 ```
-POST /api/v1/auth/register    注册
-POST /api/v1/auth/login       登录 → 返回 JWT token
-POST /api/v1/auth/refresh     刷新 token
+POST /api/v1/auth/register    注册（返回 JWT）
+POST /api/v1/auth/login       登录 → 返回 JWT
 ```
 
-### 5.5 车辆管理 API（Phase 7）
+### 5.5 车辆管理 API（Phase 5）
 
 ```
 POST /api/v1/vehicles         添加车辆
@@ -372,22 +367,26 @@ DEL  /api/v1/vehicles/{id}    删除车辆
 
 ---
 
-### Phase 4 — "用户来了"（鉴权）
+### Phase 4 — "用户来了"（鉴权）✅
 
 **目标**：引入用户系统，保护数据安全。
 
-**新增工作**：
-- 创建 `users` 表
-- 注册 / 登录 API
-- JWT Token 签发与验证
-- FastAPI 中间件 / 依赖注入实现鉴权
-- 前端：登录页面、Token 存储
+**已完成工作**：
+- 创建 `users` 表 + User ORM 模型
+- JWT 签发与验证（`core/security.py`）
+- 密码哈希（bcrypt + 12 轮迭代）
+- 注册 / 登录 API（`POST /api/v1/auth/register`, `POST /api/v1/auth/login`）
+- FastAPI `get_current_user` 依赖注入（`core/deps.py`）
+- 所有 `/records` 接口加 JWT 鉴权 + 按 `user_id` 数据隔离
+- 前端：登录/注册页面（Tab 切换）、axios 拦截器（自动带 token + 401 跳转）、React Router 路由守卫
+- 测试：TEST_CHECKLIST.md + test_all.sh 一键自动化测试
 
 **学到的知识点**：
 1. 密码哈希（bcrypt）
-2. JWT 原理（access token + refresh token）
+2. JWT 原理（access token）
 3. FastAPI 依赖注入系统
 4. 前端 Token 持久化
+5. 前后端联调鉴权流程
 
 ---
 

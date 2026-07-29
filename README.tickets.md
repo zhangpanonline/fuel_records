@@ -323,20 +323,20 @@
 
 ### Ticket 4.1: 后端 — 用户模型与认证
 
-- [ ] **4.1.1 创建 User ORM 模型**
+- [x] **4.1.1 创建 User ORM 模型**
   - `models/user.py`：id, username(unique), email(unique), hashed_password, is_active, created_at, updated_at
   - 新增 `fuel_records.user_id` 字段（ALTER TABLE）
   - 建立 User ↔ FuelRecord 一对多关系
   - **依赖**：1.1.5
   - **难度**：★★
 
-- [ ] **4.1.2 密码哈希工具**
+- [x] **4.1.2 密码哈希工具**
   - `core/security.py`：
     - 集成 `passlib` 或 `bcrypt` 实现 `hash_password()` 和 `verify_password()`
   - **依赖**：4.1.1
   - **难度**：★
 
-- [ ] **4.1.3 JWT 工具函数**
+- [x] **4.1.3 JWT 工具函数**
   - `generate_access_token(user_id, expires_delta)` → 返回 JWT 字符串
   - `verify_access_token(token)` → 返回 user_id 或抛出异常
   - 配置 JWT_SECRET 和 JWT_ALGORITHM 到 `.env`
@@ -344,7 +344,7 @@
   - **依赖**：4.1.1
   - **难度**：★★
 
-- [ ] **4.1.4 注册与登录路由**
+- [x] **4.1.4 注册与登录路由**
   - `POST /api/v1/auth/register`：用户名+密码 → 创建用户 → 返回 JWT
   - `POST /api/v1/auth/login`：用户名+密码 → 验证 → 返回 JWT
   - 用户名唯一性校验、长度限制
@@ -352,7 +352,7 @@
   - **依赖**：4.1.2, 4.1.3
   - **难度**：★★
 
-- [ ] **4.1.5 JWT 依赖注入中间件**
+- [x] **4.1.5 JWT 依赖注入中间件**
   - `core/deps.py`：
     - `get_current_user` 依赖：从 Authorization header 提取 Bearer token → 验证 → 返回当前用户
   - 应用到所有 `/api/v1/records` 路由
@@ -361,7 +361,7 @@
 
 ### Ticket 4.2: 后端 — 数据隔离
 
-- [ ] **4.2.1 加油记录关联用户**
+- [x] **4.2.1 加油记录关联用户**
   - 所有 record 操作自动填充 `user_id`（从当前 token 获取）
   - 查询时按 `user_id` 过滤，用户只能看到自己的记录
   - 修改/删除时校验 `user_id`
@@ -370,7 +370,7 @@
 
 ### Ticket 4.3: React 前端 — 登录页面
 
-- [ ] **4.3.1 登录/注册页面**
+- [x] **4.3.1 登录/注册页面**
   - 两个 Tab 切换：登录 / 注册
   - 登录：用户名输入框 + 密码输入框 + 登录按钮
   - 注册：用户名输入框 + 密码输入框 + 确认密码输入框 + 注册按钮
@@ -379,14 +379,14 @@
   - **依赖**：4.1.4
   - **难度**：★★
 
-- [ ] **4.3.2 Token 持久化**
+- [x] **4.3.2 Token 持久化**
   - 登录成功后保存 JWT 到 `localStorage`
   - 封装 `apiClient`（axios 实例），自动在 header 添加 `Authorization: Bearer <token>`
-  - Token 过期检测 → 清除 localStorage → 强制跳转登录页
+  - 401 时自动清除 token 并跳转登录页
   - **依赖**：4.3.1
   - **难度**：★★
 
-- [ ] **4.3.3 路由守卫**
+- [x] **4.3.3 路由守卫**
   - 使用 React Router 实现路由守卫
   - 未登录 → 显示登录页
   - 已登录 → 显示记录列表页
@@ -638,4 +638,5 @@ Phase 1 ──→ Phase 2 ──→ Phase 3 ──→ Phase 4 ──→ Phase 5 
 ---
 
 > **更新记录**
+> - 2026-07-29: Phase 4 完成 — 用户鉴权（注册/登录 + JWT + 前端登录页 + 路由守卫 + 数据隔离 + 测试清单 TEST_CHECKLIST.md + 自动化测试脚本 test_all.sh）
 > - 2026-07-19：初版生成，基于 README.md 规格书拆解 8 个 Phase，共约 45 个原子 Ticket

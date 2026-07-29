@@ -68,14 +68,19 @@ fuel_records/
 │   ├── routers/                  # API 路由层：定义 HTTP 端点
 │   │   ├── __init__.py           # Python 包标记
 │   │   └── records.py            # 加油记录路由
-│   │                             # ├ POST /api/v1/records → 创建记录
-│   │                             # └ GET  /api/v1/records → 获取列表（分页）
+│   │                             # ├ POST   /api/v1/records → 创建记录
+│   │                             # ├ GET    /api/v1/records → 获取列表（分页）
+│   │                             # ├ PUT    /api/v1/records/{id} → 修改记录（P2 新增）
+│   │                             # └ DELETE /api/v1/records/{id} → 删除记录（P2 新增）
 │   │
 │   ├── services/                 # 业务逻辑层：核心算法
 │   │   ├── __init__.py           # Python 包标记
 │   │   └── record_service.py     # 油耗计算服务
-│   │                             # ├ create_record() → 创建 + 油耗计算 + 里程校验
-│   │                             # └ get_records()  → 分页查询（按时间倒序）
+│   │                             # ├ create_record()            → 创建 + 油耗计算 + 里程校验
+│   │                             # ├ get_records()              → 分页查询（按时间倒序）
+│   │                             # ├ recalculate_consumption()  → 级联重算油耗（P2 新增）
+│   │                             # ├ update_record()            → 修改记录（P2 新增）
+│   │                             # └ delete_record()            → 删除记录 + 基线保护（P2 新增）
 │   │
 │   └── core/                     # 基础设施层（预留）
 │       └── __init__.py           # Python 包标记

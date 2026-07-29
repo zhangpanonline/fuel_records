@@ -111,3 +111,61 @@
 2026-07-28 16:22:21 | INFO     | main:lifespan:19 - 应用启动中...
 2026-07-28 16:22:21 | INFO     | database:init_db:64 - 数据库表结构已创建/验证完成
 2026-07-28 16:22:21 | INFO     | main:lifespan:21 - 应用启动完成
+2026-07-29 08:08:09 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-07-29 08:08:19 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-07-29 08:08:23 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-07-29 08:08:23 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-07-29 08:08:23 | INFO     | main:lifespan:19 - 应用启动中...
+2026-07-29 08:08:23 | INFO     | database:init_db:64 - 数据库表结构已创建/验证完成
+2026-07-29 08:08:23 | INFO     | main:lifespan:21 - 应用启动完成
+2026-07-29 08:08:23 | INFO     | main:lifespan:23 - 应用关闭
+2026-07-29 08:08:28 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-07-29 08:08:28 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-07-29 08:08:28 | INFO     | main:lifespan:19 - 应用启动中...
+2026-07-29 08:08:28 | INFO     | database:init_db:64 - 数据库表结构已创建/验证完成
+2026-07-29 08:08:28 | INFO     | main:lifespan:21 - 应用启动完成
+2026-07-29 08:08:28 | INFO     | main:lifespan:23 - 应用关闭
+2026-07-29 08:08:33 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-07-29 08:08:33 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-07-29 08:08:33 | INFO     | main:lifespan:19 - 应用启动中...
+2026-07-29 08:08:33 | INFO     | database:init_db:64 - 数据库表结构已创建/验证完成
+2026-07-29 08:08:33 | INFO     | main:lifespan:21 - 应用启动完成
+2026-07-29 08:08:33 | INFO     | main:lifespan:23 - 应用关闭
+2026-07-29 08:08:38 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-07-29 08:08:38 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-07-29 08:08:38 | INFO     | main:lifespan:19 - 应用启动中...
+2026-07-29 08:08:38 | INFO     | database:init_db:64 - 数据库表结构已创建/验证完成
+2026-07-29 08:08:38 | INFO     | main:lifespan:21 - 应用启动完成
+2026-07-29 11:18:57 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-07-29 11:19:12 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-07-29 11:19:19 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-07-29 11:19:19 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-07-29 11:19:19 | INFO     | main:lifespan:19 - 应用启动中...
+2026-07-29 11:19:19 | INFO     | database:init_db:64 - 数据库表结构已创建/验证完成
+2026-07-29 11:19:19 | INFO     | main:lifespan:21 - 应用启动完成
+2026-07-29 11:19:19 | INFO     | main:lifespan:23 - 应用关闭
+2026-07-29 11:19:36 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-07-29 11:19:36 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-07-29 11:19:36 | INFO     | main:lifespan:19 - 应用启动中...
+2026-07-29 11:19:36 | INFO     | database:init_db:64 - 数据库表结构已创建/验证完成
+2026-07-29 11:19:36 | INFO     | main:lifespan:21 - 应用启动完成
+2026-07-29 11:33:19 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-07-29 11:33:35 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-07-29 11:33:36 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-07-29 11:33:41 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-07-29 11:33:41 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-07-29 11:33:41 | INFO     | main:lifespan:19 - 应用启动中...
+2026-07-29 11:33:41 | INFO     | database:init_db:64 - 数据库表结构已创建/验证完成
+2026-07-29 11:33:41 | INFO     | main:lifespan:21 - 应用启动完成
+2026-07-29 11:33:41 | INFO     | main:lifespan:23 - 应用关闭
+2026-07-29 11:33:46 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-07-29 11:33:46 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-07-29 11:33:46 | INFO     | main:lifespan:19 - 应用启动中...
+2026-07-29 11:33:46 | INFO     | database:init_db:64 - 数据库表结构已创建/验证完成
+2026-07-29 11:33:46 | INFO     | main:lifespan:21 - 应用启动完成
+2026-07-29 11:33:46 | INFO     | main:lifespan:23 - 应用关闭
+2026-07-29 11:33:51 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-07-29 11:33:51 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-07-29 11:33:51 | INFO     | main:lifespan:19 - 应用启动中...
+2026-07-29 11:33:51 | INFO     | database:init_db:64 - 数据库表结构已创建/验证完成
+2026-07-29 11:33:51 | INFO     | main:lifespan:21 - 应用启动完成

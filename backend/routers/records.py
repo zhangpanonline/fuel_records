@@ -60,7 +60,7 @@ def api_update_record(
         raise HTTPException(status_code=400, detail=str(e))
 
 
-@router.delete("/{record_id}", response_model=FuelRecordResponse)
+@router.delete("/{record_id}")
 def api_delete_record(
     record_id: int,
     db: Session = Depends(get_db),
@@ -68,6 +68,7 @@ def api_delete_record(
 ):
     """删除加油记录（只能删除自己的记录）"""
     try:
-        return delete_record(db=db, record_id=record_id, user_id=current_user.id)
+        delete_record(db=db, record_id=record_id, user_id=current_user.id)
+        return {"detail": "删除成功"}
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))

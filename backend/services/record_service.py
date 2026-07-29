@@ -189,9 +189,13 @@ def delete_record(db: Session, record_id: int, user_id: int) -> FuelRecord:
     if db_record.user_id != user_id:
         raise ValueError("无权删除此记录")
 
-    total = db.query(FuelRecord).filter(FuelRecord.user_id == user_id).count()
+    total = (
+        db.query(FuelRecord)
+        .filter(FuelRecord.user_id == user_id, FuelRecord.vehicle_id == db_record.vehicle_id)
+        .count()
+    )
     if total == 1 and db_record.is_baseline:
-        raise ValueError("这是唯一的基线记录，无法删除。请先添加一条新记录后再删除。")
+        raise ValueError("这是该车辆唯一的基线记录，无法删除。请先添加一条新记录后再删除。")
 
     record_date = db_record.record_date
     vehicle_id = db_record.vehicle_id

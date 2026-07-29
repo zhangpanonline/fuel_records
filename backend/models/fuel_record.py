@@ -16,6 +16,7 @@ class FuelRecord(Base):
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=True, comment="所属用户")
+    vehicle_id = Column(Integer, ForeignKey("vehicles.id"), nullable=True, comment="所属车辆")
     mileage = Column(Numeric(10, 1), nullable=False, comment="当前里程表读数 (km)")
     fuel_volume = Column(Numeric(10, 2), nullable=False, comment="加油量 (L)")
     fuel_cost = Column(Numeric(10, 2), nullable=False, comment="加油金额 (元)")
@@ -28,5 +29,7 @@ class FuelRecord(Base):
     created_at = Column(DateTime, server_default=func.now(), comment="创建时间")
 
     # 多对一关系：多条加油记录属于同一个用户
-    # back_populates="records" 对应 User 模型里的 records 属性
     user = relationship("User", back_populates="records")
+
+    # 多对一关系：多条加油记录属于同一辆车
+    vehicle = relationship("Vehicle", back_populates="records")

@@ -6,6 +6,7 @@ from pydantic import BaseModel, Field
 
 class FuelRecordCreate(BaseModel):
     """创建加油记录时的请求体"""
+    vehicle_id: int = Field(..., gt=0, description="所属车辆 ID")
     mileage: Decimal = Field(..., decimal_places=1, gt=0, description="当前里程表读数 (km)")
     fuel_volume: Decimal = Field(..., decimal_places=2, gt=0, description="加油量 (L)")
     fuel_cost: Decimal = Field(..., decimal_places=2, gt=0, description="加油金额 (元)")
@@ -13,10 +14,16 @@ class FuelRecordCreate(BaseModel):
     note: str = Field("", description="备注")
 
 
-class FuelRecordResponse(FuelRecordCreate):
+class FuelRecordResponse(BaseModel):
     """加油记录响应体"""
     id: int
+    vehicle_id: int | None = None
     user_id: int | None = None
+    mileage: Decimal
+    fuel_volume: Decimal
+    fuel_cost: Decimal
+    is_full_tank: bool
+    note: str
     unit_price: Decimal | None = None
     is_baseline: bool = False
     fuel_consumption: Decimal | None = None

@@ -5,12 +5,25 @@ import {
   createRecord,
   updateRecord,
   deleteRecord,
+  fetchVehicles,
+  createVehicle,
   clearToken,
   type FuelRecord,
+  type Vehicle,
 } from './services/api'
 import './App.css'
 
+const VEHICLE_KEY = 'fuel_records_vehicle_id'
+
 function App() {
+  // ---- 车辆状态 ----
+  const [vehicles, setVehicles] = useState<Vehicle[]>([])
+  const [selectedVehicleId, setSelectedVehicleId] = useState<number | null>(null)
+  const [showAddVehicle, setShowAddVehicle] = useState(false)
+  const [newVehicleName, setNewVehicleName] = useState('')
+  const [newVehiclePlate, setNewVehiclePlate] = useState('')
+  const [newVehicleMileage, setNewVehicleMileage] = useState('')
+
   // ---- 表单状态 ----
   const [mileage, setMileage] = useState('')
   const [fuelVolume, setFuelVolume] = useState('')
@@ -23,15 +36,46 @@ function App() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
 
+  // 加载车辆列表
   useEffect(() => {
-    loadRecords()
+    loadVehicles()
   }, [])
 
-  async function loadRecords() {
+  // 车辆变化时加载对应记录
+  useEffect(() => {
+    if (selectedVehicleId !== null) {
+      loadRecords(selectedVehicleId)
+      localStorage.setItem(VEHICLE_KEY, String(selectedVehicleId))
+    }
+  }, [selectedVehicleId])
+
+  async function loadVehicles() {
+    try {
+      const list = await fetchVehicles()
+      if (list.length === 0) {
+        // 没有车辆，显示添加界面
+        setShowAddVehicle(true)
+        setRecords([])
+        setLoading(false)
+        return
+      }
+      setVehicles(list)
+      // 恢复上次选中的车辆，或默认选第一个
+      const savedId = localStorage.getItem(VEHICLE_KEY)
+      const saved = savedId ? Number(savedId) : null
+      const exists = list.find((v) => v.id === saved)
+      setSelectedVehicleId(exists ? saved! : list[0].id)
+    } catch {
+      setError('加载车辆列表失败')
+      setLoading(false)
+    }
+  }
+
+  async function loadRecords(vehicleId: number) {
     setLoading(true)
     setError('')
     try {
-      const data = await fetchRecords()
+      const data = await fetchRecords(1, 20, vehicleId)
       setRecords(data.records)
     } catch {
       setError('加载记录失败，请检查网络连接')
@@ -40,8 +84,40 @@ function App() {
     }
   }
 
+  async function handleAddVehicle(e: FormEvent) {
+    e.preventDefault()
+    if (!newVehicleName.trim() || !newVehicleMileage) {
+      alert('请填写车辆名称和初始里程')
+      return
+    }
+    try {
+      const v = await createVehicle({
+        name: newVehicleName.trim(),
+        plate: newVehiclePlate.trim() || undefined,
+        initial_mileage: Number(newVehicleMileage),
+      })
+      setVehicles([...vehicles, v])
+      setNewVehicleName('')
+      setNewVehiclePlate('')
+      setNewVehicleMileage('')
+      setShowAddVehicle(false)
+      setSelectedVehicleId(v.id)
+    } catch (err: unknown) {
+      let msg = '添加车辆失败'
+      if (axios.isAxiosError(err) && err.response?.data?.detail) {
+        msg = err.response.data.detail
+      }
+      alert(msg)
+    }
+  }
+
   async function handleSubmit(e: FormEvent) {
     e.preventDefault()
+
+    if (selectedVehicleId === null) {
+      alert('请先添加一辆车')
+      return
+    }
 
     const km = Number(mileage)
     const vol = Number(fuelVolume)
@@ -61,6 +137,7 @@ function App() {
         })
       } else {
         await createRecord({
+          vehicle_id: selectedVehicleId,
           mileage: km,
           fuel_volume: vol,
           fuel_cost: cost,
@@ -70,7 +147,7 @@ function App() {
       setFuelVolume('')
       setFuelCost('')
       setEditingId(null)
-      await loadRecords()
+      await loadRecords(selectedVehicleId)
     } catch (err: unknown) {
       let msg = '操作失败，请重试'
       if (axios.isAxiosError(err) && err.response?.data?.detail) {
@@ -88,7 +165,9 @@ function App() {
     if (!window.confirm('确定要删除这条加油记录吗？')) return
     try {
       await deleteRecord(id)
-      await loadRecords()
+      if (selectedVehicleId !== null) {
+        await loadRecords(selectedVehicleId)
+      }
     } catch (err: unknown) {
       let msg = '删除失败，请重试'
       if (axios.isAxiosError(err) && err.response?.data?.detail) {
@@ -124,6 +203,8 @@ function App() {
     return `${d.getMonth() + 1}月${d.getDate()}日 ${d.getHours().toString().padStart(2, '0')}:${d.getMinutes().toString().padStart(2, '0')}`
   }
 
+  const currentVehicle = vehicles.find((v) => v.id === selectedVehicleId)
+
   return (
     <div className="app">
       <div className="header">
@@ -133,103 +214,173 @@ function App() {
         </button>
       </div>
 
-      {/* 录入表单 */}
-      <form className="record-form" onSubmit={handleSubmit} key={editingId ?? 'new'}>
-        <div className="form-row">
-          <label>
-            里程 (km)
-            <input
-              type="number"
-              step="0.1"
-              min="0"
-              placeholder="如 52345.5"
-              value={mileage}
-              onChange={(e) => setMileage(e.target.value)}
-              required
-            />
-          </label>
-          <label>
-            油量 (L)
-            <input
-              type="number"
-              step="0.01"
-              min="0"
-              placeholder="如 12.50"
-              value={fuelVolume}
-              onChange={(e) => setFuelVolume(e.target.value)}
-              required
-            />
-          </label>
-          <label>
-            金额 (元)
-            <input
-              type="number"
-              step="0.01"
-              min="0"
-              placeholder="如 98.75"
-              value={fuelCost}
-              onChange={(e) => setFuelCost(e.target.value)}
-              required
-            />
-          </label>
-        </div>
-        <button type="submit" className="submit-btn" disabled={submitting}>
-          {submitting ? '提交中...' : editingId !== null ? '更新记录' : '提交记录'}
-        </button>
-        {editingId !== null && (
-          <button type="button" className="cancel-btn" onClick={handleCancelEdit}>
-            取消编辑
+      {/* 车辆选择器 */}
+      {vehicles.length > 0 && (
+        <div className="vehicle-bar">
+          <select
+            className="vehicle-select"
+            value={selectedVehicleId ?? ''}
+            onChange={(e) => setSelectedVehicleId(Number(e.target.value))}
+          >
+            {vehicles.map((v) => (
+              <option key={v.id} value={v.id}>
+                {v.name}
+                {v.plate ? ` (${v.plate})` : ''}
+              </option>
+            ))}
+          </select>
+          <button
+            className="add-vehicle-btn"
+            onClick={() => setShowAddVehicle(!showAddVehicle)}
+          >
+            {showAddVehicle ? '收起' : '+ 添加车辆'}
           </button>
-        )}
-      </form>
+        </div>
+      )}
+
+      {/* 添加车辆表单 */}
+      {showAddVehicle && (
+        <form className="vehicle-form" onSubmit={handleAddVehicle}>
+          <input
+            type="text"
+            placeholder="车辆名称 (如 KPT400)"
+            value={newVehicleName}
+            onChange={(e) => setNewVehicleName(e.target.value)}
+            required
+          />
+          <input
+            type="text"
+            placeholder="车牌号 (可选)"
+            value={newVehiclePlate}
+            onChange={(e) => setNewVehiclePlate(e.target.value)}
+          />
+          <input
+            type="number"
+            step="0.1"
+            placeholder="初始里程 (km)"
+            value={newVehicleMileage}
+            onChange={(e) => setNewVehicleMileage(e.target.value)}
+            required
+          />
+          <button type="submit" className="submit-btn">
+            添加
+          </button>
+        </form>
+      )}
+
+      {/* 录入表单 */}
+      {currentVehicle && (
+        <form className="record-form" onSubmit={handleSubmit} key={editingId ?? 'new'}>
+          <p className="form-hint">
+            当前车辆：<strong>{currentVehicle.name}</strong>
+          </p>
+          <div className="form-row">
+            <label>
+              里程 (km)
+              <input
+                type="number"
+                step="0.1"
+                min="0"
+                placeholder="如 52345.5"
+                value={mileage}
+                onChange={(e) => setMileage(e.target.value)}
+                required
+              />
+            </label>
+            <label>
+              油量 (L)
+              <input
+                type="number"
+                step="0.01"
+                min="0"
+                placeholder="如 12.50"
+                value={fuelVolume}
+                onChange={(e) => setFuelVolume(e.target.value)}
+                required
+              />
+            </label>
+            <label>
+              金额 (元)
+              <input
+                type="number"
+                step="0.01"
+                min="0"
+                placeholder="如 98.75"
+                value={fuelCost}
+                onChange={(e) => setFuelCost(e.target.value)}
+                required
+              />
+            </label>
+          </div>
+          <button type="submit" className="submit-btn" disabled={submitting}>
+            {submitting ? '提交中...' : editingId !== null ? '更新记录' : '提交记录'}
+          </button>
+          {editingId !== null && (
+            <button type="button" className="cancel-btn" onClick={handleCancelEdit}>
+              取消编辑
+            </button>
+          )}
+        </form>
+      )}
 
       {/* 记录列表 */}
-      <section className="records-section">
-        <h2>历史记录</h2>
+      {currentVehicle && (
+        <section className="records-section">
+          <h2>历史记录</h2>
 
-        {loading && <p className="status-text">加载中...</p>}
-        {error && <p className="status-text error">{error}</p>}
+          {loading && <p className="status-text">加载中...</p>}
+          {error && <p className="status-text error">{error}</p>}
 
-        {!loading && !error && records?.length === 0 && (
-          <p className="status-text empty">还没记录，去加一箱油吧 🏍️</p>
-        )}
+          {!loading && !error && records?.length === 0 && (
+            <p className="status-text empty">还没记录，去加一箱油吧 🏍️</p>
+          )}
 
-        {!loading && records?.length > 0 && (
-          <ul className="records-list">
-            {records.map((r) => (
-              <li key={r.id} className={`record-item ${r.is_baseline ? 'baseline' : ''}`}>
-                <div className="record-main">
-                  <span className="record-mileage">{r.mileage.toFixed(1)} km</span>
-                  <span className="record-vol">{r.fuel_volume.toFixed(2)} L</span>
-                  <span className="record-cost">¥{r.fuel_cost.toFixed(2)}</span>
-                </div>
-                <div className="record-detail">
-                  {r.is_baseline ? (
-                    <span className="baseline-tag">基线记录</span>
-                  ) : r.fuel_consumption != null ? (
-                    <span className="record-consumption">
-                      油耗：{r.fuel_consumption.toFixed(2)} L/100km
-                    </span>
-                  ) : (
-                    <span className="record-consumption no-data">
-                      未加满，未计算油耗
-                    </span>
-                  )}
-                  <span className="record-date">{formatDate(r.record_date)}</span>
-                </div>
-                <div className="record-actions">
-                  <button className="edit-btn" onClick={() => handleEdit(r)}>
-                    编辑
-                  </button>
-                  <button className="delete-btn" onClick={() => handleDelete(r.id)}>
-                    删除
-                  </button>
-                </div>
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
+          {!loading && records?.length > 0 && (
+            <ul className="records-list">
+              {records.map((r) => (
+                <li key={r.id} className={`record-item ${r.is_baseline ? 'baseline' : ''}`}>
+                  <div className="record-main">
+                    <span className="record-mileage">{r.mileage.toFixed(1)} km</span>
+                    <span className="record-vol">{r.fuel_volume.toFixed(2)} L</span>
+                    <span className="record-cost">¥{r.fuel_cost.toFixed(2)}</span>
+                  </div>
+                  <div className="record-detail">
+                    {r.is_baseline ? (
+                      <span className="baseline-tag">基线记录</span>
+                    ) : r.fuel_consumption != null ? (
+                      <span className="record-consumption">
+                        油耗：{r.fuel_consumption.toFixed(2)} L/100km
+                      </span>
+                    ) : (
+                      <span className="record-consumption no-data">
+                        未加满，未计算油耗
+                      </span>
+                    )}
+                    <span className="record-date">{formatDate(r.record_date)}</span>
+                  </div>
+                  <div className="record-actions">
+                    <button className="edit-btn" onClick={() => handleEdit(r)}>
+                      编辑
+                    </button>
+                    <button className="delete-btn" onClick={() => handleDelete(r.id)}>
+                      删除
+                    </button>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+      )}
+
+      {/* 没有车辆时的引导 */}
+      {!currentVehicle && !loading && (
+        <section className="records-section">
+          <p className="status-text empty">
+            还没有添加车辆，请点击"+ 添加车辆"开始记录
+          </p>
+        </section>
+      )}
     </div>
   )
 }

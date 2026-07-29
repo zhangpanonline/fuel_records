@@ -20,5 +20,7 @@ class User(Base):
     updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now(), comment="更新时间")
 
     # 一对多关系：一个用户有多条加油记录
-    # back_populates="user" 是双向绑定，FuelRecord 里也有一个 user 属性指向这里
     records = relationship("FuelRecord", back_populates="user")
+
+    # 一对多关系：一个用户有多辆车
+    vehicles = relationship("Vehicle", back_populates="user")

@@ -330,3 +330,83 @@ body {
   padding: 0 4px;
   text-decoration: underline;
 }
+
+/* ---- 车辆选择器 ---- */
+.vehicle-bar {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.vehicle-select {
+  flex: 1;
+  padding: 10px 12px;
+  font-size: 15px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  background: white;
+  outline: none;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23888' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  padding-right: 36px;
+}
+
+.vehicle-select:focus {
+  border-color: #4a90d9;
+}
+
+.add-vehicle-btn {
+  padding: 10px 14px;
+  font-size: 14px;
+  white-space: nowrap;
+  color: #4a90d9;
+  background: white;
+  border: 1px solid #4a90d9;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.add-vehicle-btn:hover {
+  background: #4a90d9;
+  color: white;
+}
+
+/* ---- 添加车辆表单 ---- */
+.vehicle-form {
+  background: white;
+  border-radius: 12px;
+  padding: 16px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  margin-bottom: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.vehicle-form input {
+  width: 100%;
+  padding: 10px 12px;
+  font-size: 15px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.vehicle-form input:focus {
+  border-color: #4a90d9;
+}
+
+.vehicle-form .submit-btn {
+  margin-top: 4px;
+}
+
+/* ---- 表单提示 ---- */
+.form-hint {
+  font-size: 13px;
+  color: #888;
+  margin-bottom: 8px;
+}

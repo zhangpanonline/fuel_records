@@ -36,7 +36,8 @@ fuel_records/
 │   ├── database.py               # 数据库连接管理
 │   │                             # 关键对象：engine（连接池）、SessionLocal（会话工厂）
 │   │                             #          Base（ORM 基类）
-│   │                             # 关键函数：init_db()（建表）、get_db()（依赖注入）
+│   │                             # 关键函数：init_db()（建表 + 迁移）_migrate_add_column()（P5 新增）
+│   │                             #          get_db()（依赖注入）
 │   │                             # connect_args: check_same_thread 仅对 SQLite 生效，PostgreSQL 不走此参数
 │   │
 │   ├── logger.py                 # 日志配置：loguru
@@ -56,47 +57,65 @@ fuel_records/
 │   │   ├── user.py               # User 模型：用户表（P4 新增）
 │   │   │                         # └ 字段：id, username(unique), email(unique),
 │   │   │                         #          hashed_password, is_active, created_at, updated_at
-│   │   │                         # └ 关系：records → FuelRecord（一对多）
-│   │   └── fuel_record.py        # FuelRecord 模型：加油记录表
-│   │                             # └ 字段：id, user_id(FK), mileage, fuel_volume, fuel_cost,
-│   │                             #          unit_price, is_full_tank, is_baseline,
-│   │                             #          fuel_consumption, note, record_date, created_at
-│   │                             # └ 关系：user → User（多对一，P4 新增）
+│   │   │                         # └ 关系：records → FuelRecord（一对多）, vehicles → Vehicle（一对多，P5 新增）
+│   │   ├── fuel_record.py        # FuelRecord 模型：加油记录表
+│   │   │                         # └ 字段：id, user_id(FK), vehicle_id(FK, P5新增), mileage, fuel_volume, fuel_cost,
+│   │   │                         #          unit_price, is_full_tank, is_baseline,
+│   │   │                         #          fuel_consumption, note, record_date, created_at
+│   │   │                         # └ 关系：user → User（多对一）, vehicle → Vehicle（多对一，P5 新增）
+│   │   └── vehicle.py            # Vehicle 模型：车辆表（P5 新增）
+│   │                             # └ 字段：id, user_id(FK), name, plate(可选),
+│   │                             #          initial_mileage, is_active, created_at
+│   │                             # └ 关系：user → User（多对一）, records → FuelRecord（一对多）
 │   │
 │   ├── schemas/                  # Pydantic Schema 层：API 请求/响应数据格式
 │   │   ├── __init__.py           # Python 包标记
 │   │   ├── record.py             # 加油记录 Schema
-│   │   │                         # ├ FuelRecordCreate → 创建记录（校验 mileage>0 等）
-│   │   │                         # ├ FuelRecordResponse → 响应格式（含 id, user_id, unit_price 等）
+│   │   │                         # ├ FuelRecordCreate → 创建记录（含 vehicle_id，P5 新增）
+│   │   │                         # ├ FuelRecordResponse → 响应格式（含 id, user_id, vehicle_id 等）
 │   │   │                         # └ FuelRecordUpdate → 修改记录（所有字段可选）
-│   │   └── auth.py               # 认证 Schema（P4 新增）
-│   │                             # ├ UserRegister → 注册请求（username + password）
-│   │                             # ├ UserLogin → 登录请求
-│   │                             # ├ TokenResponse → JWT 响应
-│   │                             # └ UserResponse → 用户信息响应
+│   │   ├── auth.py               # 认证 Schema（P4 新增）
+│   │   │                         # ├ UserRegister → 注册请求（username + password）
+│   │   │                         # ├ UserLogin → 登录请求
+│   │   │                         # ├ TokenResponse → JWT 响应
+│   │   │                         # └ UserResponse → 用户信息响应
+│   │   └── vehicle.py            # 车辆 Schema（P5 新增）
+│   │                             # ├ VehicleCreate → 创建车辆（name + plate + initial_mileage）
+│   │                             # ├ VehicleUpdate → 修改车辆（name/plate/is_active 可选）
+│   │                             # └ VehicleResponse → 响应格式
 │   │
 │   ├── routers/                  # API 路由层：定义 HTTP 端点
 │   │   ├── __init__.py           # Python 包标记
 │   │   ├── records.py            # 加油记录路由
-│   │   │                         # ├ POST   /api/v1/records → 创建记录（需 JWT）
-│   │   │                         # ├ GET    /api/v1/records → 获取列表（按 user_id 过滤）
+│   │   │                         # ├ POST   /api/v1/records → 创建记录（需 JWT, 含 vehicle_id）
+│   │   │                         # ├ GET    /api/v1/records → 获取列表（按 user_id + vehicle_id 过滤）
 │   │   │                         # ├ PUT    /api/v1/records/{id} → 修改记录（校验归属）
 │   │   │                         # └ DELETE /api/v1/records/{id} → 删除记录（校验归属）
-│   │   └── auth.py               # 认证路由（P4 新增）
-│   │                             # ├ POST /api/v1/auth/register → 注册（返回 JWT）
-│   │                             # └ POST /api/v1/auth/login → 登录（返回 JWT）
+│   │   ├── auth.py               # 认证路由（P4 新增）
+│   │   │                         # ├ POST /api/v1/auth/register → 注册（返回 JWT）
+│   │   │                         # └ POST /api/v1/auth/login → 登录（返回 JWT）
+│   │   └── vehicles.py           # 车辆管理路由（P5 新增）
+│   │                             # ├ POST   /api/v1/vehicles        → 创建车辆
+│   │                             # ├ GET    /api/v1/vehicles        → 获取当前用户的车辆列表
+│   │                             # ├ PUT    /api/v1/vehicles/{id}   → 修改车辆信息
+│   │                             # └ DELETE /api/v1/vehicles/{id}   → 删除车辆（校验无关联记录）
 │   │
 │   ├── services/                 # 业务逻辑层：核心算法
 │   │   ├── __init__.py           # Python 包标记
 │   │   ├── record_service.py     # 油耗计算服务
-│   │   │                         # ├ create_record()            → 创建 + 油耗计算 + 里程校验（P4: 加 user_id）
-│   │   │                         # ├ get_records()              → 分页查询（P4: 按 user_id 过滤）
-│   │   │                         # ├ recalculate_consumption()  → 级联重算油耗（P2 新增）
-│   │   │                         # ├ update_record()            → 修改记录（P4: 校验归属）
-│   │   │                         # └ delete_record()            → 删除记录 + 基线保护（P4: 校验归属）
-│   │   └── auth_service.py        # 认证服务（P4 新增）
-│   │                             # ├ register_user() → 注册（用户名唯一性 + 密码哈希 + 签发 JWT）
-│   │                             # └ login_user()    → 登录（密码验证 + 签发 JWT）
+│   │   │                         # ├ create_record()            → 创建 + 油耗计算 + 里程校验 + 车辆归属校验（P5）
+│   │   │                         # ├ get_records()              → 分页查询（按 user_id + vehicle_id 过滤）
+│   │   │                         # ├ recalculate_consumption()  → 级联重算油耗（按 vehicle_id 隔离，P5）
+│   │   │                         # ├ update_record()            → 修改记录（校验归属）
+│   │   │                         # └ delete_record()            → 删除记录 + 基线保护（校验归属）
+│   │   ├── auth_service.py        # 认证服务（P4 新增）
+│   │   │                         # ├ register_user() → 注册（用户名唯一性 + 密码哈希 + 签发 JWT）
+│   │   │                         # └ login_user()    → 登录（密码验证 + 签发 JWT）
+│   │   └── vehicle_service.py    # 车辆管理服务（P5 新增）
+│   │                             # ├ create_vehicle()   → 创建车辆
+│   │                             # ├ get_vehicles()     → 获取当前用户的车辆列表
+│   │                             # ├ update_vehicle()   → 修改车辆（校验归属）
+│   │                             # └ delete_vehicle()   → 删除车辆（校验归属 + 无关联记录）
 │   │
 │   └── core/                     # 基础设施层
 │       ├── __init__.py           # Python 包标记
@@ -131,8 +150,9 @@ fuel_records/
 │   │
 │   └── src/                      # React 源码
 │       ├── main.tsx              # React 入口：BrowserRouter + Routes 路由配置（P4 新增路由守卫）
-│       ├── App.tsx               # 主页面：加油表单 + 记录列表 + 退出登录按钮
+│       ├── App.tsx               # 主页面：加油表单 + 记录列表 + 车辆选择器（P5 新增）+ 退出登录按钮
 │       │                         # └ P4 新增：退出登录（clearToken + 跳转）
+│       │                         # └ P5 新增：车辆下拉选择器 + 添加车辆表单 + localStorage 记忆
 │       ├── App.css               # 样式：卡片布局、按钮、基线标记 + 登录/注册表单（P4 新增）
 │       ├── pages/
 │       │   └── LoginPage.tsx     # 登录/注册页面（P4 新增）

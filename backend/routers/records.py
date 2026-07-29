@@ -31,9 +31,13 @@ def api_get_records(
     current_user: User = Depends(get_current_user),
     page: int = 1,
     page_size: int = 20,
+    vehicle_id: int | None = None,
 ):
-    """获取当前用户的加油记录列表（分页）"""
-    records, total = get_records(db=db, page=page, page_size=page_size, user_id=current_user.id)
+    """获取当前用户的加油记录列表（分页），可按车辆筛选"""
+    records, total = get_records(
+        db=db, page=page, page_size=page_size,
+        user_id=current_user.id, vehicle_id=vehicle_id,
+    )
     return {
         "total": total,
         "page": page,

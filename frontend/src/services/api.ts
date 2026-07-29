@@ -11,6 +11,7 @@ import axios from 'axios'
 export interface FuelRecord {
   id: number
   user_id: number | null
+  vehicle_id: number | null
   mileage: number
   fuel_volume: number
   fuel_cost: number
@@ -24,11 +25,28 @@ export interface FuelRecord {
 }
 
 export interface CreateRecordPayload {
+  vehicle_id: number
   mileage: number
   fuel_volume: number
   fuel_cost: number
   is_full_tank?: boolean
   note?: string
+}
+
+export interface Vehicle {
+  id: number
+  user_id: number
+  name: string
+  plate: string | null
+  initial_mileage: number
+  is_active: boolean
+  created_at: string
+}
+
+export interface CreateVehiclePayload {
+  name: string
+  plate?: string
+  initial_mileage: number
 }
 
 export interface RecordsResponse {
@@ -62,6 +80,7 @@ function parseRecord(raw: Record<string, unknown>): FuelRecord {
   return {
     id: raw.id as number,
     user_id: (raw.user_id as number) ?? null,
+    vehicle_id: (raw.vehicle_id as number) ?? null,
     mileage: Number(raw.mileage),
     fuel_volume: Number(raw.fuel_volume),
     fuel_cost: Number(raw.fuel_cost),
@@ -162,10 +181,13 @@ export async function createRecord(
 export async function fetchRecords(
   page = 1,
   pageSize = 20,
+  vehicleId?: number,
 ): Promise<RecordsResponse> {
-  const res = await apiClient.get<RecordsResponse>('/api/v1/records/', {
-    params: { page, page_size: pageSize },
-  })
+  const params: Record<string, number> = { page, page_size: pageSize }
+  if (vehicleId !== undefined) {
+    params.vehicle_id = vehicleId
+  }
+  const res = await apiClient.get<RecordsResponse>('/api/v1/records/', { params })
   return {
     total: res.data.total,
     page: res.data.page,
@@ -184,4 +206,30 @@ export async function updateRecord(
 
 export async function deleteRecord(id: number): Promise<void> {
   await apiClient.delete(`/api/v1/records/${id}`)
+}
+
+// ---- Vehicles API ----
+
+export async function fetchVehicles(): Promise<Vehicle[]> {
+  const res = await apiClient.get<Vehicle[]>('/api/v1/vehicles/')
+  return res.data
+}
+
+export async function createVehicle(
+  payload: CreateVehiclePayload,
+): Promise<Vehicle> {
+  const res = await apiClient.post<Vehicle>('/api/v1/vehicles/', payload)
+  return res.data
+}
+
+export async function updateVehicle(
+  id: number,
+  payload: { name?: string; plate?: string; is_active?: boolean },
+): Promise<Vehicle> {
+  const res = await apiClient.put<Vehicle>(`/api/v1/vehicles/${id}`, payload)
+  return res.data
+}
+
+export async function deleteVehicle(id: number): Promise<void> {
+  await apiClient.delete(`/api/v1/vehicles/${id}`)
 }

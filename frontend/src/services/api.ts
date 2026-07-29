@@ -101,3 +101,26 @@ export async function fetchRecords(
     records: (res.data.records as unknown as Record<string, unknown>[]).map(parseRecord),
   }
 }
+
+/** 修改记录的请求体（所有字段可选） */
+export interface UpdateRecordPayload {
+  mileage?: number
+  fuel_volume?: number
+  fuel_cost?: number
+  is_full_tank?: boolean
+  note?: string
+}
+
+/** 修改加油记录 */
+export async function updateRecord(
+  id: number,
+  payload: UpdateRecordPayload
+): Promise<FuelRecord> {
+  const res = await apiClient.put<FuelRecord>(`/api/v1/records/${id}`, payload)
+  return parseRecord(res.data as unknown as Record<string, unknown>)
+}
+
+/** 删除加油记录 */
+export async function deleteRecord(id: number): Promise<void> {
+  await apiClient.delete(`/api/v1/records/${id}`)
+}

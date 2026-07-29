@@ -3,7 +3,10 @@ import axios from 'axios'
 import {
   fetchRecords,
   createRecord,
+  updateRecord,
+  deleteRecord,
   type FuelRecord,
+  type UpdateRecordPayload,
 } from './services/api'
 import './App.css'
 
@@ -13,6 +16,7 @@ function App() {
   const [fuelVolume, setFuelVolume] = useState('')
   const [fuelCost, setFuelCost] = useState('')
   const [submitting, setSubmitting] = useState(false)
+  const [editingId, setEditingId] = useState<number | null>(null)
 
   // ---- 列表状态 ----
   const [records, setRecords] = useState<FuelRecord[]>([])
@@ -37,7 +41,7 @@ function App() {
     }
   }
 
-  // ---- 提交表单 ----
+  // ---- 提交表单（新建 / 修改） ----
   async function handleSubmit(e: FormEvent) {
     e.preventDefault()
 
@@ -52,19 +56,30 @@ function App() {
 
     setSubmitting(true)
     try {
-      await createRecord({
-        mileage: km,
-        fuel_volume: vol,
-        fuel_cost: cost,
-      })
-      // 清空表单
+      if (editingId !== null) {
+        // 修改模式
+        await updateRecord(editingId, {
+          mileage: km,
+          fuel_volume: vol,
+          fuel_cost: cost,
+        })
+      } else {
+        // 新建模式
+        await createRecord({
+          mileage: km,
+          fuel_volume: vol,
+          fuel_cost: cost,
+        })
+      }
+      // 清空表单 + 退出编辑
       setMileage('')
       setFuelVolume('')
       setFuelCost('')
+      setEditingId(null)
       // 刷新列表
       await loadRecords()
     } catch (err: unknown) {
-      let msg = '提交失败，请重试'
+      let msg = '操作失败，请重试'
       if (axios.isAxiosError(err) && err.response?.data?.detail) {
         msg = err.response.data.detail
       } else if (err instanceof Error) {
@@ -74,6 +89,39 @@ function App() {
     } finally {
       setSubmitting(false)
     }
+  }
+
+  // ---- 删除记录 ----
+  async function handleDelete(id: number) {
+    if (!window.confirm('确定要删除这条加油记录吗？')) return
+
+    try {
+      await deleteRecord(id)
+      await loadRecords()
+    } catch (err: unknown) {
+      let msg = '删除失败，请重试'
+      if (axios.isAxiosError(err) && err.response?.data?.detail) {
+        msg = err.response.data.detail
+      } else if (err instanceof Error) {
+        msg = err.message
+      }
+      alert(msg)
+    }
+  }
+
+  // ---- 编辑 / 取消编辑 ----
+  function handleEdit(record: FuelRecord) {
+    setEditingId(record.id)
+    setMileage(record.mileage.toString())
+    setFuelVolume(record.fuel_volume.toString())
+    setFuelCost(record.fuel_cost.toString())
+  }
+
+  function handleCancelEdit() {
+    setEditingId(null)
+    setMileage('')
+    setFuelVolume('')
+    setFuelCost('')
   }
 
   // ---- 格式化日期 ----
@@ -127,8 +175,17 @@ function App() {
           </label>
         </div>
         <button type="submit" className="submit-btn" disabled={submitting}>
-          {submitting ? '提交中...' : '提交记录'}
+          {submitting ? '提交中...' : editingId !== null ? '更新记录' : '提交记录'}
         </button>
+        {editingId !== null && (
+          <button
+            type="button"
+            className="cancel-btn"
+            onClick={handleCancelEdit}
+          >
+            取消编辑
+          </button>
+        )}
       </form>
 
       {/* ---- 记录列表 ---- */}
@@ -175,6 +232,20 @@ function App() {
                     </span>
                   )}
                   <span className="record-date">{formatDate(r.record_date)}</span>
+                </div>
+                <div className="record-actions">
+                  <button
+                    className="edit-btn"
+                    onClick={() => handleEdit(r)}
+                  >
+                    编辑
+                  </button>
+                  <button
+                    className="delete-btn"
+                    onClick={() => handleDelete(r.id)}
+                  >
+                    删除
+                  </button>
                 </div>
               </li>
             ))}

@@ -170,3 +170,59 @@ body {
   border-radius: 4px;
   font-size: 12px;
 }
+
+/* ---- 操作按钮 ---- */
+.record-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.delete-btn {
+  padding: 4px 12px;
+  font-size: 13px;
+  color: #e74c3c;
+  background: #fff;
+  border: 1px solid #e74c3c;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.delete-btn:hover {
+  background: #e74c3c;
+  color: #fff;
+}
+
+.edit-btn {
+  padding: 4px 12px;
+  font-size: 13px;
+  color: #4a90d9;
+  background: #fff;
+  border: 1px solid #4a90d9;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.edit-btn:hover {
+  background: #4a90d9;
+  color: #fff;
+}
+
+.cancel-btn {
+  width: 100%;
+  padding: 10px;
+  margin-top: 8px;
+  font-size: 14px;
+  color: #888;
+  background: #f5f5f5;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.cancel-btn:hover {
+  background: #e0e0e0;
+}

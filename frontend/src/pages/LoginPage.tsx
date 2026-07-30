@@ -1,6 +1,20 @@
-import { useState, type FormEvent } from 'react'
+import { useState, useEffect, type FormEvent } from 'react'
 import axios from 'axios'
 import { login, register, setToken } from '../services/api'
+
+const THEME_KEY = 'fuel_records_theme'
+
+function getTheme(): string {
+  return localStorage.getItem(THEME_KEY) || 'auto'
+}
+
+function applyTheme(theme: string) {
+  if (theme === 'auto') {
+    document.documentElement.removeAttribute('data-theme')
+  } else {
+    document.documentElement.setAttribute('data-theme', theme)
+  }
+}
 
 function LoginPage() {
   const [isRegister, setIsRegister] = useState(false)
@@ -8,6 +22,19 @@ function LoginPage() {
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [submitting, setSubmitting] = useState(false)
+  const [theme, setTheme] = useState(getTheme)
+
+  useEffect(() => {
+    applyTheme(theme)
+  }, [theme])
+
+  function handleToggleTheme() {
+    const next: Record<string, string> = { auto: 'light', light: 'dark', dark: 'auto' }
+    const newTheme = next[theme] || 'auto'
+    setTheme(newTheme)
+    localStorage.setItem(THEME_KEY, newTheme)
+    applyTheme(newTheme)
+  }
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault()
@@ -48,7 +75,12 @@ function LoginPage() {
 
   return (
     <div className="app">
-      <h1 className="title">⛽ 油耗记录</h1>
+      <div className="header">
+        <h1 className="title">油耗记录</h1>
+        <button className="theme-btn" onClick={handleToggleTheme}>
+          {theme === 'auto' ? '🌓' : theme === 'dark' ? '🌙' : '☀️'}
+        </button>
+      </div>
 
       {/* Tab 切换 */}
       <div className="auth-tabs">

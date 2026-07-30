@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import html2canvas from 'html2canvas'
 import {
   fetchVehicles,
   fetchSummary,
@@ -23,6 +24,19 @@ import {
 import './StatsPage.css'
 
 const VEHICLE_KEY = 'fuel_records_vehicle_id'
+const THEME_KEY = 'fuel_records_theme'
+
+function getTheme(): string {
+  return localStorage.getItem(THEME_KEY) || 'auto'
+}
+
+function applyTheme(theme: string) {
+  if (theme === 'auto') {
+    document.documentElement.removeAttribute('data-theme')
+  } else {
+    document.documentElement.setAttribute('data-theme', theme)
+  }
+}
 
 const MONTH_NAMES = [
   '', '1月', '2月', '3月', '4月', '5月', '6月',
@@ -37,6 +51,11 @@ function StatsPage() {
   const [year, setYear] = useState(new Date().getFullYear())
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [theme, setTheme] = useState(getTheme)
+
+  useEffect(() => {
+    applyTheme(theme)
+  }, [theme])
 
   useEffect(() => {
     loadVehicles()
@@ -89,6 +108,53 @@ function StatsPage() {
     window.location.href = '/'
   }
 
+  function handleToggleTheme() {
+    const next: Record<string, string> = { auto: 'light', light: 'dark', dark: 'auto' }
+    const newTheme = next[theme] || 'auto'
+    setTheme(newTheme)
+    localStorage.setItem(THEME_KEY, newTheme)
+    applyTheme(newTheme)
+  }
+
+  async function handleScreenshot() {
+    const el = document.getElementById('stats-content')
+    if (!el) return
+    try {
+      const canvas = await html2canvas(el, {
+        backgroundColor: null,
+        scale: 2,
+      })
+      const blob = await new Promise<Blob>((resolve, reject) => {
+        canvas.toBlob((b) => {
+          if (b) resolve(b)
+          else reject(new Error('截图失败'))
+        }, 'image/png')
+      })
+
+      // 尝试分享
+      if (navigator.share && navigator.canShare) {
+        const file = new File([blob], 'fuel_stats.png', { type: 'image/png' })
+        if (navigator.canShare({ files: [file] })) {
+          await navigator.share({ files: [file], title: '油耗统计' })
+          return
+        }
+      }
+
+      // 回退：下载
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = 'fuel_stats.png'
+      document.body.appendChild(a)
+      a.click()
+      document.body.removeChild(a)
+      URL.revokeObjectURL(url)
+    } catch (err: unknown) {
+      if (err instanceof DOMException && err.name === 'AbortError') return
+      alert('截图失败，请重试')
+    }
+  }
+
   const chartData = monthly?.months.map((m) => ({
     name: MONTH_NAMES[m.month],
     month: m.month,
@@ -106,9 +172,17 @@ function StatsPage() {
           ← 返回
         </button>
         <h1 className="title">数据统计</h1>
-        <button className="logout-btn" onClick={handleLogout}>
-          退出
-        </button>
+        <div className="header-actions">
+          <button className="export-btn" onClick={handleScreenshot}>
+            分享截图
+          </button>
+          <button className="theme-btn" onClick={handleToggleTheme}>
+            {theme === 'auto' ? '🌓' : theme === 'dark' ? '🌙' : '☀️'}
+          </button>
+          <button className="logout-btn" onClick={handleLogout}>
+            退出
+          </button>
+        </div>
       </div>
 
       {/* 车辆选择器 */}
@@ -133,7 +207,7 @@ function StatsPage() {
       {error && <p className="status-text error">{error}</p>}
 
       {!loading && !error && summary && (
-        <>
+        <div id="stats-content">
           {/* 概览卡片 */}
           <div className="stats-cards">
             <div className="stat-card">
@@ -263,7 +337,7 @@ function StatsPage() {
               </table>
             </div>
           )}
-        </>
+        </div>
       )}
 
       {!loading && !error && summary?.record_count === 0 && (

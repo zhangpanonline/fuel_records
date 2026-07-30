@@ -93,7 +93,8 @@ fuel_records/
 │   │   │                         # ├ POST   /api/v1/records → 创建记录（需 JWT, 含 vehicle_id）
 │   │   │                         # ├ GET    /api/v1/records → 获取列表（按 user_id + vehicle_id 过滤）
 │   │   │                         # ├ PUT    /api/v1/records/{id} → 修改记录（校验归属）
-│   │   │                         # └ DELETE /api/v1/records/{id} → 删除记录（校验归属）
+│   │   │                         # ├ DELETE /api/v1/records/{id} → 删除记录（校验归属）
+│   │   │                         # └ GET    /api/v1/records/export/csv → 导出 CSV（P8 新增）
 │   │   ├── auth.py               # 认证路由（P4 新增）
 │   │   │                         # ├ POST /api/v1/auth/register → 注册（返回 JWT）
 │   │   │                         # └ POST /api/v1/auth/login → 登录（返回 JWT）
@@ -143,7 +144,8 @@ fuel_records/
 │   │   ├── env.py                 # 迁移环境：导入项目 config + Base.metadata，支持 autogenerate
 │   │   ├── script.py.mako         # 迁移脚本模板
 │   │   └── versions/
-│   │       └── ff245e876ff9_initial_schema.py  # 初始迁移：users + vehicles + fuel_records
+│   │       ├── ff245e876ff9_initial_schema.py      # 初始迁移：users + vehicles + fuel_records
+│   │       └── 24b921f41e3b_add_performance_indexes.py  # P8 新增：性能索引（复合索引 + 单列索引）
 │   │
 │   ├── tests/                     # pytest 单元测试（P7 新增）
 │   │   ├── __init__.py            # 包标记
@@ -179,14 +181,16 @@ fuel_records/
 │       │                         # └ P4 新增：退出登录（clearToken + 跳转）
 │       │                         # └ P5 新增：车辆下拉选择器 + 添加车辆表单 + localStorage 记忆
 │       │                         # └ P6 新增：筛选面板（日期范围/加满/备注搜索）+ "统计"按钮跳转 /stats
-│       ├── App.css               # 样式：卡片布局、按钮、基线标记 + 登录/注册表单 + 筛选面板/导航按钮（P6新增）
+│       │                         # └ P8 新增：导出按钮（CSV）+ 主题切换 + 加油提醒 + 分页加载更多
+│       ├── App.css               # 样式：CSS 变量主题系统（P8 暗色模式）+ 卡片布局 + 按钮 + 导出/提醒/分页样式
 │       ├── pages/
 │       │   ├── LoginPage.tsx     # 登录/注册页面（P4 新增）
 │       │   │                     # └ 两个 Tab 切换登录/注册，成功后存 token 并跳转首页
 │       │   └── StatsPage.tsx     # 统计页面（P6 新增）
 │       │                         # ├ 概览卡片（总里程/平均油耗/总花费/总加油量）
 │       │                         # ├ 年份选择器 + 月度油耗趋势折线图（Recharts 双Y轴）
-│       │                         # └ 月度明细表
+│       │                         # ├ 月度明细表
+│       │                         # └ P8 新增：截图分享（html2canvas）+ 主题切换
 │       └── services/
 │           └── api.ts            # API 服务层
 │                                 # ├ FuelRecord / Vehicle 类型定义
@@ -197,6 +201,7 @@ fuel_records/
 │                                 # ├ 响应拦截器：401 自动清除 token 并跳转登录页
 │                                 # ├ Records CRUD: create/fetch（支持筛选参数）/update/delete
 │                                 # ├ Stats API: fetchSummary() / fetchMonthly()（P6 新增）
+│                                 # ├ Export API: exportCSV()（P8 新增）
 │                                 # └ parseRecord() → Decimal 字符串转数字
 │
 ```

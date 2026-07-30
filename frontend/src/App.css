@@ -1,3 +1,82 @@
+/* ---- CSS 变量（亮色主题默认） ---- */
+:root {
+  --bg: #f5f5f5;
+  --card-bg: #ffffff;
+  --card-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  --text-primary: #1a1a1a;
+  --text-body: #333333;
+  --text-secondary: #555555;
+  --text-muted: #888888;
+  --text-dim: #999999;
+  --border: #dddddd;
+  --border-light: #f0f0f0;
+  --input-bg: #ffffff;
+  --accent: #4a90d9;
+  --accent-hover: #357abd;
+  --accent-disabled: #a0c4e8;
+  --danger: #e74c3c;
+  --success: #27ae60;
+  --tab-bg: #eeeeee;
+  --tab-active-bg: #ffffff;
+  --cancel-bg: #f5f5f5;
+  --cancel-hover: #e0e0e0;
+  --baseline-bg: #eeeeee;
+  --baseline-text: #999999;
+  --inverted-text: #ffffff;
+}
+
+/* 暗色主题：手动切换 */
+[data-theme='dark'] {
+  --bg: #1a1a2e;
+  --card-bg: #16213e;
+  --card-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+  --text-primary: #e0e0e0;
+  --text-body: #cccccc;
+  --text-secondary: #aaaaaa;
+  --text-muted: #999999;
+  --text-dim: #777777;
+  --border: #2a2a4a;
+  --border-light: #1e1e3a;
+  --input-bg: #0f1a2e;
+  --accent: #5b9bd5;
+  --accent-hover: #4a8bc5;
+  --accent-disabled: #3a5a7a;
+  --tab-bg: #0f1a2e;
+  --tab-active-bg: #16213e;
+  --cancel-bg: #1a1a2e;
+  --cancel-hover: #2a2a4a;
+  --baseline-bg: #2a2a4a;
+  --baseline-text: #777777;
+  --inverted-text: #1a1a2e;
+}
+
+/* 系统偏好作为 fallback（当用户没有手动设置时生效） */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --bg: #1a1a2e;
+    --card-bg: #16213e;
+    --card-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+    --text-primary: #e0e0e0;
+    --text-body: #cccccc;
+    --text-secondary: #aaaaaa;
+    --text-muted: #999999;
+    --text-dim: #777777;
+    --border: #2a2a4a;
+    --border-light: #1e1e3a;
+    --input-bg: #0f1a2e;
+    --accent: #5b9bd5;
+    --accent-hover: #4a8bc5;
+    --accent-disabled: #3a5a7a;
+    --tab-bg: #0f1a2e;
+    --tab-active-bg: #16213e;
+    --cancel-bg: #1a1a2e;
+    --cancel-hover: #2a2a4a;
+    --baseline-bg: #2a2a4a;
+    --baseline-text: #777777;
+    --inverted-text: #1a1a2e;
+  }
+}
+
 /* ---- 全局 ---- */
 * {
   box-sizing: border-box;
@@ -8,8 +87,8 @@
 body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
     'Helvetica Neue', Arial, sans-serif;
-  background: #f5f5f5;
-  color: #333;
+  background: var(--bg);
+  color: var(--text-body);
   line-height: 1.5;
 }
 
@@ -23,15 +102,15 @@ body {
   font-size: 22px;
   text-align: center;
   margin: 16px 0;
-  color: #1a1a1a;
+  color: var(--text-primary);
 }
 
 /* ---- 表单 ---- */
 .record-form {
-  background: white;
+  background: var(--card-bg);
   border-radius: 12px;
   padding: 16px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--card-shadow);
   margin-bottom: 16px;
 }
 
@@ -44,22 +123,24 @@ body {
 .form-row label {
   font-size: 14px;
   font-weight: 500;
-  color: #555;
+  color: var(--text-secondary);
 }
 
 .form-row input {
   width: 100%;
   padding: 10px 12px;
   font-size: 16px;
-  border: 1px solid #ddd;
+  border: 1px solid var(--border);
   border-radius: 8px;
   margin-top: 4px;
   outline: none;
   transition: border-color 0.2s;
+  background: var(--input-bg);
+  color: var(--text-body);
 }
 
 .form-row input:focus {
-  border-color: #4a90d9;
+  border-color: var(--accent);
 }
 
 .submit-btn {
@@ -68,8 +149,8 @@ body {
   margin-top: 16px;
   font-size: 16px;
   font-weight: 600;
-  background: #4a90d9;
-  color: white;
+  background: var(--accent);
+  color: var(--inverted-text);
   border: none;
   border-radius: 8px;
   cursor: pointer;
@@ -77,37 +158,37 @@ body {
 }
 
 .submit-btn:hover {
-  background: #357abd;
+  background: var(--accent-hover);
 }
 
 .submit-btn:disabled {
-  background: #a0c4e8;
+  background: var(--accent-disabled);
   cursor: not-allowed;
 }
 
 /* ---- 记录列表 ---- */
 .records-section {
-  background: white;
+  background: var(--card-bg);
   border-radius: 12px;
   padding: 16px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--card-shadow);
 }
 
 .records-section h2 {
   font-size: 18px;
   margin-bottom: 12px;
-  color: #1a1a1a;
+  color: var(--text-primary);
 }
 
 .status-text {
   text-align: center;
   padding: 32px 0;
-  color: #888;
+  color: var(--text-muted);
   font-size: 14px;
 }
 
 .status-text.error {
-  color: #e74c3c;
+  color: var(--danger);
 }
 
 .records-list {
@@ -116,7 +197,7 @@ body {
 
 .record-item {
   padding: 12px 0;
-  border-bottom: 1px solid #f0f0f0;
+  border-bottom: 1px solid var(--border-light);
 }
 
 .record-item:last-child {
@@ -142,7 +223,7 @@ body {
 .record-vol,
 .record-cost {
   font-size: 14px;
-  color: #555;
+  color: var(--text-secondary);
 }
 
 .record-detail {
@@ -150,22 +231,22 @@ body {
   justify-content: space-between;
   align-items: center;
   font-size: 13px;
-  color: #888;
+  color: var(--text-muted);
 }
 
 .record-consumption {
-  color: #27ae60;
+  color: var(--success);
   font-weight: 500;
 }
 
 .record-consumption.no-data {
-  color: #aaa;
+  color: var(--text-dim);
   font-weight: 400;
 }
 
 .baseline-tag {
-  background: #eee;
-  color: #999;
+  background: var(--baseline-bg);
+  color: var(--baseline-text);
   padding: 2px 8px;
   border-radius: 4px;
   font-size: 12px;
@@ -181,33 +262,33 @@ body {
 .delete-btn {
   padding: 4px 12px;
   font-size: 13px;
-  color: #e74c3c;
-  background: #fff;
-  border: 1px solid #e74c3c;
+  color: var(--danger);
+  background: var(--card-bg);
+  border: 1px solid var(--danger);
   border-radius: 6px;
   cursor: pointer;
   transition: all 0.15s;
 }
 
 .delete-btn:hover {
-  background: #e74c3c;
-  color: #fff;
+  background: var(--danger);
+  color: var(--inverted-text);
 }
 
 .edit-btn {
   padding: 4px 12px;
   font-size: 13px;
-  color: #4a90d9;
-  background: #fff;
-  border: 1px solid #4a90d9;
+  color: var(--accent);
+  background: var(--card-bg);
+  border: 1px solid var(--accent);
   border-radius: 6px;
   cursor: pointer;
   transition: all 0.15s;
 }
 
 .edit-btn:hover {
-  background: #4a90d9;
-  color: #fff;
+  background: var(--accent);
+  color: var(--inverted-text);
 }
 
 .cancel-btn {
@@ -215,16 +296,16 @@ body {
   padding: 10px;
   margin-top: 8px;
   font-size: 14px;
-  color: #888;
-  background: #f5f5f5;
-  border: 1px solid #ddd;
+  color: var(--text-muted);
+  background: var(--cancel-bg);
+  border: 1px solid var(--border);
   border-radius: 8px;
   cursor: pointer;
   transition: background 0.15s;
 }
 
 .cancel-btn:hover {
-  background: #e0e0e0;
+  background: var(--cancel-hover);
 }
 
 /* ---- 页面头部 ---- */
@@ -248,33 +329,65 @@ body {
 .logout-btn {
   padding: 6px 14px;
   font-size: 13px;
-  color: #888;
-  background: #f5f5f5;
-  border: 1px solid #ddd;
+  color: var(--text-muted);
+  background: var(--cancel-bg);
+  border: 1px solid var(--border);
   border-radius: 6px;
   cursor: pointer;
   transition: all 0.15s;
 }
 
 .logout-btn:hover {
-  color: #e74c3c;
-  border-color: #e74c3c;
+  color: var(--danger);
+  border-color: var(--danger);
 }
 
 .nav-btn {
   padding: 6px 14px;
   font-size: 13px;
-  color: #4a90d9;
-  background: #fff;
-  border: 1px solid #4a90d9;
+  color: var(--accent);
+  background: var(--card-bg);
+  border: 1px solid var(--accent);
   border-radius: 6px;
   cursor: pointer;
   transition: all 0.15s;
 }
 
 .nav-btn:hover {
-  background: #4a90d9;
-  color: #fff;
+  background: var(--accent);
+  color: var(--inverted-text);
+}
+
+.export-btn {
+  padding: 6px 14px;
+  font-size: 13px;
+  color: var(--success);
+  background: var(--card-bg);
+  border: 1px solid var(--success);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.export-btn:hover {
+  background: var(--success);
+  color: var(--inverted-text);
+}
+
+.theme-btn {
+  padding: 6px 10px;
+  font-size: 14px;
+  background: var(--cancel-bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s;
+  color: var(--text-body);
+}
+
+.theme-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
 }
 
 /* ---- 筛选栏 ---- */
@@ -287,9 +400,9 @@ body {
 .filter-toggle-btn {
   padding: 6px 14px;
   font-size: 13px;
-  color: #555;
-  background: white;
-  border: 1px solid #ddd;
+  color: var(--text-secondary);
+  background: var(--card-bg);
+  border: 1px solid var(--border);
   border-radius: 6px;
   cursor: pointer;
   display: flex;
@@ -299,23 +412,23 @@ body {
 }
 
 .filter-toggle-btn:hover {
-  border-color: #4a90d9;
-  color: #4a90d9;
+  border-color: var(--accent);
+  color: var(--accent);
 }
 
 .filter-dot {
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: #e74c3c;
+  background: var(--danger);
   display: inline-block;
 }
 
 .filter-panel {
-  background: white;
+  background: var(--card-bg);
   border-radius: 12px;
   padding: 12px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--card-shadow);
   margin-bottom: 12px;
 }
 
@@ -329,7 +442,7 @@ body {
 .filter-row label {
   flex: 1;
   font-size: 13px;
-  color: #555;
+  color: var(--text-secondary);
 }
 
 .filter-row input[type='date'],
@@ -337,20 +450,22 @@ body {
   width: 100%;
   padding: 8px 10px;
   font-size: 14px;
-  border: 1px solid #ddd;
+  border: 1px solid var(--border);
   border-radius: 6px;
   margin-top: 2px;
   outline: none;
+  background: var(--input-bg);
+  color: var(--text-body);
 }
 
 .filter-row input[type='date']:focus,
 .filter-row input[type='text']:focus {
-  border-color: #4a90d9;
+  border-color: var(--accent);
 }
 
 .filter-row input[type='checkbox'] {
   margin-right: 2px;
-  accent-color: #4a90d9;
+  accent-color: var(--accent);
 }
 
 .filter-actions {
@@ -388,25 +503,25 @@ body {
   font-size: 15px;
   font-weight: 500;
   text-align: center;
-  background: #eee;
+  background: var(--tab-bg);
   border: none;
-  color: #888;
+  color: var(--text-muted);
   cursor: pointer;
   transition: all 0.15s;
 }
 
 .auth-tab.active {
-  background: white;
-  color: #4a90d9;
+  background: var(--tab-active-bg);
+  color: var(--accent);
   font-weight: 600;
 }
 
 /* ---- 认证表单 ---- */
 .auth-form {
-  background: white;
+  background: var(--card-bg);
   border-radius: 0 0 12px 12px;
   padding: 16px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--card-shadow);
   margin-bottom: 12px;
 }
 
@@ -414,7 +529,7 @@ body {
   display: block;
   font-size: 14px;
   font-weight: 500;
-  color: #555;
+  color: var(--text-secondary);
   margin-bottom: 12px;
 }
 
@@ -422,27 +537,29 @@ body {
   width: 100%;
   padding: 10px 12px;
   font-size: 16px;
-  border: 1px solid #ddd;
+  border: 1px solid var(--border);
   border-radius: 8px;
   margin-top: 4px;
   outline: none;
   transition: border-color 0.2s;
+  background: var(--input-bg);
+  color: var(--text-body);
 }
 
 .auth-form input:focus {
-  border-color: #4a90d9;
+  border-color: var(--accent);
 }
 
 .auth-hint {
   text-align: center;
   font-size: 14px;
-  color: #888;
+  color: var(--text-muted);
 }
 
 .link-btn {
   background: none;
   border: none;
-  color: #4a90d9;
+  color: var(--accent);
   font-size: 14px;
   cursor: pointer;
   padding: 0 4px;
@@ -460,9 +577,10 @@ body {
   flex: 1;
   padding: 10px 12px;
   font-size: 15px;
-  border: 1px solid #ddd;
+  border: 1px solid var(--border);
   border-radius: 8px;
-  background: white;
+  background: var(--card-bg);
+  color: var(--text-body);
   outline: none;
   appearance: none;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23888' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
@@ -472,32 +590,32 @@ body {
 }
 
 .vehicle-select:focus {
-  border-color: #4a90d9;
+  border-color: var(--accent);
 }
 
 .add-vehicle-btn {
   padding: 10px 14px;
   font-size: 14px;
   white-space: nowrap;
-  color: #4a90d9;
-  background: white;
-  border: 1px solid #4a90d9;
+  color: var(--accent);
+  background: var(--card-bg);
+  border: 1px solid var(--accent);
   border-radius: 8px;
   cursor: pointer;
   transition: all 0.15s;
 }
 
 .add-vehicle-btn:hover {
-  background: #4a90d9;
-  color: white;
+  background: var(--accent);
+  color: var(--inverted-text);
 }
 
 /* ---- 添加车辆表单 ---- */
 .vehicle-form {
-  background: white;
+  background: var(--card-bg);
   border-radius: 12px;
   padding: 16px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--card-shadow);
   margin-bottom: 12px;
   display: flex;
   flex-direction: column;
@@ -508,14 +626,16 @@ body {
   width: 100%;
   padding: 10px 12px;
   font-size: 15px;
-  border: 1px solid #ddd;
+  border: 1px solid var(--border);
   border-radius: 8px;
   outline: none;
   transition: border-color 0.2s;
+  background: var(--input-bg);
+  color: var(--text-body);
 }
 
 .vehicle-form input:focus {
-  border-color: #4a90d9;
+  border-color: var(--accent);
 }
 
 .vehicle-form .submit-btn {
@@ -525,6 +645,52 @@ body {
 /* ---- 表单提示 ---- */
 .form-hint {
   font-size: 13px;
-  color: #888;
+  color: var(--text-muted);
   margin-bottom: 8px;
+}
+
+/* ---- 加油提醒 ---- */
+.reminder-bar {
+  margin-bottom: 12px;
+}
+
+.reminder-label {
+  font-size: 14px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.reminder-label input[type='checkbox'] {
+  accent-color: var(--accent);
+  width: 16px;
+  height: 16px;
+}
+
+/* ---- 加载更多 ---- */
+.load-more-btn {
+  width: 100%;
+  padding: 10px;
+  margin-top: 12px;
+  font-size: 14px;
+  color: var(--accent);
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.load-more-btn:hover {
+  border-color: var(--accent);
+  background: var(--cancel-bg);
+}
+
+.load-more-text {
+  text-align: center;
+  padding: 12px 0 4px;
+  color: var(--text-muted);
+  font-size: 13px;
 }

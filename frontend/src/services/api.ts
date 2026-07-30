@@ -292,3 +292,21 @@ export async function fetchMonthly(
   })
   return res.data
 }
+
+// ---- Export API ----
+
+export async function exportCSV(vehicleId: number): Promise<Blob> {
+  const token = getToken()
+  const baseURL = import.meta.env.VITE_API_BASE_URL || ''
+  const url = `${baseURL}/api/v1/records/export/csv?vehicle_id=${vehicleId}`
+
+  const res = await fetch(url, {
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+  })
+
+  if (!res.ok) {
+    throw new Error('导出失败')
+  }
+
+  return res.blob()
+}

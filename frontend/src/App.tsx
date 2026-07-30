@@ -8,12 +8,28 @@ import {
   fetchVehicles,
   createVehicle,
   clearToken,
+  exportCSV,
   type FuelRecord,
   type Vehicle,
 } from './services/api'
 import './App.css'
 
 const VEHICLE_KEY = 'fuel_records_vehicle_id'
+const THEME_KEY = 'fuel_records_theme'
+const REMINDER_KEY = 'fuel_records_reminder'
+const REMINDER_INTERVAL = 7 * 24 * 60 * 60 * 1000 // 7 天
+
+function getTheme(): string {
+  return localStorage.getItem(THEME_KEY) || 'auto'
+}
+
+function applyTheme(theme: string) {
+  if (theme === 'auto') {
+    document.documentElement.removeAttribute('data-theme')
+  } else {
+    document.documentElement.setAttribute('data-theme', theme)
+  }
+}
 
 function App() {
   // ---- 车辆状态 ----
@@ -35,6 +51,9 @@ function App() {
   const [records, setRecords] = useState<FuelRecord[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [page, setPage] = useState(1)
+  const [total, setTotal] = useState(0)
+  const PAGE_SIZE = 20
 
   // ---- 筛选状态 ----
   const [showFilter, setShowFilter] = useState(false)
@@ -42,6 +61,42 @@ function App() {
   const [filterEndDate, setFilterEndDate] = useState('')
   const [filterFullTank, setFilterFullTank] = useState<boolean | undefined>(undefined)
   const [filterNote, setFilterNote] = useState('')
+
+  // ---- 主题状态 ----
+  const [theme, setTheme] = useState(getTheme)
+
+  // ---- 加油提醒 ----
+  const reminderEnabled = localStorage.getItem(REMINDER_KEY) === 'true'
+  const [reminder, setReminder] = useState(reminderEnabled)
+
+  function handleToggleReminder() {
+    const next = !reminder
+    setReminder(next)
+    localStorage.setItem(REMINDER_KEY, String(next))
+    if (next) {
+      requestNotificationPermission()
+    }
+  }
+
+  function requestNotificationPermission() {
+    if ('Notification' in window && Notification.permission === 'default') {
+      Notification.requestPermission()
+    }
+  }
+
+  // 加油提醒定时器
+  useEffect(() => {
+    if (!reminder) return
+    const timer = setInterval(() => {
+      if ('Notification' in window && Notification.permission === 'granted') {
+        new Notification('⛽ 油耗记录', {
+          body: '该加油了！别忘了记录这次的加油数据哦',
+          icon: '/favicon.ico',
+        })
+      }
+    }, REMINDER_INTERVAL)
+    return () => clearInterval(timer)
+  }, [reminder])
 
   // 加载车辆列表
   useEffect(() => {
@@ -69,12 +124,7 @@ function App() {
     setFilterFullTank(undefined)
     setFilterNote('')
     if (selectedVehicleId !== null) {
-      // 直接加载不带筛选的记录
-      setLoading(true)
-      fetchRecords(1, 20, selectedVehicleId)
-        .then((data) => setRecords(data.records))
-        .catch(() => setError('加载记录失败'))
-        .finally(() => setLoading(false))
+      loadRecords(selectedVehicleId, 1)
     }
   }
 
@@ -100,22 +150,34 @@ function App() {
     }
   }
 
-  async function loadRecords(vehicleId: number) {
+  async function loadRecords(vehicleId: number, pageNum = 1) {
     setLoading(true)
     setError('')
     try {
       const data = await fetchRecords(
-        1, 20, vehicleId,
+        pageNum, PAGE_SIZE, vehicleId,
         filterStartDate || undefined,
         filterEndDate || undefined,
         filterFullTank,
         filterNote || undefined,
       )
-      setRecords(data.records)
+      setTotal(data.total)
+      if (pageNum === 1) {
+        setRecords(data.records)
+      } else {
+        setRecords((prev) => [...prev, ...data.records])
+      }
+      setPage(pageNum)
     } catch {
       setError('加载记录失败，请检查网络连接')
     } finally {
       setLoading(false)
+    }
+  }
+
+  function handleLoadMore() {
+    if (selectedVehicleId !== null) {
+      loadRecords(selectedVehicleId, page + 1)
     }
   }
 
@@ -237,6 +299,53 @@ function App() {
     window.location.href = '/stats'
   }
 
+  function handleToggleTheme() {
+    const next: Record<string, string> = { auto: 'light', light: 'dark', dark: 'auto' }
+    const newTheme = next[theme] || 'auto'
+    setTheme(newTheme)
+    localStorage.setItem(THEME_KEY, newTheme)
+    applyTheme(newTheme)
+  }
+
+  // 从 stats 返回时恢复主题
+  useEffect(() => {
+    applyTheme(theme)
+  }, [theme])
+
+  async function handleExport() {
+    if (selectedVehicleId === null) return
+    try {
+      const blob = await exportCSV(selectedVehicleId)
+      const url = URL.createObjectURL(blob)
+      const vehicleName = currentVehicle?.name || 'vehicle'
+
+      // 尝试使用分享 API（移动端支持更好）
+      if (navigator.share && navigator.canShare) {
+        const file = new File([blob], `fuel_records_${vehicleName}.csv`, {
+          type: 'text/csv',
+        })
+        if (navigator.canShare({ files: [file] })) {
+          await navigator.share({ files: [file], title: '油耗记录导出' })
+          URL.revokeObjectURL(url)
+          return
+        }
+      }
+
+      // 回退：浏览器下载
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `fuel_records_${vehicleName}.csv`
+      document.body.appendChild(a)
+      a.click()
+      document.body.removeChild(a)
+      URL.revokeObjectURL(url)
+    } catch (err: unknown) {
+      // 用户取消分享不算错误
+      if (err instanceof DOMException && err.name === 'AbortError') return
+      alert('导出失败，请重试')
+    }
+  }
+
   function formatDate(iso: string) {
     const d = new Date(iso)
     return `${d.getMonth() + 1}月${d.getDate()}日 ${d.getHours().toString().padStart(2, '0')}:${d.getMinutes().toString().padStart(2, '0')}`
@@ -251,6 +360,12 @@ function App() {
         <div className="header-actions">
           <button className="nav-btn" onClick={handleGoStats}>
             统计
+          </button>
+          <button className="export-btn" onClick={handleExport}>
+            导出
+          </button>
+          <button className="theme-btn" onClick={handleToggleTheme}>
+            {theme === 'auto' ? '🌓' : theme === 'dark' ? '🌙' : '☀️'}
           </button>
           <button className="logout-btn" onClick={handleLogout}>
             退出
@@ -281,6 +396,18 @@ function App() {
           </button>
         </div>
       )}
+
+      {/* 加油提醒开关 */}
+      <div className="reminder-bar">
+        <label className="reminder-label">
+          <input
+            type="checkbox"
+            checked={reminder}
+            onChange={handleToggleReminder}
+          />
+          {' '}每周加油提醒
+        </label>
+      </div>
 
       {/* 添加车辆表单 */}
       {showAddVehicle && (
@@ -489,6 +616,17 @@ function App() {
                 </li>
               ))}
             </ul>
+          )}
+
+          {/* 加载更多 */}
+          {records.length < total && !loading && (
+            <button className="load-more-btn" onClick={handleLoadMore}>
+              加载更多 ({records.length}/{total})
+            </button>
+          )}
+
+          {loading && records.length > 0 && (
+            <p className="load-more-text">加载中...</p>
           )}
         </section>
       )}

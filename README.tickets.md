@@ -562,13 +562,13 @@
 
 ### Ticket 8.1: 数据导出
 
-- [ ] **8.1.1 CSV 导出 API**
+- [x] **8.1.1 CSV 导出 API**
   - `GET /api/v1/records/export/csv?vehicle_id=X`
   - 返回 CSV 文件流（`StreamingResponse` + CSV 头）
   - **依赖**：5.1.1
   - **难度**：★★
 
-- [ ] **8.1.2 前端下载/分享功能**
+- [x] **8.1.2 前端下载/分享功能**
   - 点击"导出" → 浏览器下载 CSV 文件
   - 使用 `navigator.share` API（Android 支持）分享
   - 回退方案：复制下载链接
@@ -577,34 +577,38 @@
 
 ### Ticket 8.2: 体验增强
 
-- [ ] **8.2.1 暗黑模式**
+- [x] **8.2.1 暗黑模式**
   - React 端使用 CSS 变量 + `prefers-color-scheme` 媒体查询
-  - 或实现手动切换按钮（存 localStorage 记住偏好）
+  - 手动切换按钮（存 localStorage 记住偏好），三态循环：自动/亮色/暗色
   - **依赖**：1.6.3
   - **难度**：★
 
-- [ ] **8.2.2 加油提醒推送**
-  - 使用浏览器 Notification API 或 Capacitor 本地通知插件
-  - 设置提醒周期（如每周）
+- [x] **8.2.2 加油提醒推送**
+  - 使用浏览器 Notification API
+  - 设置提醒周期（每 7 天弹出通知）
   - **依赖**：1.6.4
   - **难度**：★★
 
-- [ ] **8.2.3 记录分享截图**
+- [x] **8.2.3 记录分享截图**
   - 使用 `html2canvas` 库截图统计页面
-  - 支持保存为图片或分享
+  - 支持分享（navigator.share）或保存为图片
   - **依赖**：8.2.1
   - **难度**：★★
 
 ### Ticket 8.3: 性能优化
 
-- [ ] **8.3.1 数据库索引优化**
-  - 分析慢查询（MySQL slow query log）
-  - 添加必要索引
+- [x] **8.3.1 数据库索引优化**
+  - 添加复合索引 `ix_fuel_records_user_vehicle_date` (user_id, vehicle_id, record_date)
+  - 添加单列索引 `ix_vehicles_user_id` (user_id)
+  - 添加单列索引 `ix_fuel_records_record_date` (record_date)
+  - Alembic 迁移：`24b921f41e3b_add_performance_indexes.py`
   - **依赖**：1.1.5
   - **难度**：★★
 
-- [ ] **8.3.2 前端列表性能**
-  - 大量记录时使用虚拟滚动（react-window 或 IntersectionObserver 分页加载）
+- [x] **8.3.2 前端列表性能**
+  - 分页加载：每页 20 条，底部"加载更多"按钮
+  - 显示加载进度（已加载/总数）
+  - 切换车辆/应用筛选时自动重置到第 1 页
   - **依赖**：1.6.3
   - **难度**：★★
 
@@ -638,7 +642,7 @@ Phase 1 ──→ Phase 2 ──→ Phase 3 ──→ Phase 4 ──→ Phase 5 
 ---
 
 > **更新记录**
-> - 2026-07-30: Phase 6 完成 — 数据之美（统计汇总 API + 月度统计 API + 前端统计页面（卡片/折线图/明细表）+ 记录筛选功能 + 30/30 测试全部通过）
+> - 2026-07-30: Phase 8 完成 — 锦上添花（CSV 导出 + 下载/分享 + 暗黑模式 CSS 变量 + 加油提醒 Notification + 统计截图 html2canvas + 数据库索引优化 + 前端分页加载更多）
 > - 2026-07-29: Phase 5 完成 — 多车管理（Vehicle 模型 + CRUD API + 前端车辆选择器/添加表单 + 油耗按车辆分组独立计算 + database 自动迁移 vehicle_id 列）
 > - 2026-07-29: Phase 4 完成 — 用户鉴权（注册/登录 + JWT + 前端登录页 + 路由守卫 + 数据隔离 + 测试清单 TEST_CHECKLIST.md + 自动化测试脚本 test_all.sh）
 > - 2026-07-19：初版生成，基于 README.md 规格书拆解 8 个 Phase，共约 45 个原子 Ticket

@@ -2,6 +2,7 @@
 
 from datetime import datetime
 from decimal import Decimal
+from typing import Optional
 
 from sqlalchemy.orm import Session
 from sqlalchemy import desc
@@ -74,12 +75,12 @@ def get_records(
     db: Session,
     page: int = 1,
     page_size: int = 20,
-    user_id: int | None = None,
-    vehicle_id: int | None = None,
-    start_date: str | None = None,
-    end_date: str | None = None,
-    is_full_tank: bool | None = None,
-    note: str | None = None,
+    user_id: Optional[int] = None,
+    vehicle_id: Optional[int] = None,
+    start_date: Optional[str] = None,
+    end_date: Optional[str] = None,
+    is_full_tank: Optional[bool] = None,
+    note: Optional[str] = None,
 ) -> tuple[list[FuelRecord], int]:
     """获取加油记录列表（分页，按时间倒序），支持多条件筛选"""
     query = db.query(FuelRecord)

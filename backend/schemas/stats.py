@@ -1,4 +1,5 @@
 """统计数据 Pydantic Schema"""
+from typing import Optional
 from pydantic import BaseModel
 
 
@@ -8,8 +9,8 @@ class SummaryResponse(BaseModel):
     total_mileage: float
     total_fuel_volume: float
     total_fuel_cost: float
-    avg_consumption: float | None
-    avg_unit_price: float | None
+    avg_consumption: Optional[float]
+    avg_unit_price: Optional[float]
 
 
 class MonthlyItem(BaseModel):
@@ -18,7 +19,7 @@ class MonthlyItem(BaseModel):
     count: int
     total_volume: float
     total_cost: float
-    avg_consumption: float | None
+    avg_consumption: Optional[float]
 
 
 class MonthlyResponse(BaseModel):

@@ -375,7 +375,7 @@ function App() {
 
       {/* 车辆选择器 */}
       {vehicles.length > 0 && (
-        <div className="vehicle-bar">
+        <div className="vehicle-bar animate-in">
           <select
             className="vehicle-select"
             value={selectedVehicleId ?? ''}
@@ -398,7 +398,7 @@ function App() {
       )}
 
       {/* 加油提醒开关 */}
-      <div className="reminder-bar">
+      <div className="reminder-bar animate-in stagger-2">
         <label className="reminder-label">
           <input
             type="checkbox"
@@ -411,7 +411,7 @@ function App() {
 
       {/* 添加车辆表单 */}
       {showAddVehicle && (
-        <form className="vehicle-form" onSubmit={handleAddVehicle}>
+        <form className="vehicle-form animate-in stagger-1" onSubmit={handleAddVehicle}>
           <input
             type="text"
             placeholder="车辆名称 (如 KPT400)"
@@ -443,7 +443,7 @@ function App() {
       {currentVehicle && (
         <>
           {/* 筛选栏 */}
-          <div className="filter-bar">
+          <div className="filter-bar animate-in stagger-1">
             <button
               className="filter-toggle-btn"
               onClick={() => setShowFilter(!showFilter)}
@@ -516,7 +516,7 @@ function App() {
             </div>
           )}
 
-          <form className="record-form" onSubmit={handleSubmit} key={editingId ?? 'new'}>
+          <form className="record-form animate-in stagger-2" onSubmit={handleSubmit} key={editingId ?? 'new'}>
             <p className="form-hint">
               当前车辆：<strong>{currentVehicle.name}</strong>
             </p>
@@ -572,7 +572,7 @@ function App() {
 
       {/* 记录列表 */}
       {currentVehicle && (
-        <section className="records-section">
+        <section className="records-section animate-in stagger-3">
           <h2>历史记录</h2>
 
           {loading && <p className="status-text">加载中...</p>}
@@ -633,7 +633,7 @@ function App() {
 
       {/* 没有车辆时的引导 */}
       {!currentVehicle && !loading && (
-        <section className="records-section">
+        <section className="records-section animate-in">
           <p className="status-text empty">
             还没有添加车辆，请点击"+ 添加车辆"开始记录
           </p>

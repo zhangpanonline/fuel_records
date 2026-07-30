@@ -99,7 +99,7 @@ function LoginPage() {
       </div>
 
       {/* 表单 */}
-      <form className="auth-form" onSubmit={handleSubmit}>
+      <form className="auth-form animate-in" onSubmit={handleSubmit}>
         <label>
           用户名
           <input
@@ -139,7 +139,7 @@ function LoginPage() {
         </button>
       </form>
 
-      <p className="auth-hint">
+      <p className="auth-hint animate-in stagger-1">
         {isRegister ? '已有账号？' : '没有账号？'}
         <button
           className="link-btn"

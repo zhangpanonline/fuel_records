@@ -220,7 +220,7 @@ function StatsPage() {
                   ? summary.avg_consumption.toFixed(2)
                   : '-'}
               </div>
-              <div className="stat-label">平均油耗 (L/100km)</div>
+              <div className="stat-label">平均油耗</div>
             </div>
             <div className="stat-card">
               <div className="stat-value">{summary.total_fuel_cost.toFixed(0)}</div>
@@ -233,7 +233,7 @@ function StatsPage() {
           </div>
 
           {/* 年份选择器 */}
-          <div className="year-selector">
+          <div className="year-selector animate-in">
             <label>年份：</label>
             <select
               value={year}
@@ -251,7 +251,7 @@ function StatsPage() {
 
           {/* 月度油耗趋势图 */}
           {chartData.length > 0 ? (
-            <div className="chart-container">
+            <div className="chart-container animate-in stagger-1">
               <h3>月度油耗趋势</h3>
               <ResponsiveContainer width="100%" height={250}>
                 <LineChart data={chartData}>
@@ -299,14 +299,14 @@ function StatsPage() {
               </ResponsiveContainer>
             </div>
           ) : (
-            <div className="chart-container">
+            <div className="chart-container animate-in stagger-1">
               <p className="status-text">{year} 年暂无数据</p>
             </div>
           )}
 
           {/* 月度明细表 */}
           {chartData.length > 0 && (
-            <div className="chart-container">
+            <div className="chart-container animate-in stagger-2">
               <h3>月度明细</h3>
               <table className="monthly-table">
                 <thead>
@@ -341,7 +341,7 @@ function StatsPage() {
       )}
 
       {!loading && !error && summary?.record_count === 0 && (
-        <section className="records-section">
+        <section className="records-section animate-in">
           <p className="status-text empty">
             {currentVehicle
               ? `${currentVehicle.name} 还没有加油记录`

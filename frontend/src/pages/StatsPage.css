@@ -1,90 +1,238 @@
-/* ---- 统计卡片 ---- */
+/* ============================================================
+   StatsPage — 高级美学注射版
+   统计卡片 · 微渐变 · 悬浮动画 · 图表增强
+   ============================================================ */
+
+/* === 统计卡片网格 === */
 .stats-cards {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 10px;
-  margin-bottom: 16px;
+  gap: 14px;
+  margin-bottom: 24px;
 }
 
+/* === 单张统计卡片 === */
 .stat-card {
+  position: relative;
   background: var(--card-bg);
-  border-radius: 12px;
-  padding: 16px 12px;
-  box-shadow: var(--card-shadow);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--card-border);
+  border-radius: 18px;
+  padding: 22px 16px;
+  box-shadow: var(--card-glow);
   text-align: center;
+  overflow: hidden;
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  animation: fadeInUp 0.55s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
+/* 卡片交错入场 */
+.stat-card:nth-child(1) { animation-delay: 0.05s; }
+.stat-card:nth-child(2) { animation-delay: 0.12s; }
+.stat-card:nth-child(3) { animation-delay: 0.19s; }
+.stat-card:nth-child(4) { animation-delay: 0.26s; }
+
+.stat-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--card-glow),
+              0 12px 40px rgba(99, 102, 241, 0.08);
+}
+
+/* 卡片顶部彩色装饰线 */
+.stat-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 40px;
+  height: 3px;
+  border-radius: 0 0 4px 4px;
+  transition: width 0.3s ease;
+}
+
+.stat-card:nth-child(1)::before {
+  background: linear-gradient(90deg, #6366f1, #818cf8);
+}
+
+.stat-card:nth-child(2)::before {
+  background: linear-gradient(90deg, #f59e0b, #fbbf24);
+}
+
+.stat-card:nth-child(3)::before {
+  background: linear-gradient(90deg, #10b981, #34d399);
+}
+
+.stat-card:nth-child(4)::before {
+  background: linear-gradient(90deg, #3b82f6, #60a5fa);
+}
+
+.stat-card:hover::before {
+  width: 60px;
+}
+
+/* 数值 */
 .stat-value {
-  font-size: 28px;
-  font-weight: 700;
+  font-size: 32px;
+  font-weight: 800;
   color: var(--text-primary);
-  line-height: 1.2;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  transition: transform 0.3s ease;
 }
 
+.stat-card:hover .stat-value {
+  transform: scale(1.06);
+}
+
+/* 标签 */
 .stat-label {
-  font-size: 12px;
+  font-size: 11px;
   color: var(--text-muted);
-  margin-top: 4px;
+  margin-top: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 500;
 }
 
-/* ---- 年份选择器 ---- */
+/* === 年份选择器 === */
 .year-selector {
   display: flex;
   align-items: center;
-  gap: 8px;
-  margin-bottom: 12px;
+  gap: 10px;
+  margin-bottom: 16px;
+  padding: 10px 16px;
+  background: var(--card-bg);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--card-border);
+  border-radius: 14px;
+  box-shadow: var(--shadow-sm);
 }
 
 .year-selector label {
   font-size: 14px;
+  font-weight: 600;
   color: var(--text-secondary);
 }
 
 .year-selector select {
-  padding: 6px 12px;
+  padding: 8px 14px;
   font-size: 15px;
+  font-weight: 600;
   border: 1px solid var(--border);
-  border-radius: 8px;
-  background: var(--card-bg);
+  border-radius: 10px;
+  background: var(--input-bg);
   color: var(--text-body);
   outline: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
 }
 
-/* ---- 图表容器 ---- */
+.year-selector select:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.08);
+}
+
+/* === 图表容器 === */
 .chart-container {
-  background: var(--card-bg);
-  border-radius: 12px;
-  padding: 16px;
-  box-shadow: var(--card-shadow);
-  margin-bottom: 16px;
+  margin-bottom: 20px;
 }
 
 .chart-container h3 {
   font-size: 16px;
-  margin-bottom: 12px;
+  font-weight: 700;
+  margin-bottom: 16px;
   color: var(--text-primary);
+  letter-spacing: -0.01em;
 }
 
-/* ---- 月度明细表 ---- */
+/* === 图表颜色覆盖（通过 SVG/CSS 不太容易，这里用容器增强） === */
+
+/* 图表容器悬浮微动效 */
+.chart-container .recharts-responsive-container {
+  transition: transform 0.3s ease;
+}
+
+.chart-container:hover .recharts-responsive-container {
+  transform: scale(1.01);
+}
+
+/* === 月度明细表 === */
 .monthly-table {
   width: 100%;
-  border-collapse: collapse;
+  border-collapse: separate;
+  border-spacing: 0;
   font-size: 13px;
 }
 
-.monthly-table th,
-.monthly-table td {
-  padding: 8px 6px;
-  text-align: center;
-  border-bottom: 1px solid var(--border-light);
+.monthly-table thead tr {
+  background: rgba(99, 102, 241, 0.04);
 }
 
 .monthly-table th {
+  padding: 12px 8px;
+  text-align: center;
   color: var(--text-muted);
-  font-weight: 500;
-  font-size: 12px;
+  font-weight: 600;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: 2px solid var(--border);
+}
+
+.monthly-table th:first-child {
+  border-radius: 10px 0 0 0;
+}
+
+.monthly-table th:last-child {
+  border-radius: 0 10px 0 0;
 }
 
 .monthly-table td {
+  padding: 12px 8px;
+  text-align: center;
   color: var(--text-body);
+  border-bottom: 1px solid var(--border-light);
+  transition: all 0.2s ease;
+}
+
+.monthly-table tbody tr {
+  transition: all 0.25s ease;
+}
+
+.monthly-table tbody tr:hover {
+  background: rgba(99, 102, 241, 0.03);
+}
+
+.monthly-table tbody tr:hover td {
+  color: var(--text-primary);
+}
+
+.monthly-table tbody tr:last-child td:first-child {
+  border-radius: 0 0 0 10px;
+}
+
+.monthly-table tbody tr:last-child td:last-child {
+  border-radius: 0 0 10px 0;
+}
+
+/* === 响应式 === */
+@media (max-width: 400px) {
+  .stats-cards {
+    gap: 10px;
+  }
+
+  .stat-card {
+    padding: 16px 10px;
+  }
+
+  .stat-value {
+    font-size: 26px;
+  }
+
+  .stat-label {
+    font-size: 10px;
+  }
 }

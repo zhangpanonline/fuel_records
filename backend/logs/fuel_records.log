@@ -349,3 +349,33 @@
 2026-07-30 10:39:27 | INFO     | database:init_db:76 - 数据库迁移已完成（Alembic upgrade head）
 2026-07-30 10:39:27 | INFO     | main:lifespan:21 - 应用启动完成
 2026-07-30 10:39:39 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-07-30 10:57:32 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-07-30 10:58:21 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-07-30 10:58:32 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-07-30 10:59:20 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-07-30 10:59:39 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-07-30 10:59:57 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-07-30 10:59:57 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-07-30 10:59:57 | INFO     | main:lifespan:19 - 应用启动中...
+2026-07-30 10:59:57 | INFO     | database:init_db:76 - 数据库迁移已完成（Alembic upgrade head）
+2026-07-30 10:59:57 | INFO     | main:lifespan:21 - 应用启动完成
+2026-07-30 11:00:39 | INFO     | main:lifespan:23 - 应用关闭
+2026-07-30 11:00:40 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-07-30 11:00:40 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-07-30 11:00:40 | INFO     | main:lifespan:19 - 应用启动中...
+2026-07-30 11:00:40 | INFO     | database:init_db:76 - 数据库迁移已完成（Alembic upgrade head）
+2026-07-30 11:00:40 | INFO     | main:lifespan:21 - 应用启动完成
+2026-07-30 11:00:53 | INFO     | main:lifespan:23 - 应用关闭
+2026-07-30 11:06:31 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-07-30 11:06:51 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-07-30 11:06:51 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-07-30 11:06:51 | INFO     | main:lifespan:19 - 应用启动中...
+2026-07-30 11:06:51 | INFO     | database:init_db:76 - 数据库迁移已完成（Alembic upgrade head）
+2026-07-30 11:06:51 | INFO     | main:lifespan:21 - 应用启动完成
+2026-07-30 11:21:44 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-07-30 11:22:22 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-07-30 11:22:22 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-07-30 11:22:22 | INFO     | main:lifespan:19 - 应用启动中...
+2026-07-30 11:22:22 | INFO     | database:init_db:76 - 数据库迁移已完成（Alembic upgrade head）
+2026-07-30 11:22:22 | INFO     | main:lifespan:21 - 应用启动完成
+2026-07-30 11:22:43 | INFO     | main:lifespan:23 - 应用关闭

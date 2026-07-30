@@ -1,6 +1,7 @@
 """加油记录 Pydantic Schema"""
 from datetime import datetime
 from decimal import Decimal
+from typing import Optional
 from pydantic import BaseModel, Field
 
 
@@ -17,16 +18,16 @@ class FuelRecordCreate(BaseModel):
 class FuelRecordResponse(BaseModel):
     """加油记录响应体"""
     id: int
-    vehicle_id: int | None = None
-    user_id: int | None = None
+    vehicle_id: Optional[int] = None
+    user_id: Optional[int] = None
     mileage: Decimal
     fuel_volume: Decimal
     fuel_cost: Decimal
     is_full_tank: bool
     note: str
-    unit_price: Decimal | None = None
+    unit_price: Optional[Decimal] = None
     is_baseline: bool = False
-    fuel_consumption: Decimal | None = None
+    fuel_consumption: Optional[Decimal] = None
     record_date: datetime
     created_at: datetime
 
@@ -36,8 +37,8 @@ class FuelRecordResponse(BaseModel):
 
 class FuelRecordUpdate(BaseModel):
     """修改加油记录时的请求体（所有字段可选）"""
-    mileage: Decimal | None = Field(None, decimal_places=1, gt=0)
-    fuel_volume: Decimal | None = Field(None, decimal_places=2, gt=0)
-    fuel_cost: Decimal | None = Field(None, decimal_places=2, gt=0)
-    is_full_tank: bool | None = None
-    note: str | None = None
+    mileage: Optional[Decimal] = Field(None, decimal_places=1, gt=0)
+    fuel_volume: Optional[Decimal] = Field(None, decimal_places=2, gt=0)
+    fuel_cost: Optional[Decimal] = Field(None, decimal_places=2, gt=0)
+    is_full_tank: Optional[bool] = None
+    note: Optional[str] = None

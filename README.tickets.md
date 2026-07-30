@@ -612,6 +612,39 @@
   - **依赖**：1.6.3
   - **难度**：★★
 
+### Ticket 8.4: UI 美学升级（/ui-taste 注射）
+
+- [x] **8.4.1 CSS 动画与微动效**
+  - 8 个 @keyframes：fadeInUp / scaleIn / bgShift / shimmer / glowPulse / float
+  - 页面加载入场动画（列表项逐条从下方淡入，统计卡片交错延迟）
+  - 按钮 hover shimmer 扫过效果 + click 缩放反馈（scale(0.96)）
+  - 提交按钮光晕脉冲呼吸动画（glowPulse 3s）
+  - **依赖**：8.2.1, 6.2.1
+  - **难度**：★★
+
+- [x] **8.4.2 玻璃态与视觉层级**
+  - 卡片：`backdrop-filter: blur(20px)` + 半透明底色 + 多层弥散微投影
+  - 背景：对角渐变游走（body 20s 渐变色位移）+ 装饰光斑（::before/::after 巨型径向渐变球浮动）
+  - 统计卡片：4 色渐变顶部装饰线（靛紫/琥珀/翠绿/蓝），hover 时伸长
+  - 标题：靛紫渐变色 background-clip: text
+  - 大圆角系统：卡片 18px / 按钮 12-14px / 输入框 12px
+  - **依赖**：8.4.1
+  - **难度**：★★
+
+- [x] **8.4.3 暗色模式增强**
+  - 暗色模式下：深邃迷幻底色（#0f172a）+ 光斑换为深紫/深蓝
+  - 亮色模式下：中性微灰色调底色（#f8fafc）+ 光斑换为暖橙/靛蓝
+  - 所有颜色通过 CSS 变量（--bg / --card-bg / --text 等）自动切换
+  - **依赖**：8.2.1, 8.4.2
+  - **难度**：★
+
+- [x] **8.4.4 Python 3.9 兼容 + 认证修复**
+  - `X | None` 语法 → `Optional[X]` 标准写法（7 文件：schemas 4 个 + services/record_service + routers/records + core/deps）
+  - `core/deps.py`：`HTTPBearer(auto_error=False)` 修复无 Token 时错误返回 403 → 401
+  - 零新依赖，纯 `from typing import Optional`
+  - **依赖**：7.2.3, 4.1.5
+  - **难度**：★
+
 ---
 
 ## 依赖关系总图
@@ -642,6 +675,7 @@ Phase 1 ──→ Phase 2 ──→ Phase 3 ──→ Phase 4 ──→ Phase 5 
 ---
 
 > **更新记录**
+> - 2026-07-30: Ticket 8.4 完成 — UI 美学升级（8 个 @keyframes 动画 + 玻璃态卡片 + 对角渐变背景 + 装饰光斑 + 4 色统计卡片 + 暗色模式增强 + 大圆角系统 + Python 3.9 Optional[X] 兼容 + HTTPBearer 403→401 修复）
 > - 2026-07-30: Phase 8 完成 — 锦上添花（CSV 导出 + 下载/分享 + 暗黑模式 CSS 变量 + 加油提醒 Notification + 统计截图 html2canvas + 数据库索引优化 + 前端分页加载更多）
 > - 2026-07-29: Phase 5 完成 — 多车管理（Vehicle 模型 + CRUD API + 前端车辆选择器/添加表单 + 油耗按车辆分组独立计算 + database 自动迁移 vehicle_id 列）
 > - 2026-07-29: Phase 4 完成 — 用户鉴权（注册/登录 + JWT + 前端登录页 + 路由守卫 + 数据隔离 + 测试清单 TEST_CHECKLIST.md + 自动化测试脚本 test_all.sh）

@@ -1,5 +1,7 @@
 """FastAPI 依赖注入：从请求中提取当前用户"""
 
+from typing import Optional
+
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.orm import Session
@@ -9,11 +11,12 @@ from models.user import User
 from core.security import verify_access_token
 
 # HTTPBearer = 从 Authorization: Bearer <token> 头中提取 token 的 FastAPI 工具
-security = HTTPBearer()
+# auto_error=False: 手动处理 401，避免框架默认返回 403
+security = HTTPBearer(auto_error=False)
 
 
 def get_current_user(
-    credentials: HTTPAuthorizationCredentials = Depends(security),
+    credentials: Optional[HTTPAuthorizationCredentials] = Depends(security),
     db: Session = Depends(get_db),
 ) -> User:
     """从请求的 Authorization 头中提取 JWT，验证后返回当前用户
@@ -27,6 +30,13 @@ def get_current_user(
 
     如果任何一步失败 → 返回 401 Unauthorized
     """
+    if credentials is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="未提供认证 Token",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
     token = credentials.credentials  # 去掉 "Bearer " 前缀后的纯 token 字符串
 
     try:

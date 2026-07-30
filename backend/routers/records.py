@@ -3,6 +3,7 @@
 import csv
 import io
 from datetime import datetime
+from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import StreamingResponse
@@ -37,11 +38,11 @@ def api_get_records(
     current_user: User = Depends(get_current_user),
     page: int = 1,
     page_size: int = 20,
-    vehicle_id: int | None = None,
-    start_date: str | None = None,
-    end_date: str | None = None,
-    is_full_tank: bool | None = None,
-    note: str | None = None,
+    vehicle_id: Optional[int] = None,
+    start_date: Optional[str] = None,
+    end_date: Optional[str] = None,
+    is_full_tank: Optional[bool] = None,
+    note: Optional[str] = None,
 ):
     """获取当前用户的加油记录列表（分页），可按车辆/日期/加满/备注筛选"""
     records, total = get_records(

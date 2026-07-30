@@ -69,6 +69,7 @@ fuel_records/
 │   │                             # └ 关系：user → User（多对一）, records → FuelRecord（一对多）
 │   │
 │   ├── schemas/                  # Pydantic Schema 层：API 请求/响应数据格式
+│   │   │                         # └ P8.4 统一：X | None → Optional[X]（Python 3.9 兼容）
 │   │   ├── __init__.py           # Python 包标记
 │   │   ├── record.py             # 加油记录 Schema
 │   │   │                         # ├ FuelRecordCreate → 创建记录（含 vehicle_id，P5 新增）
@@ -136,6 +137,7 @@ fuel_records/
 │       │                         # └ verify_access_token()   → JWT 验证 + 过期检测
 │       └── deps.py               # FastAPI 依赖注入（P4 新增）
 │                                 # └ get_current_user() → 从 Authorization 头提取 JWT → 返回 User ORM
+│                                 #    └ P8.4 修复：HTTPBearer(auto_error=False) + 手动 401（修复无 Token 时 403）
 │   │
 │   ├── alembic.ini                # Alembic 数据库迁移配置（P7 新增）
 │   │                              # └ sqlalchemy.url 在 env.py 中动态指定，自动适配 SQLite/PostgreSQL/MySQL
@@ -182,7 +184,11 @@ fuel_records/
 │       │                         # └ P5 新增：车辆下拉选择器 + 添加车辆表单 + localStorage 记忆
 │       │                         # └ P6 新增：筛选面板（日期范围/加满/备注搜索）+ "统计"按钮跳转 /stats
 │       │                         # └ P8 新增：导出按钮（CSV）+ 主题切换 + 加油提醒 + 分页加载更多
-│       ├── App.css               # 样式：CSS 变量主题系统（P8 暗色模式）+ 卡片布局 + 按钮 + 导出/提醒/分页样式
+│       ├── App.css               # 主页面样式：CSS 变量主题系统（P8 暗色模式）+ 卡片布局 + 按钮
+│       │                         # └ P8.4 新增：8 个 @keyframes（fadeInUp/scaleIn/bgShift/shimmer/glowPulse/float）
+│       │                         #          玻璃态卡片（backdrop-filter）+ 对角渐变背景游走
+│       │                         #          装饰光斑（::before/::after 巨型径向渐变球浮动）
+│       │                         #          shimmer 按钮扫光 + 大圆角系统（12-18px）
 │       ├── pages/
 │       │   ├── LoginPage.tsx     # 登录/注册页面（P4 新增）
 │       │   │                     # └ 两个 Tab 切换登录/注册，成功后存 token 并跳转首页
@@ -191,6 +197,10 @@ fuel_records/
 │       │                         # ├ 年份选择器 + 月度油耗趋势折线图（Recharts 双Y轴）
 │       │                         # ├ 月度明细表
 │       │                         # └ P8 新增：截图分享（html2canvas）+ 主题切换
+│       │                         # └ P8.4 新增：入场动画 class + 4 色渐变装饰线 + 数值 hover 缩放
+│       │   ├── StatsPage.css      # 统计页面样式：CSS 变量主题 + 玻璃态卡片 + 4 色渐变装饰线
+│       │   │                     # └ P8.4 新增：统计卡片 stagger 交错延迟 fadeInUp + 装饰线 hover 伸长
+│       │   ├── LoginPage.css      # 登录页面样式（P4 新增，P8.4 动画增强）
 │       └── services/
 │           └── api.ts            # API 服务层
 │                                 # ├ FuelRecord / Vehicle 类型定义

@@ -1,5 +1,5 @@
 """用户认证 Pydantic Schema"""
-
+from typing import Optional
 from pydantic import BaseModel, Field
 
 
@@ -25,7 +25,7 @@ class UserResponse(BaseModel):
     """用户信息响应体"""
     id: int
     username: str
-    email: str | None = None
+    email: Optional[str] = None
     is_active: bool
 
     class Config:

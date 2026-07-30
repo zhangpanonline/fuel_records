@@ -32,11 +32,17 @@ def api_get_records(
     page: int = 1,
     page_size: int = 20,
     vehicle_id: int | None = None,
+    start_date: str | None = None,
+    end_date: str | None = None,
+    is_full_tank: bool | None = None,
+    note: str | None = None,
 ):
-    """获取当前用户的加油记录列表（分页），可按车辆筛选"""
+    """获取当前用户的加油记录列表（分页），可按车辆/日期/加满/备注筛选"""
     records, total = get_records(
         db=db, page=page, page_size=page_size,
         user_id=current_user.id, vehicle_id=vehicle_id,
+        start_date=start_date, end_date=end_date,
+        is_full_tank=is_full_tank, note=note,
     )
     return {
         "total": total,

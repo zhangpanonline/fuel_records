@@ -176,3 +176,114 @@
 2026-07-29 13:22:14 | INFO     | main:lifespan:19 - 应用启动中...
 2026-07-29 13:22:14 | INFO     | database:init_db:64 - 数据库表结构已创建/验证完成
 2026-07-29 13:22:14 | INFO     | main:lifespan:21 - 应用启动完成
+2026-07-29 15:21:37 | INFO     | main:lifespan:23 - 应用关闭
+2026-07-29 15:21:37 | INFO     | main:lifespan:23 - 应用关闭
+2026-07-29 15:21:37 | INFO     | main:lifespan:23 - 应用关闭
+2026-07-29 16:08:24 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-07-29 16:08:24 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-07-29 16:30:36 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-07-29 16:30:36 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-07-29 16:30:36 | INFO     | main:lifespan:19 - 应用启动中...
+2026-07-29 16:30:36 | INFO     | database:init_db:65 - 数据库表结构已创建/验证完成
+2026-07-29 16:30:36 | INFO     | main:lifespan:21 - 应用启动完成
+2026-07-29 16:30:36 | INFO     | main:lifespan:23 - 应用关闭
+2026-07-29 16:30:52 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-07-29 16:30:52 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-07-29 16:30:52 | INFO     | main:lifespan:19 - 应用启动中...
+2026-07-29 16:30:52 | INFO     | database:init_db:65 - 数据库表结构已创建/验证完成
+2026-07-29 16:30:52 | INFO     | main:lifespan:21 - 应用启动完成
+2026-07-29 16:33:48 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-07-29 16:33:48 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-07-29 16:33:48 | INFO     | main:lifespan:19 - 应用启动中...
+2026-07-29 16:33:48 | INFO     | database:init_db:65 - 数据库表结构已创建/验证完成
+2026-07-29 16:33:48 | INFO     | main:lifespan:21 - 应用启动完成
+2026-07-29 16:49:49 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-07-29 16:49:49 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-07-29 16:49:49 | INFO     | main:lifespan:19 - 应用启动中...
+2026-07-29 16:49:49 | INFO     | database:init_db:65 - 数据库表结构已创建/验证完成
+2026-07-29 16:49:49 | INFO     | main:lifespan:21 - 应用启动完成
+2026-07-29 18:21:40 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-07-29 18:21:40 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-07-29 18:22:26 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-07-29 18:22:26 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-07-29 18:22:26 | INFO     | main:lifespan:19 - 应用启动中...
+2026-07-29 18:22:26 | INFO     | database:init_db:66 - 数据库表结构已创建/验证完成
+2026-07-29 18:22:26 | INFO     | main:lifespan:21 - 应用启动完成
+2026-07-29 18:22:29 | INFO     | main:lifespan:23 - 应用关闭
+2026-07-29 18:23:04 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-07-29 18:23:04 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-07-29 18:23:05 | INFO     | main:lifespan:19 - 应用启动中...
+2026-07-29 18:23:05 | INFO     | database:init_db:66 - 数据库表结构已创建/验证完成
+2026-07-29 18:23:05 | INFO     | main:lifespan:21 - 应用启动完成
+2026-07-29 18:23:08 | INFO     | main:lifespan:23 - 应用关闭
+2026-07-29 18:25:48 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-07-29 18:25:48 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-07-29 19:28:36 | INFO     | main:lifespan:23 - 应用关闭
+2026-07-29 19:28:37 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-07-29 19:28:37 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-07-29 19:28:37 | INFO     | main:lifespan:19 - 应用启动中...
+2026-07-29 19:28:37 | DEBUG    | database:_migrate_add_column:67 - IF NOT EXISTS 方式失败，尝试 SQLite 兼容方式: (sqlite3.OperationalError) near "EXISTS": syntax error
+[SQL: ALTER TABLE fuel_records ADD COLUMN IF NOT EXISTS vehicle_id INTEGER REFERENCES vehicles(id)]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-07-29 19:28:37 | DEBUG    | database:_migrate_add_column:77 - 迁移跳过（列可能已存在）: (sqlite3.OperationalError) duplicate column name: vehicle_id
+[SQL: ALTER TABLE fuel_records ADD COLUMN vehicle_id INTEGER REFERENCES vehicles(id)]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-07-29 19:28:37 | INFO     | database:init_db:95 - 数据库表结构已创建/验证完成
+2026-07-29 19:28:37 | INFO     | main:lifespan:21 - 应用启动完成
+2026-07-29 19:45:01 | INFO     | main:lifespan:23 - 应用关闭
+2026-07-29 19:45:02 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-07-29 19:45:02 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-07-29 19:45:02 | INFO     | main:lifespan:19 - 应用启动中...
+2026-07-29 19:45:02 | DEBUG    | database:_migrate_add_column:67 - IF NOT EXISTS 方式失败，尝试 SQLite 兼容方式: (sqlite3.OperationalError) near "EXISTS": syntax error
+[SQL: ALTER TABLE fuel_records ADD COLUMN IF NOT EXISTS vehicle_id INTEGER REFERENCES vehicles(id)]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-07-29 19:45:02 | DEBUG    | database:_migrate_add_column:77 - 迁移跳过（列可能已存在）: (sqlite3.OperationalError) duplicate column name: vehicle_id
+[SQL: ALTER TABLE fuel_records ADD COLUMN vehicle_id INTEGER REFERENCES vehicles(id)]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-07-29 19:45:02 | INFO     | database:init_db:95 - 数据库表结构已创建/验证完成
+2026-07-29 19:45:02 | INFO     | main:lifespan:21 - 应用启动完成
+2026-07-29 20:40:23 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-07-29 20:40:23 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-07-29 20:40:23 | INFO     | main:lifespan:19 - 应用启动中...
+2026-07-29 20:40:23 | DEBUG    | database:_migrate_add_column:67 - IF NOT EXISTS 方式失败，尝试 SQLite 兼容方式: (sqlite3.OperationalError) near "EXISTS": syntax error
+[SQL: ALTER TABLE fuel_records ADD COLUMN IF NOT EXISTS vehicle_id INTEGER REFERENCES vehicles(id)]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-07-29 20:40:23 | DEBUG    | database:_migrate_add_column:77 - 迁移跳过（列可能已存在）: (sqlite3.OperationalError) duplicate column name: vehicle_id
+[SQL: ALTER TABLE fuel_records ADD COLUMN vehicle_id INTEGER REFERENCES vehicles(id)]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-07-29 20:40:23 | INFO     | database:init_db:95 - 数据库表结构已创建/验证完成
+2026-07-29 20:40:23 | INFO     | main:lifespan:21 - 应用启动完成
+2026-07-30 09:01:10 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-07-30 09:01:10 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-07-30 09:01:10 | INFO     | main:lifespan:19 - 应用启动中...
+2026-07-30 09:01:10 | DEBUG    | database:_migrate_add_column:67 - IF NOT EXISTS 方式失败，尝试 SQLite 兼容方式: (sqlite3.OperationalError) near "EXISTS": syntax error
+[SQL: ALTER TABLE fuel_records ADD COLUMN IF NOT EXISTS vehicle_id INTEGER REFERENCES vehicles(id)]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-07-30 09:01:10 | DEBUG    | database:_migrate_add_column:77 - 迁移跳过（列可能已存在）: (sqlite3.OperationalError) duplicate column name: vehicle_id
+[SQL: ALTER TABLE fuel_records ADD COLUMN vehicle_id INTEGER REFERENCES vehicles(id)]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-07-30 09:01:10 | INFO     | database:init_db:95 - 数据库表结构已创建/验证完成
+2026-07-30 09:01:10 | INFO     | main:lifespan:21 - 应用启动完成
+2026-07-30 09:01:10 | INFO     | main:lifespan:23 - 应用关闭
+2026-07-30 09:03:18 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-07-30 09:03:18 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-07-30 09:03:18 | INFO     | main:lifespan:19 - 应用启动中...
+2026-07-30 09:03:18 | DEBUG    | database:_migrate_add_column:67 - IF NOT EXISTS 方式失败，尝试 SQLite 兼容方式: (sqlite3.OperationalError) near "EXISTS": syntax error
+[SQL: ALTER TABLE fuel_records ADD COLUMN IF NOT EXISTS vehicle_id INTEGER REFERENCES vehicles(id)]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-07-30 09:03:18 | DEBUG    | database:_migrate_add_column:77 - 迁移跳过（列可能已存在）: (sqlite3.OperationalError) duplicate column name: vehicle_id
+[SQL: ALTER TABLE fuel_records ADD COLUMN vehicle_id INTEGER REFERENCES vehicles(id)]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-07-30 09:03:18 | INFO     | database:init_db:95 - 数据库表结构已创建/验证完成
+2026-07-30 09:03:18 | INFO     | main:lifespan:21 - 应用启动完成
+2026-07-30 09:03:57 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-07-30 09:03:57 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-07-30 09:03:57 | INFO     | main:lifespan:19 - 应用启动中...
+2026-07-30 09:03:57 | DEBUG    | database:_migrate_add_column:67 - IF NOT EXISTS 方式失败，尝试 SQLite 兼容方式: (sqlite3.OperationalError) near "EXISTS": syntax error
+[SQL: ALTER TABLE fuel_records ADD COLUMN IF NOT EXISTS vehicle_id INTEGER REFERENCES vehicles(id)]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-07-30 09:03:57 | DEBUG    | database:_migrate_add_column:77 - 迁移跳过（列可能已存在）: (sqlite3.OperationalError) duplicate column name: vehicle_id
+[SQL: ALTER TABLE fuel_records ADD COLUMN vehicle_id INTEGER REFERENCES vehicles(id)]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-07-30 09:03:57 | INFO     | database:init_db:95 - 数据库表结构已创建/验证完成
+2026-07-30 09:03:57 | INFO     | main:lifespan:21 - 应用启动完成

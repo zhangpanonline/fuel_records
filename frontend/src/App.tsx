@@ -36,6 +36,13 @@ function App() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
 
+  // ---- 筛选状态 ----
+  const [showFilter, setShowFilter] = useState(false)
+  const [filterStartDate, setFilterStartDate] = useState('')
+  const [filterEndDate, setFilterEndDate] = useState('')
+  const [filterFullTank, setFilterFullTank] = useState<boolean | undefined>(undefined)
+  const [filterNote, setFilterNote] = useState('')
+
   // 加载车辆列表
   useEffect(() => {
     loadVehicles()
@@ -48,6 +55,28 @@ function App() {
       localStorage.setItem(VEHICLE_KEY, String(selectedVehicleId))
     }
   }, [selectedVehicleId])
+
+  // 筛选条件变化时重新加载
+  function handleApplyFilter() {
+    if (selectedVehicleId !== null) {
+      loadRecords(selectedVehicleId)
+    }
+  }
+
+  function handleClearFilter() {
+    setFilterStartDate('')
+    setFilterEndDate('')
+    setFilterFullTank(undefined)
+    setFilterNote('')
+    if (selectedVehicleId !== null) {
+      // 直接加载不带筛选的记录
+      setLoading(true)
+      fetchRecords(1, 20, selectedVehicleId)
+        .then((data) => setRecords(data.records))
+        .catch(() => setError('加载记录失败'))
+        .finally(() => setLoading(false))
+    }
+  }
 
   async function loadVehicles() {
     try {
@@ -75,7 +104,13 @@ function App() {
     setLoading(true)
     setError('')
     try {
-      const data = await fetchRecords(1, 20, vehicleId)
+      const data = await fetchRecords(
+        1, 20, vehicleId,
+        filterStartDate || undefined,
+        filterEndDate || undefined,
+        filterFullTank,
+        filterNote || undefined,
+      )
       setRecords(data.records)
     } catch {
       setError('加载记录失败，请检查网络连接')
@@ -198,6 +233,10 @@ function App() {
     window.location.href = '/login'
   }
 
+  function handleGoStats() {
+    window.location.href = '/stats'
+  }
+
   function formatDate(iso: string) {
     const d = new Date(iso)
     return `${d.getMonth() + 1}月${d.getDate()}日 ${d.getHours().toString().padStart(2, '0')}:${d.getMinutes().toString().padStart(2, '0')}`
@@ -208,10 +247,15 @@ function App() {
   return (
     <div className="app">
       <div className="header">
-        <h1 className="title">⛽ 油耗记录</h1>
-        <button className="logout-btn" onClick={handleLogout}>
-          退出
-        </button>
+        <h1 className="title">油耗记录</h1>
+        <div className="header-actions">
+          <button className="nav-btn" onClick={handleGoStats}>
+            统计
+          </button>
+          <button className="logout-btn" onClick={handleLogout}>
+            退出
+          </button>
+        </div>
       </div>
 
       {/* 车辆选择器 */}
@@ -270,57 +314,133 @@ function App() {
 
       {/* 录入表单 */}
       {currentVehicle && (
-        <form className="record-form" onSubmit={handleSubmit} key={editingId ?? 'new'}>
-          <p className="form-hint">
-            当前车辆：<strong>{currentVehicle.name}</strong>
-          </p>
-          <div className="form-row">
-            <label>
-              里程 (km)
-              <input
-                type="number"
-                step="0.1"
-                min="0"
-                placeholder="如 52345.5"
-                value={mileage}
-                onChange={(e) => setMileage(e.target.value)}
-                required
-              />
-            </label>
-            <label>
-              油量 (L)
-              <input
-                type="number"
-                step="0.01"
-                min="0"
-                placeholder="如 12.50"
-                value={fuelVolume}
-                onChange={(e) => setFuelVolume(e.target.value)}
-                required
-              />
-            </label>
-            <label>
-              金额 (元)
-              <input
-                type="number"
-                step="0.01"
-                min="0"
-                placeholder="如 98.75"
-                value={fuelCost}
-                onChange={(e) => setFuelCost(e.target.value)}
-                required
-              />
-            </label>
-          </div>
-          <button type="submit" className="submit-btn" disabled={submitting}>
-            {submitting ? '提交中...' : editingId !== null ? '更新记录' : '提交记录'}
-          </button>
-          {editingId !== null && (
-            <button type="button" className="cancel-btn" onClick={handleCancelEdit}>
-              取消编辑
+        <>
+          {/* 筛选栏 */}
+          <div className="filter-bar">
+            <button
+              className="filter-toggle-btn"
+              onClick={() => setShowFilter(!showFilter)}
+            >
+              {showFilter ? '收起筛选' : '筛选'}
+              {(filterStartDate || filterEndDate || filterFullTank !== undefined || filterNote) && (
+                <span className="filter-dot" />
+              )}
             </button>
+          </div>
+
+          {showFilter && (
+            <div className="filter-panel">
+              <div className="filter-row">
+                <label>
+                  开始日期
+                  <input
+                    type="date"
+                    value={filterStartDate}
+                    onChange={(e) => setFilterStartDate(e.target.value)}
+                  />
+                </label>
+                <label>
+                  结束日期
+                  <input
+                    type="date"
+                    value={filterEndDate}
+                    onChange={(e) => setFilterEndDate(e.target.value)}
+                  />
+                </label>
+              </div>
+              <div className="filter-row">
+                <label>
+                  <input
+                    type="checkbox"
+                    checked={filterFullTank === true}
+                    onChange={(e) =>
+                      setFilterFullTank(e.target.checked ? true : undefined)
+                    }
+                  />
+                  {' '}仅加满
+                </label>
+                <label>
+                  <input
+                    type="checkbox"
+                    checked={filterFullTank === false}
+                    onChange={(e) =>
+                      setFilterFullTank(e.target.checked ? false : undefined)
+                    }
+                  />
+                  {' '}仅未加满
+                </label>
+              </div>
+              <div className="filter-row">
+                <input
+                  type="text"
+                  placeholder="搜索备注 (如加油站名)"
+                  value={filterNote}
+                  onChange={(e) => setFilterNote(e.target.value)}
+                />
+              </div>
+              <div className="filter-actions">
+                <button className="submit-btn" onClick={handleApplyFilter}>
+                  应用筛选
+                </button>
+                <button className="cancel-btn" onClick={handleClearFilter}>
+                  清除筛选
+                </button>
+              </div>
+            </div>
           )}
-        </form>
+
+          <form className="record-form" onSubmit={handleSubmit} key={editingId ?? 'new'}>
+            <p className="form-hint">
+              当前车辆：<strong>{currentVehicle.name}</strong>
+            </p>
+            <div className="form-row">
+              <label>
+                里程 (km)
+                <input
+                  type="number"
+                  step="0.1"
+                  min="0"
+                  placeholder="如 52345.5"
+                  value={mileage}
+                  onChange={(e) => setMileage(e.target.value)}
+                  required
+                />
+              </label>
+              <label>
+                油量 (L)
+                <input
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  placeholder="如 12.50"
+                  value={fuelVolume}
+                  onChange={(e) => setFuelVolume(e.target.value)}
+                  required
+                />
+              </label>
+              <label>
+                金额 (元)
+                <input
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  placeholder="如 98.75"
+                  value={fuelCost}
+                  onChange={(e) => setFuelCost(e.target.value)}
+                  required
+                />
+              </label>
+            </div>
+            <button type="submit" className="submit-btn" disabled={submitting}>
+              {submitting ? '提交中...' : editingId !== null ? '更新记录' : '提交记录'}
+            </button>
+            {editingId !== null && (
+              <button type="button" className="cancel-btn" onClick={handleCancelEdit}>
+                取消编辑
+              </button>
+            )}
+          </form>
+        </>
       )}
 
       {/* 记录列表 */}

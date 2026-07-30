@@ -156,6 +156,40 @@ check "删除唯一基线被拒" "无法删除" "$DEL2"
 DELVEH=$(curl -s -X DELETE $BASE/vehicles/$VEH1_ID -H "Authorization: Bearer $TOKEN")
 check "删除有关联记录的车辆被拒" "无法删除" "$DELVEH"
 
+# Phase 6: Stats
+echo ""
+echo "--- Phase 6: Stats ---"
+
+# 车辆1的统计数据（目前有1条记录，第1条被删了，第2条还在）
+SUM1=$(curl -s "$BASE/stats/summary?vehicle_id=$VEH1_ID" -H "Authorization: Bearer $TOKEN")
+check "车辆1汇总统计有记录" '"record_count":1' "$SUM1"
+
+SUM2=$(curl -s "$BASE/stats/summary?vehicle_id=$VEH2_ID" -H "Authorization: Bearer $TOKEN")
+check "车辆2汇总统计有记录" '"record_count":1' "$SUM2"
+
+# 月度统计
+MON=$(curl -s "$BASE/stats/monthly?vehicle_id=$VEH1_ID&year=2026" -H "Authorization: Bearer $TOKEN")
+check "月度统计返回年份" '"year":2026' "$MON"
+
+# Phase 6: Record filtering
+echo ""
+echo "--- Phase 6: Record filtering ---"
+
+# 按日期筛选
+FILTER_DATE=$(curl -s "$BASE/records/?vehicle_id=$VEH1_ID&start_date=2026-01-01&end_date=2026-12-31" -H "Authorization: Bearer $TOKEN")
+check "按日期范围筛选" '"total":1' "$FILTER_DATE"
+
+# 按加满筛选
+FILTER_FULL=$(curl -s "$BASE/records/?vehicle_id=$VEH1_ID&is_full_tank=true" -H "Authorization: Bearer $TOKEN")
+check "按加满筛选" '"total"' "$FILTER_FULL"
+
+# 按备注筛选（无匹配）- URL 编码中文字符
+FILTER_NOTE=$(curl -s -G "$BASE/records/" \
+  --data-urlencode "vehicle_id=$VEH1_ID" \
+  --data-urlencode "note=不存在" \
+  -H "Authorization: Bearer $TOKEN")
+check "按备注筛选无匹配" '"total":0' "$FILTER_NOTE"
+
 echo ""
 echo "========================================"
 echo "  结果: $PASS 通过, $FAIL 失败"

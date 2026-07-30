@@ -64,6 +64,30 @@ export interface UpdateRecordPayload {
   note?: string
 }
 
+// ---- Stats types ----
+
+export interface SummaryStats {
+  record_count: number
+  total_mileage: number
+  total_fuel_volume: number
+  total_fuel_cost: number
+  avg_consumption: number | null
+  avg_unit_price: number | null
+}
+
+export interface MonthlyItem {
+  month: number
+  count: number
+  total_volume: number
+  total_cost: number
+  avg_consumption: number | null
+}
+
+export interface MonthlyStats {
+  year: number
+  months: MonthlyItem[]
+}
+
 export interface TokenResponse {
   access_token: string
   token_type: string
@@ -182,10 +206,26 @@ export async function fetchRecords(
   page = 1,
   pageSize = 20,
   vehicleId?: number,
+  startDate?: string,
+  endDate?: string,
+  isFullTank?: boolean,
+  note?: string,
 ): Promise<RecordsResponse> {
-  const params: Record<string, number> = { page, page_size: pageSize }
+  const params: Record<string, number | string | boolean> = { page, page_size: pageSize }
   if (vehicleId !== undefined) {
     params.vehicle_id = vehicleId
+  }
+  if (startDate) {
+    params.start_date = startDate
+  }
+  if (endDate) {
+    params.end_date = endDate
+  }
+  if (isFullTank !== undefined) {
+    params.is_full_tank = isFullTank
+  }
+  if (note) {
+    params.note = note
   }
   const res = await apiClient.get<RecordsResponse>('/api/v1/records/', { params })
   return {
@@ -232,4 +272,23 @@ export async function updateVehicle(
 
 export async function deleteVehicle(id: number): Promise<void> {
   await apiClient.delete(`/api/v1/vehicles/${id}`)
+}
+
+// ---- Stats API ----
+
+export async function fetchSummary(vehicleId: number): Promise<SummaryStats> {
+  const res = await apiClient.get<SummaryStats>('/api/v1/stats/summary', {
+    params: { vehicle_id: vehicleId },
+  })
+  return res.data
+}
+
+export async function fetchMonthly(
+  vehicleId: number,
+  year: number,
+): Promise<MonthlyStats> {
+  const res = await apiClient.get<MonthlyStats>('/api/v1/stats/monthly', {
+    params: { vehicle_id: vehicleId, year },
+  })
+  return res.data
 }

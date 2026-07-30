@@ -105,6 +105,39 @@ BASE="http://localhost:8000/api/v1"
 - [ ] 创建记录自动带当前车辆 ID
 
 ---
+## Phase 6 — 数据之美
+
+### 统计汇总
+
+- [ ] `GET /api/v1/stats/summary?vehicle_id=X` 返回 record_count / total_mileage / total_fuel_volume / total_fuel_cost / avg_consumption / avg_unit_price
+- [ ] 有记录的车辆返回完整统计数据
+- [ ] 无记录的车辆返回 record_count=0
+
+### 月度统计
+
+- [ ] `GET /api/v1/stats/monthly?vehicle_id=X&year=2026` 返回按月份分组的加油统计
+- [ ] 返回结构含 year + months 数组，每月含 count / total_volume / total_cost / avg_consumption
+
+### 记录筛选
+
+- [ ] `?start_date=2026-01-01&end_date=2026-12-31` 按日期范围筛选
+- [ ] `?is_full_tank=true` 筛选加满的记录
+- [ ] `?is_full_tank=false` 筛选未加满的记录
+- [ ] `?note=中石化` 按备注模糊搜索
+
+### 前端验证
+
+- [ ] 首页显示"统计"按钮，点击跳转统计页面
+- [ ] 统计页展示概览卡片（总里程、平均油耗、总花费、总加油量）
+- [ ] 统计页有年份选择器
+- [ ] 统计页展示月度油耗折线图（油耗 + 花费双轴）
+- [ ] 统计页展示月度明细表
+- [ ] 首页有"筛选"按钮，展开日期/加满/备注筛选
+- [ ] 筛选有红点提示当前激活的筛选条件
+- [ ] 应用筛选后列表按条件过滤
+- [ ] 清除筛选后恢复全部记录
+
+---
 
 ## 已知坑位记录
 
@@ -129,5 +162,6 @@ BASE="http://localhost:8000/api/v1"
 ---
 
 > **更新记录**
+> - 2026-07-30: Phase 6 更新 — 统计汇总 API + 月度统计 API + 记录筛选 + 前端统计页面（卡片/折线图/明细表）+ 前端筛选面板
 > - 2026-07-29: Phase 5 更新 — 车辆 CRUD + vehicle_id 关联 + 多车数据隔离测试用例
 > - 2026-07-29: 初版，覆盖 Phase 1-4 所有功能测试 + 踩坑记录

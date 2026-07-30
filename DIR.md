@@ -26,7 +26,8 @@ fuel_records/
 │   │
 │   ├── main.py                   # 入口文件：创建 FastAPI 实例、挂载中间件/路由、启动服务
 │   │                             # 关键函数：lifespan（启动时 init_db）、health_check
-│   │                             # 路由：GET /api/v1/health
+│   │                             # 路由：records, auth, vehicles, stats（P6 新增 stats）
+│   │                             # 已注册路由：GET /api/v1/health, /api/v1/records/*, /api/v1/auth/*, /api/v1/vehicles/*, /api/v1/stats/*
 │   │
 │   ├── config.py                 # 配置管理：读取 .env，提供 Settings 单例
 │   │                             # 关键类：Settings(BaseSettings)
@@ -79,10 +80,13 @@ fuel_records/
 │   │   │                         # ├ UserLogin → 登录请求
 │   │   │                         # ├ TokenResponse → JWT 响应
 │   │   │                         # └ UserResponse → 用户信息响应
-│   │   └── vehicle.py            # 车辆 Schema（P5 新增）
-│   │                             # ├ VehicleCreate → 创建车辆（name + plate + initial_mileage）
-│   │                             # ├ VehicleUpdate → 修改车辆（name/plate/is_active 可选）
-│   │                             # └ VehicleResponse → 响应格式
+│   │   ├── vehicle.py            # 车辆 Schema（P5 新增）
+│   │   │                         # ├ VehicleCreate → 创建车辆（name + plate + initial_mileage）
+│   │   │                         # ├ VehicleUpdate → 修改车辆（name/plate/is_active 可选）
+│   │   │                         # └ VehicleResponse → 响应格式
+│   │   └── stats.py              # 统计 Schema（P6 新增）
+│   │                             # ├ SummaryResponse → 汇总统计响应
+│   │                             # └ MonthlyResponse → 月度统计响应
 │   │
 │   ├── routers/                  # API 路由层：定义 HTTP 端点
 │   │   ├── __init__.py           # Python 包标记
@@ -94,17 +98,20 @@ fuel_records/
 │   │   ├── auth.py               # 认证路由（P4 新增）
 │   │   │                         # ├ POST /api/v1/auth/register → 注册（返回 JWT）
 │   │   │                         # └ POST /api/v1/auth/login → 登录（返回 JWT）
-│   │   └── vehicles.py           # 车辆管理路由（P5 新增）
-│   │                             # ├ POST   /api/v1/vehicles        → 创建车辆
-│   │                             # ├ GET    /api/v1/vehicles        → 获取当前用户的车辆列表
-│   │                             # ├ PUT    /api/v1/vehicles/{id}   → 修改车辆信息
-│   │                             # └ DELETE /api/v1/vehicles/{id}   → 删除车辆（校验无关联记录）
+│   │   ├── vehicles.py           # 车辆管理路由（P5 新增）
+│   │   │                         # ├ POST   /api/v1/vehicles        → 创建车辆
+│   │   │                         # ├ GET    /api/v1/vehicles        → 获取当前用户的车辆列表
+│   │   │                         # ├ PUT    /api/v1/vehicles/{id}   → 修改车辆信息
+│   │   │                         # └ DELETE /api/v1/vehicles/{id}   → 删除车辆（校验无关联记录）
+│   │   └── stats.py              # 统计路由（P6 新增）
+│   │                             # ├ GET /api/v1/stats/summary → 汇总统计（含 vehicle_id）
+│   │                             # └ GET /api/v1/stats/monthly → 月度统计（含 vehicle_id + year）
 │   │
 │   ├── services/                 # 业务逻辑层：核心算法
 │   │   ├── __init__.py           # Python 包标记
 │   │   ├── record_service.py     # 油耗计算服务
 │   │   │                         # ├ create_record()            → 创建 + 油耗计算 + 里程校验 + 车辆归属校验（P5）
-│   │   │                         # ├ get_records()              → 分页查询（按 user_id + vehicle_id 过滤）
+│   │   │                         # ├ get_records()              → 分页查询（按 user_id + vehicle_id + 日期/加满/备注 过滤，P6新增筛选）
 │   │   │                         # ├ recalculate_consumption()  → 级联重算油耗（按 vehicle_id 隔离，P5）
 │   │   │                         # ├ update_record()            → 修改记录（校验归属）
 │   │   │                         # └ delete_record()            → 删除记录 + 基线保护（校验归属）
@@ -116,6 +123,9 @@ fuel_records/
 │   │                             # ├ get_vehicles()     → 获取当前用户的车辆列表
 │   │                             # ├ update_vehicle()   → 修改车辆（校验归属）
 │   │                             # └ delete_vehicle()   → 删除车辆（校验归属 + 无关联记录）
+│   │   ├── stats_service.py      # 统计服务（P6 新增）
+│   │   │                         # ├ get_summary() → 汇总统计（总里程/总油量/总金额/平均油耗/平均单价）
+│   │   │                         # └ get_monthly() → 月度统计（按月分组：次数/油量/金额/油耗）
 │   │
 │   └── core/                     # 基础设施层
 │       ├── __init__.py           # Python 包标记
@@ -149,22 +159,29 @@ fuel_records/
 │   │   └── gradle/wrapper/gradle-wrapper.properties  # Gradle 腾讯云镜像加速
 │   │
 │   └── src/                      # React 源码
-│       ├── main.tsx              # React 入口：BrowserRouter + Routes 路由配置（P4 新增路由守卫）
-│       ├── App.tsx               # 主页面：加油表单 + 记录列表 + 车辆选择器（P5 新增）+ 退出登录按钮
+│       ├── main.tsx              # React 入口：BrowserRouter + Routes 路由配置（P4 新增路由守卫，P6 新增 /stats 路由）
+│       ├── App.tsx               # 主页面：加油表单 + 记录列表 + 车辆选择器（P5）+ 退出 + 筛选面板（P6）+ 统计入口
 │       │                         # └ P4 新增：退出登录（clearToken + 跳转）
 │       │                         # └ P5 新增：车辆下拉选择器 + 添加车辆表单 + localStorage 记忆
-│       ├── App.css               # 样式：卡片布局、按钮、基线标记 + 登录/注册表单（P4 新增）
+│       │                         # └ P6 新增：筛选面板（日期范围/加满/备注搜索）+ "统计"按钮跳转 /stats
+│       ├── App.css               # 样式：卡片布局、按钮、基线标记 + 登录/注册表单 + 筛选面板/导航按钮（P6新增）
 │       ├── pages/
-│       │   └── LoginPage.tsx     # 登录/注册页面（P4 新增）
-│       │                         # └ 两个 Tab 切换登录/注册，成功后存 token 并跳转首页
+│       │   ├── LoginPage.tsx     # 登录/注册页面（P4 新增）
+│       │   │                     # └ 两个 Tab 切换登录/注册，成功后存 token 并跳转首页
+│       │   └── StatsPage.tsx     # 统计页面（P6 新增）
+│       │                         # ├ 概览卡片（总里程/平均油耗/总花费/总加油量）
+│       │                         # ├ 年份选择器 + 月度油耗趋势折线图（Recharts 双Y轴）
+│       │                         # └ 月度明细表
 │       └── services/
 │           └── api.ts            # API 服务层
-│                                 # ├ FuelRecord 类型定义
-│                                 # ├ Auth API: register(), login()（P4 新增）
-│                                 # ├ Token 管理: getToken(), setToken(), clearToken()（P4 新增）
-│                                 # ├ 请求拦截器：自动附加 Authorization: Bearer <token>（P4 新增）
-│                                 # ├ 响应拦截器：401 自动清除 token 并跳转登录页（P4 新增）
-│                                 # ├ Records CRUD: create/fetch/update/delete
+│                                 # ├ FuelRecord / Vehicle 类型定义
+│                                 # ├ Stats 类型：SummaryStats / MonthlyStats / MonthlyItem（P6 新增）
+│                                 # ├ Auth API: register(), login()
+│                                 # ├ Token 管理: getToken(), setToken(), clearToken()
+│                                 # ├ 请求拦截器：自动附加 Authorization: Bearer <token>
+│                                 # ├ 响应拦截器：401 自动清除 token 并跳转登录页
+│                                 # ├ Records CRUD: create/fetch（支持筛选参数）/update/delete
+│                                 # ├ Stats API: fetchSummary() / fetchMonthly()（P6 新增）
 │                                 # └ parseRecord() → Decimal 字符串转数字
 │
 ```

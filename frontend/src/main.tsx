@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import App from './App.tsx'
 import LoginPage from './pages/LoginPage.tsx'
+import StatsPage from './pages/StatsPage.tsx'
 import { isLoggedIn } from './services/api.ts'
 import './index.css'
 
@@ -24,6 +25,14 @@ createRoot(document.getElementById('root')!).render(
           element={
             <ProtectedRoute>
               <App />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/stats"
+          element={
+            <ProtectedRoute>
+              <StatsPage />
             </ProtectedRoute>
           }
         />

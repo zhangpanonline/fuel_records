@@ -76,14 +76,26 @@ def get_records(
     page_size: int = 20,
     user_id: int | None = None,
     vehicle_id: int | None = None,
+    start_date: str | None = None,
+    end_date: str | None = None,
+    is_full_tank: bool | None = None,
+    note: str | None = None,
 ) -> tuple[list[FuelRecord], int]:
-    """获取加油记录列表（分页，按时间倒序），按 user_id 和 vehicle_id 过滤"""
+    """获取加油记录列表（分页，按时间倒序），支持多条件筛选"""
     query = db.query(FuelRecord)
 
     if user_id is not None:
         query = query.filter(FuelRecord.user_id == user_id)
     if vehicle_id is not None:
         query = query.filter(FuelRecord.vehicle_id == vehicle_id)
+    if start_date is not None:
+        query = query.filter(FuelRecord.record_date >= start_date)
+    if end_date is not None:
+        query = query.filter(FuelRecord.record_date <= end_date)
+    if is_full_tank is not None:
+        query = query.filter(FuelRecord.is_full_tank == is_full_tank)
+    if note is not None and note.strip():
+        query = query.filter(FuelRecord.note.contains(note.strip()))
 
     total = query.count()
 

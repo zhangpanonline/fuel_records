@@ -1,10 +1,14 @@
 """数据库连接：SQLAlchemy engine + session 管理"""
 
+from pathlib import Path
 from sqlalchemy.orm.session import Session
 
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import DeclarativeBase, sessionmaker
+
+from alembic import command as alembic_command
+from alembic.config import Config as AlembicConfig
 
 from config import settings
 from logger import setup_logger
@@ -52,44 +56,21 @@ def get_db():
         db.close()
 
 
-def _migrate_add_column():
-    """安全添加列：如果列已存在则跳过"""
-    try:
-        with engine.connect() as conn:
-            # PostgreSQL: ADD COLUMN IF NOT EXISTS
-            conn.exec_driver_sql(
-                "ALTER TABLE fuel_records ADD COLUMN IF NOT EXISTS vehicle_id INTEGER REFERENCES vehicles(id)"
-            )
-            conn.commit()
-            logger.info("迁移检查：vehicle_id 列已就绪")
-    except Exception as e:
-        # SQLite 不支持 IF NOT EXISTS，用另一种方式
-        logger.debug(f"IF NOT EXISTS 方式失败，尝试 SQLite 兼容方式: {e}")
-        try:
-            with engine.connect() as conn:
-                conn.exec_driver_sql(
-                    "ALTER TABLE fuel_records ADD COLUMN vehicle_id INTEGER REFERENCES vehicles(id)"
-                )
-                conn.commit()
-                logger.info("迁移检查：vehicle_id 列已添加")
-        except Exception as e2:
-            # 列已存在或表不存在，都是可接受的
-            logger.debug(f"迁移跳过（列可能已存在）: {e2}")
-
-
 def init_db():
-    """创建所有表（生产环境应使用 Alembic 迁移，开发阶段自动建表）"""
-    # 延迟导入，避免循环依赖，因为 models/fuel_record.py 里会 from database import Base
-    # noqa: F401 是给代码检查工具看的，意思是："我知道这个导入看起来没用（F401 警告），但它是故意这样写的，别报警告"。
+    """应用启动时自动运行 Alembic 迁移到最新版本"""
+    # 确保模型类被导入，让 Base.metadata 完整（env.py 中 autogenerate 依赖此导入）
     from models.fuel_record import FuelRecord  # noqa: F401
     from models.user import User  # noqa: F401
     from models.vehicle import Vehicle  # noqa: F401
 
-    # Base.metadata 是 SQLAlchemy 自动收集的 所有表的元数据 ——每当有类继承 Base ，它就会被自动注册到 Base.metadata 里。
-    # create_all() 的意思是： 检查数据库里有没有这些表，没有就自动创建 。
-    Base.metadata.create_all(bind=engine)
+    # 定位 alembic.ini 配置文件（backend/ 目录下）
+    alembic_ini = Path(__file__).resolve().parent / "alembic.ini"
+    alembic_cfg = AlembicConfig(str(alembic_ini))
+    # 禁止 alembic 自身的 logging 配置覆盖项目 loguru 日志
+    alembic_cfg.attributes["configure_logger"] = False
 
-    # Phase 5 迁移：为已有 fuel_records 表添加 vehicle_id 列（create_all 不改已有表结构）
-    _migrate_add_column()
+    # 运行迁移到最新版本（alembic upgrade head）
+    # 每个 migration 脚本记录了"当前状态 → 下一个状态"的变更
+    alembic_command.upgrade(alembic_cfg, "head")
 
-    logger.info("数据库表结构已创建/验证完成")
+    logger.info("数据库迁移已完成（Alembic upgrade head）")

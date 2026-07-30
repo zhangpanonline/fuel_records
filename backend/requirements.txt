@@ -21,5 +21,12 @@ psycopg2-binary==2.9.10
 bcrypt==4.2.1   # 密码哈希
 PyJWT==2.10.1   # JWT 签发与验证
 
+# 数据库迁移
+alembic==1.14.1
+
+# 测试
+pytest==8.4.0
+httpx==0.28.0
+
 # 工具
 python-dotenv==1.1.0

@@ -37,9 +37,8 @@ fuel_records/
 │   ├── database.py               # 数据库连接管理
 │   │                             # 关键对象：engine（连接池）、SessionLocal（会话工厂）
 │   │                             #          Base（ORM 基类）
-│   │                             # 关键函数：init_db()（建表 + 迁移）_migrate_add_column()（P5 新增）
+│   │                             # 关键函数：init_db()（P7 改用 Alembic upgrade head）
 │   │                             #          get_db()（依赖注入）
-│   │                             # connect_args: check_same_thread 仅对 SQLite 生效，PostgreSQL 不走此参数
 │   │
 │   ├── logger.py                 # 日志配置：loguru
 │   │                             # 关键函数：setup_logger()
@@ -136,8 +135,24 @@ fuel_records/
 │       │                         # └ verify_access_token()   → JWT 验证 + 过期检测
 │       └── deps.py               # FastAPI 依赖注入（P4 新增）
 │                                 # └ get_current_user() → 从 Authorization 头提取 JWT → 返回 User ORM
-│
-├── apk-build-guide.md            # APK 打包完整指南：环境依赖、打包步骤、常见坑及修复
+│   │
+│   ├── alembic.ini                # Alembic 数据库迁移配置（P7 新增）
+│   │                              # └ sqlalchemy.url 在 env.py 中动态指定，自动适配 SQLite/PostgreSQL/MySQL
+│   │
+│   ├── alembic/                   # Alembic 迁移脚本目录（P7 新增）
+│   │   ├── env.py                 # 迁移环境：导入项目 config + Base.metadata，支持 autogenerate
+│   │   ├── script.py.mako         # 迁移脚本模板
+│   │   └── versions/
+│   │       └── ff245e876ff9_initial_schema.py  # 初始迁移：users + vehicles + fuel_records
+│   │
+│   ├── tests/                     # pytest 单元测试（P7 新增）
+│   │   ├── __init__.py            # 包标记
+│   │   ├── conftest.py            # 测试基础设施：SQLite :memory: + StaticPool + 独立测试 App
+│   │   ├── test_services.py       # 服务层测试（26 个）：安全/认证/车辆/油耗计算/级联重算/筛选/统计
+│   │   └── test_api.py            # API 层测试（14 个）：鉴权/CRUD/数据隔离
+│   │
+│   ├── requirements.txt           # Python 依赖列表
+│   │                              # └ P7 新增：alembic, pytest, httpx
 │
 ├── frontend/                     # 前端代码（React + Vite + Capacitor）
 │   │

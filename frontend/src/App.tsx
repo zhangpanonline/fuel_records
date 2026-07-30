@@ -373,9 +373,9 @@ function App() {
         </div>
       </div>
 
-      {/* 车辆选择器 */}
-      {vehicles.length > 0 && (
-        <div className="vehicle-bar animate-in">
+      {/* 车辆选择器 — 按钮始终可见，select 仅在有车辆时显示 */}
+      <div className="vehicle-bar animate-in">
+        {vehicles.length > 0 && (
           <select
             className="vehicle-select"
             value={selectedVehicleId ?? ''}
@@ -388,14 +388,14 @@ function App() {
               </option>
             ))}
           </select>
-          <button
-            className="add-vehicle-btn"
-            onClick={() => setShowAddVehicle(!showAddVehicle)}
-          >
-            {showAddVehicle ? '收起' : '+ 添加车辆'}
-          </button>
-        </div>
-      )}
+        )}
+        <button
+          className="add-vehicle-btn"
+          onClick={() => setShowAddVehicle(!showAddVehicle)}
+        >
+          {showAddVehicle ? '收起' : vehicles.length === 0 ? '+ 添加第一辆车' : '+ 添加车辆'}
+        </button>
+      </div>
 
       {/* 加油提醒开关 */}
       <div className="reminder-bar animate-in stagger-2">
@@ -527,7 +527,7 @@ function App() {
                   type="number"
                   step="0.1"
                   min="0"
-                  placeholder="如 52345.5"
+                  placeholder="8888.8"
                   value={mileage}
                   onChange={(e) => setMileage(e.target.value)}
                   required
@@ -539,7 +539,7 @@ function App() {
                   type="number"
                   step="0.01"
                   min="0"
-                  placeholder="如 12.50"
+                  placeholder="88.88"
                   value={fuelVolume}
                   onChange={(e) => setFuelVolume(e.target.value)}
                   required
@@ -551,7 +551,7 @@ function App() {
                   type="number"
                   step="0.01"
                   min="0"
-                  placeholder="如 98.75"
+                  placeholder="88.88"
                   value={fuelCost}
                   onChange={(e) => setFuelCost(e.target.value)}
                   required
@@ -576,7 +576,17 @@ function App() {
           <h2>历史记录</h2>
 
           {loading && <p className="status-text">加载中...</p>}
-          {error && <p className="status-text error">{error}</p>}
+          {error && (
+            <div className="status-text error">
+              <p>{error}</p>
+              <button
+                className="retry-btn"
+                onClick={() => selectedVehicleId !== null && loadRecords(selectedVehicleId)}
+              >
+                重新加载
+              </button>
+            </div>
+          )}
 
           {!loading && !error && records?.length === 0 && (
             <p className="status-text empty">还没记录，去加一箱油吧 🏍️</p>
@@ -631,8 +641,8 @@ function App() {
         </section>
       )}
 
-      {/* 没有车辆时的引导 */}
-      {!currentVehicle && !loading && (
+      {/* 没有车辆时的引导 — 仅当添加车辆表单未展示时 */}
+      {!currentVehicle && !loading && !showAddVehicle && (
         <section className="records-section animate-in">
           <p className="status-text empty">
             还没有添加车辆，请点击"+ 添加车辆"开始记录

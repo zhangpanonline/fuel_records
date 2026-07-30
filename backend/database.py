@@ -28,7 +28,9 @@ if settings.DB_TYPE == "mysql":
 elif settings.DB_TYPE == "sqlite":
     # SQLite 默认只允许创建它的那个线程访问。但 FastAPI 是 多线程 处理请求的，所以要加这个参数告诉 SQLite："允许多个线程访问这个数据库文件"。
     engine_kwargs["connect_args"] = {"check_same_thread": False}
-# PostgreSQL 不需要额外参数
+# PostgreSQL 不需要额外参数（Supabase Pooler 通过 connect_args 设置 pgbouncer）
+elif settings.DB_TYPE == "postgresql" and "pooler.supabase.com" in settings.DATABASE_URL:
+    engine_kwargs["connect_args"] = {"options": "-c pgbouncer=true"}
 
 engine = create_engine(settings.DATABASE_URL, **engine_kwargs)
 

@@ -15,8 +15,9 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 config = context.config
 
 # 从项目 config.py 读取数据库连接字符串（自动根据 DB_TYPE 选择 SQLite/PostgreSQL/MySQL）
+# PostgreSQL URL 中 %23/%40 等字符会触发 ConfigParser 插值报错 → 用 %% 转义
 from config import settings
-config.set_main_option("sqlalchemy.url", settings.DATABASE_URL)
+config.set_main_option("sqlalchemy.url", settings.DATABASE_URL.replace("%", "%%"))
 
 # Interpret the config file for Python logging.
 # This line sets up loggers basically.

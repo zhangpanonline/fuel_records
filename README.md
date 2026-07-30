@@ -390,15 +390,18 @@ DEL  /api/v1/vehicles/{id}    删除车辆
 
 ---
 
-### Phase 5 — "多车管理"
+### Phase 5 — "多车管理" ✅
 
 **目标**：支持摩托车 + 汽车分别记录。
 
-**新增工作**：
-- 创建 `vehicles` 表
-- 车辆 CRUD API
+**已完成工作**：
+- 创建 `vehicles` 表（id, user_id, name, plate, initial_mileage, is_active）
+- 车辆 CRUD API（POST/GET/PUT/DELETE `/api/v1/vehicles`）
 - 加油记录关联 vehicle_id
-- 前端：车辆列表页、切换车辆
+- 油耗计算按车辆分组独立
+- 删除车辆校验无关联记录
+- 前端：车辆下拉选择器 + 添加车辆表单 + localStorage 记忆
+- 数据库自动迁移 `_migrate_add_column()`
 
 **学到的知识点**：
 1. 多表关联查询

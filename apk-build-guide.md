@@ -1,14 +1,13 @@
 ## 目录
 
 1. [前置环境要求](#1-前置环境要求)
-2. [安装 Capacitor 依赖](#2-安装-capacitor-依赖)
-3. [配置生产环境 API 地址](#3-配置生产环境-api-地址)
-4. [构建前端 Web 资源](#4-构建前端-web-资源)
-5. [初始化 Capacitor 并添加 Android 平台](#5-初始化-capacitor-并添加-android-平台)
+2. [一键打包（推荐）](#2-一键打包推荐)
+3. [安装 Capacitor 依赖（仅首次）](#3-安装-capacitor-依赖仅首次)
+4. [配置生产环境 API 地址](#4-配置生产环境-api-地址)
+5. [初始化 Capacitor 并添加 Android 平台（仅首次）](#5-初始化-capacitor-并添加-android-平台仅首次)
 6. [常见构建问题及修复](#6-常见构建问题及修复)
-7. [编译 APK](#7-编译-apk)
-8. [APK 传到手机安装](#8-apk-传到手机安装)
-9. [后续更新重新打包](#9-后续更新重新打包)
+7. [APK 传到手机安装](#7-apk-传到手机安装)
+8. [发版上传到 Supabase](#8-发版上传到-supabase)
 
 ---
 
@@ -19,7 +18,7 @@
 | 工具 | 用途 | 如何安装 / 检查 |
 |------|------|----------------|
 | **Node.js + npm** | 构建前端 | 已安装（Vite 项目需要） |
-| **Java JDK** | Gradle 编译需要 | Android Studio 自带 JDK 21（路径：`/Applications/Android Studio.app/Contents/jbr/Contents/Home`） |
+| **Java JDK 21** | Gradle 编译需要 | Amazon Corretto 21，路径：`$(/usr/libexec/java_home -v 21)` |
 | **Android Studio** | 提供 Android SDK | [developer.android.com/studio](https://developer.android.com/studio) |
 | **Android SDK** | 编译 Android 原生代码 | Android Studio → SDK Manager 安装 |
 | **Gradle** | Android 构建工具 | 无需单独安装，项目自带 Gradle Wrapper |
@@ -27,9 +26,9 @@
 ### 1.1 检查环境
 
 ```bash
-# 检查 Java
+# 检查 Java（必须是 21）
 java -version
-# 应输出 JDK 21 或 17（JDK 24 会与 Gradle 8.11 不兼容）
+# 应输出 JDK 21
 
 # 检查 ANDROID_HOME
 ls ~/Library/Android/sdk
@@ -40,12 +39,13 @@ ls ~/Library/Android/sdk/platforms/     # 应有 android-35
 ls ~/Library/Android/sdk/build-tools/   # 应有 34.0.0
 ```
 
-### 1.2 如果 JDK 版本过高（如 JDK 24）
+### 1.2 如果没有 JDK 21
 
-JDK 24 与 Gradle 8.11.1 不兼容，会报 `Unsupported class file major version 68`。解决方式——使用 Android Studio 自带的 JDK 21：
+本项目使用 Amazon Corretto JDK 21（`~/Library/Java/JavaVirtualMachines/amazon-corretto-21.jdk`）。
 
 ```bash
-export JAVA_HOME=/Applications/Android\ Studio.app/Contents/jbr/Contents/Home
+# 设置 JAVA_HOME
+export JAVA_HOME=$(/usr/libexec/java_home -v 21)
 ```
 
 ### 1.3 如果缺少 SDK 组件
@@ -60,7 +60,25 @@ $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "build-tools;34.0.0"
 
 ---
 
-## 2. 安装 Capacitor 依赖
+## 2. 一键打包（推荐）
+
+```bash
+cd /Users/zp/Code/fuel_records/frontend
+export JAVA_HOME=$(/usr/libexec/java_home -v 21)
+npm run build:apk
+```
+
+这条命令自动执行：Vite 构建 → cap sync → Gradle 编译 → 输出到 `dist/fuel_records_vX.X.X.apk`
+
+**产物位置**：
+```
+frontend/dist/fuel_records_v0.0.1.apk   ← 直接发这个文件给手机安装
+frontend/android/app/build/outputs/apk/debug/app-debug.apk   ← 原始 Gradle 产物
+```
+
+---
+
+## 3. 安装 Capacitor 依赖（仅首次）
 
 在 `frontend/` 目录下运行：
 
@@ -73,7 +91,7 @@ npm install @capacitor/core @capacitor/cli @capacitor/android
 
 ---
 
-## 3. 配置生产环境 API 地址
+## 4. 配置生产环境 API 地址
 
 开发时通过 Vite 代理连接本地 `localhost:8000`，但 APK 运行在手机上无法访问 localhost，必须指向线上 Render 服务器。
 
@@ -88,30 +106,7 @@ VITE_API_BASE_URL=https://fuel-records.onrender.com
 
 ---
 
-## 4. 构建前端 Web 资源
-
-```bash
-cd /Users/zp/Code/fuel_records/frontend
-npm run build
-```
-
-这会：
-- TypeScript 类型检查 + 编译（`tsc -b`）
-- Vite 打包生产版本到 `dist/` 目录
-
-成功后输出类似：
-
-```
-dist/index.html                   0.45 kB
-dist/assets/index-xxxxx.css       1.93 kB
-dist/assets/index-xxxxx.js      239.35 kB
-```
-
-> 构建前请确保 `src/services/api.ts` 类型转换正确（`res.data as unknown as Record<string, unknown>`），否则 TypeScript 编译会报错。
-
----
-
-## 5. 初始化 Capacitor 并添加 Android 平台
+## 5. 初始化 Capacitor 并添加 Android 平台（仅首次）
 
 ### 5.1 初始化
 
@@ -153,12 +148,12 @@ validateDistributionUrl=false
 
 ### 6.2 JDK 版本不兼容
 
-报错 `Unsupported class file major version 68` 表示 JDK 版本过高。
+报错 `Unsupported class file major version 68` 表示 JDK 版本过高（不是 21）。
 
-**修复**：使用 Android Studio 自带的 JDK 21：
+**修复**：设置项目使用的 Corretto JDK 21：
 
 ```bash
-export JAVA_HOME=/Applications/Android\ Studio.app/Contents/jbr/Contents/Home
+export JAVA_HOME=$(/usr/libexec/java_home -v 21)
 ```
 
 ### 6.3 Android SDK 目录不可写 / 缺少组件
@@ -197,97 +192,58 @@ subprojects {
 
 ---
 
-## 7. 编译 APK
+## 7. APK 传到手机安装
 
-### 7.1 设置环境变量后编译
-
-```bash
-export ANDROID_HOME=~/Library/Android/sdk
-export JAVA_HOME=/Applications/Android\ Studio.app/Contents/jbr/Contents/Home
-cd /Users/zp/Code/fuel_records/frontend/android
-
-# 先清理旧构建产物，再编译 debug 版本
-./gradlew clean assembleDebug
-```
-
-### 7.2 找到生成的 APK
-
-```bash
-ls -lh app/build/outputs/apk/debug/app-debug.apk
-```
-
-输出类似：
-
-```
--rw-r--r--  4.1M  app-debug.apk
-```
-
-### 7.3 构建 Release 版本（可选）
-
-Release 版本需要签名才能安装，通常用 Android Studio → Build → Generate Signed Bundle / APK 来操作，这里不展开。
-
----
-
-## 8. APK 传到手机安装
+APK 路径：`frontend/dist/fuel_records_vX.X.X.apk`
 
 ### 方式一：USB 数据线 + adb
 
 ```bash
-# 手机开启 USB 调试，连接电脑
-adb install app/build/outputs/apk/debug/app-debug.apk
+adb install frontend/dist/fuel_records_v0.0.1.apk
 ```
 
 ### 方式二：隔空投送 / 微信 / QQ
 
-将 APK 文件发送到手机，在手机上点击安装。首次安装需要允许"未知来源"安装。
-
-### 方式三：本地 HTTP 服务器
-
-```bash
-cd app/build/outputs/apk/debug
-python3 -m http.server 9999
-# 手机浏览器访问 http://<电脑IP>:9999/app-debug.apk 下载安装
-```
+将 `dist/fuel_records_vX.X.X.apk` 发送到手机，在手机上点击安装。首次安装需要允许"未知来源"安装。
 
 ---
 
-## 9. 后续更新重新打包
+## 8. 发版上传到 Supabase
 
-每次修改前端代码后，重新打包只需三步：
-
-```bash
-# 1. 重新构建前端
-cd /Users/zp/Code/fuel_records/frontend
-npm run build
-
-# 2. 同步 Web 资源到 Android 项目
-npx cap sync
-
-# 3. 重新编译 APK
-export ANDROID_HOME=~/Library/Android/sdk
-export JAVA_HOME=/Applications/Android\ Studio.app/Contents/jbr/Contents/Home
-cd android && ./gradlew assembleDebug
-```
-
----
-
-## 速查：完整打包命令链
+**一键完成**：升版本号 → 构建 APK → 上传 Storage → INSERT 表：
 
 ```bash
-# 进入项目
-cd /Users/zp/Code/fuel_records/frontend
-
-# 构建前端
-npm run build
-
-# （仅首次）安装 Capacitor + 初始化
-npm install @capacitor/core @capacitor/cli @capacitor/android
-npx cap init "Fuel Records" "com.fuelrecords.app" --web-dir=dist
-npx cap add android
-
-# 同步并编译
-npx cap sync
-export ANDROID_HOME=~/Library/Android/sdk
-export JAVA_HOME=/Applications/Android\ Studio.app/Contents/jbr/Contents/Home
-cd android && ./gradlew clean assembleDebug
+cd /Users/zp/Code/fuel_records
+export JAVA_HOME=$(/usr/libexec/java_home -v 21)
+export $(grep -v '^#' .env | xargs)
+node scripts/upload-apk.js
 ```
+
+脚本自动完成（6 步按正确顺序）：
+
+1. 查询 Supabase → 得到新 `version_code`
+2. **先更新** `upgrade.ts` 中 `CURRENT_VERSION_CODE`（保证构建时烘焙正确值）
+3. `npm version patch` → 升 `package.json` 版本号
+4. `npm run build:apk` → 构建 APK（code 已正确）
+5. 上传 APK 到 Supabase Storage
+6. INSERT 记录到 `app_versions` 表
+
+### 版本检测流程
+
+```
+用户打开 App
+  → upgrade.ts: checkUpdate()
+    → fetch Supabase app_versions（匿名，RLS 允许）
+      → 对比 CURRENT_VERSION_CODE vs 最新 version_code
+        ├ 更大 → 弹"发现新版本"弹窗
+        └ 相等 → 静默跳过
+```
+
+### Supabase 基础设施清单
+
+| 组件 | 位置 | 说明 |
+|------|------|------|
+| `app_versions` 表 | Supabase → Table Editor | 版本记录（version_code, version_name, apk_url） |
+| RLS 策略 | `anon can read app_versions` | 允许 App 匿名读 |
+| Storage bucket `apk` | Supabase → Storage | public 公开 bucket |
+| Data API | Settings → API | **必须开启**，否则 503 |

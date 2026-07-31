@@ -142,8 +142,9 @@ export default defineConfig({
 
 - `checkUpdate(): Promise<{hasUpdate, latestVersion, apkUrl} | null>`
   - 调用 `getLatestVersion()`
-  - 用 `import.meta.env.VITE_APP_VERSION`（当前版本）对比 `latestVersion`（semver 字符串对比或直接用 `version_code` 整数对比）
-  - 如果 `version_code > 当前版本号` → 返回 `{hasUpdate: true, ...}`
+  - 用硬编码 `CURRENT_VERSION_CODE`（整数，初始值 1）对比 Supabase 返回的 `version_code`
+  - **注意**：`CURRENT_VERSION_CODE` 由 `upload-apk.js` 发版时自动回写，无需手动维护
+  - 如果 `version_code > CURRENT_VERSION_CODE` → 返回 `{hasUpdate: true, ...}`
 
 - `downloadApk(apkUrl, onProgress): Promise<string>`
   - 使用 `XMLHttpRequest`（非 fetch，因需进度事件）
@@ -239,8 +240,12 @@ main().catch((err) => {
 
 运行方式：
 ```bash
-npm version patch && npm run build:apk && node scripts/upload-apk.js
+cd frontend
+export JAVA_HOME=$(/usr/libexec/java_home -v 21)  # 必须 JDK 21
+npm version patch && npm run build:apk && export $(grep -v '^#' ../.env | xargs) && node ../scripts/upload-apk.js
 ```
+
+构建产物会自动输出到 `dist/fuel_records_vX.X.X.apk`（带版本号的文件名）。
 
 ### 3.5 `package.json` 变更
 

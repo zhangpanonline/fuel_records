@@ -165,12 +165,14 @@ fuel_records/
 │   ├── index.html                # Vite 入口 HTML
 │   │
 │   ├── package.json              # 前端依赖：React 19 + axios + Capacitor
+│   │                             # └ P9 新增：build:apk 构建后自动输出 dist/fuel_records_v$npm_package_version.apk
 │   │
-│   ├── vite.config.ts            # Vite 配置：React 插件 + /api 代理到 localhost:8000
+│   ├── vite.config.ts            # Vite 配置：React 插件 + /api 代理 + VITE_APP_VERSION 注入（P9）
+│   │                             # └ define: { VITE_APP_VERSION } ← package.json version
 │   │
 │   ├── capacitor.config.ts       # Capacitor 配置：appId = com.fuelrecords.app
 │   │
-│   ├── dist/                     # 生产构建输出（npm run build）
+│   ├── dist/                     # 生产构建输出：Vite build + 版本化 APK 副本（v$version.apk）
 │   │
 │   ├── android/                  # Capacitor 生成的 Android 原生项目
 │   │   ├── app/build/outputs/apk/debug/app-debug.apk  # 最终 APK
@@ -184,14 +186,18 @@ fuel_records/
 │       │                         # └ P5 新增：车辆下拉选择器 + 添加车辆表单 + localStorage 记忆
 │       │                         # └ P6 新增：筛选面板（日期范围/加满/备注搜索）+ "统计"按钮跳转 /stats
 │       │                         # └ P8 新增：导出按钮（CSV）+ 主题切换 + 加油提醒 + 分页加载更多
+│       │                         # └ P9 新增：useEffect checkUpdate() 启动检测 + 升级弹窗 UI（发现新版本/下载进度/错误重试）
 │       ├── App.css               # 主页面样式：CSS 变量主题系统（P8 暗色模式）+ 卡片布局 + 按钮
 │       │                         # └ P8.4 新增：8 个 @keyframes（fadeInUp/scaleIn/bgShift/shimmer/glowPulse/float）
 │       │                         #          玻璃态卡片（backdrop-filter）+ 对角渐变背景游走
 │       │                         #          装饰光斑（::before/::after 巨型径向渐变球浮动）
 │       │                         #          shimmer 按钮扫光 + 大圆角系统（12-18px）
+│       │                         # └ P9 新增：.upgrade-overlay / .upgrade-modal / .upgrade-progress（升级弹窗+进度条）
+│       │                         #          .app-version（登录页版本号脚注）
 │       ├── pages/
 │       │   ├── LoginPage.tsx     # 登录/注册页面（P4 新增）
 │       │   │                     # └ 两个 Tab 切换登录/注册，成功后存 token 并跳转首页
+│       │   │                     # └ P9 新增：底部显示 app-version（v0.0.1）
 │       │   └── StatsPage.tsx     # 统计页面（P6 新增）
 │       │                         # ├ 概览卡片（总里程/平均油耗/总花费/总加油量）
 │       │                         # ├ 年份选择器 + 月度油耗趋势折线图（Recharts 双Y轴）
@@ -202,16 +208,76 @@ fuel_records/
 │       │   │                     # └ P8.4 新增：统计卡片 stagger 交错延迟 fadeInUp + 装饰线 hover 伸长
 │       │   ├── LoginPage.css      # 登录页面样式（P4 新增，P8.4 动画增强）
 │       └── services/
-│           └── api.ts            # API 服务层
-│                                 # ├ FuelRecord / Vehicle 类型定义
-│                                 # ├ Stats 类型：SummaryStats / MonthlyStats / MonthlyItem（P6 新增）
-│                                 # ├ Auth API: register(), login()
-│                                 # ├ Token 管理: getToken(), setToken(), clearToken()
-│                                 # ├ 请求拦截器：自动附加 Authorization: Bearer <token>
-│                                 # ├ 响应拦截器：401 自动清除 token 并跳转登录页
-│                                 # ├ Records CRUD: create/fetch（支持筛选参数）/update/delete
-│                                 # ├ Stats API: fetchSummary() / fetchMonthly()（P6 新增）
-│                                 # ├ Export API: exportCSV()（P8 新增）
-│                                 # └ parseRecord() → Decimal 字符串转数字
+│           ├── api.ts            # API 服务层
+│           │                     # ├ FuelRecord / Vehicle 类型定义
+│           │                     # ├ Stats 类型：SummaryStats / MonthlyStats / MonthlyItem（P6 新增）
+│           │                     # ├ Auth API: register(), login()
+│           │                     # ├ Token 管理: getToken(), setToken(), clearToken()
+│           │                     # ├ 请求拦截器：自动附加 Authorization: Bearer <token>
+│           │                     # ├ 响应拦截器：401 自动清除 token 并跳转登录页
+│           │                     # ├ Records CRUD: create/fetch（支持筛选参数）/update/delete
+│           │                     # ├ Stats API: fetchSummary() / fetchMonthly()（P6 新增）
+│           │                     # ├ Export API: exportCSV()（P8 新增）
+│           │                     # └ parseRecord() → Decimal 字符串转数字
+│           ├── upgrade.ts        # 版本更新检测服务（P9 新增）
+│           │                     # ├ getLatestVersion()    → fetch Supabase app_versions 表
+│           │                     # ├ checkUpdate()         → 对比 CURRENT_VERSION_CODE
+│           │                     # ├ downloadApk(url, onProgress) → XHR 下载 + 进度回调
+│           │                     # └ installApk(localPath) → Filesystem 写入 + Intent 调安装器
+│           ├── upgrade.md        # 版本更新功能规格书（/to-spec 产物）
+│           └── upgrade.tickets.md # 版本更新任务拆解清单（/to-tickets 产物）
+│
+├── scripts/                     # 运维脚本（P9 新增）
+│   └── upload-apk.js            # 发版脚本：上传 APK → Supabase Storage → INSERT app_versions
+│                                # └ 用法：npm version patch && npm run build:apk && node scripts/upload-apk.js
+│                                # └ 依赖环境变量：SUPABASE_SERVICE_KEY（service_role）
 │
 ```
+
+---
+
+## 打包与发版流程（P9 新增）
+
+### 一键发版
+
+```bash
+cd /Users/zp/Code/fuel_records
+export JAVA_HOME=$(/usr/libexec/java_home -v 21)
+export $(grep -v '^#' .env | xargs)
+node scripts/upload-apk.js
+```
+
+脚本自动完成：查询新 code → 更新 upgrade.ts → npm version patch → build APK → 上传 Storage → INSERT 表
+
+### Supabase 基础设施
+
+| 组件 | 位置 | 说明 |
+|------|------|------|
+| `app_versions` 表 | Supabase → Table Editor | 存储版本信息（version_code, version_name, apk_url） |
+| RLS 策略 | `anon can read app_versions` | 允许 App 匿名查询最新版本 |
+| Storage bucket `apk` | Supabase → Storage | public bucket，存放 APK 文件 |
+| Data API | Settings → API | **必须开启**（默认关），否则 REST API 503 |
+
+### 版本检测原理
+
+```
+App 启动
+  → upgrade.ts: checkUpdate()
+    → fetch Supabase app_versions 表（匿名读）
+      → 获取最新 version_code
+        → 对比 CURRENT_VERSION_CODE（硬编码在 upgrade.ts）
+          ├ code > CURRENT → 弹"发现新版本"弹窗
+          └ code <= CURRENT → 静默跳过
+```
+
+### 升级文件清单
+
+| 文件 | 作用 |
+|------|------|
+| `frontend/src/services/upgrade.ts` | 核心：检测/下载/安装 |
+| `frontend/src/App.tsx` | UI：弹窗 + 进度条 |
+| `frontend/vite.config.ts` | 注入 `VITE_APP_VERSION` |
+| `frontend/src/pages/LoginPage.tsx` | 底部显示 `v0.0.x` |
+| `scripts/upload-apk.js` | 发版：上传 Supabase + INSERT 表 |
+| Supabase `app_versions` | 版本记录表 |
+| Supabase Storage `apk` | APK 文件托管 |

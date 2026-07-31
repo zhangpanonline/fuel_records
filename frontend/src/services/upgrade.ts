@@ -11,7 +11,7 @@ const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL
 const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY
 
 /** 当前 App 的 version_code，首次发布为 1，之后每次发版通过 scripts/upload-apk.js 递增 */
-const CURRENT_VERSION_CODE = 1
+const CURRENT_VERSION_CODE = 8
 
 // ── 类型 ────────────────────────────────────────────
 

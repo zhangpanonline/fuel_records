@@ -1,14 +1,14 @@
 {
   "name": "frontend",
   "private": true,
-  "version": "0.0.0",
+  "version": "0.0.7",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "oxlint",
     "preview": "vite preview",
-    "build:apk": "npm run build && npx cap sync android && cd android && ./gradlew assembleDebug"
+    "build:apk": "npm run build && npx cap sync android && cd android && ./gradlew assembleDebug && cd .. && cp android/app/build/outputs/apk/debug/app-debug.apk dist/fuel_records_v$npm_package_version.apk && echo '\n📦 APK 输出: dist/fuel_records_v'$npm_package_version'.apk'"
   },
   "dependencies": {
     "@capacitor/android": "^8.4.2",

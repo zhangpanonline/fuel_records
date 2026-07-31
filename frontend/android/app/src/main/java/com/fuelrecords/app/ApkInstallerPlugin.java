@@ -43,7 +43,7 @@ public class ApkInstallerPlugin extends Plugin {
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 
         try {
-            getContext().startActivity(intent);
+            getActivity().startActivity(intent);
             JSObject result = new JSObject();
             result.put("success", true);
             call.resolve(result);

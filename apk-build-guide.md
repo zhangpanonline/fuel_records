@@ -1,3 +1,16 @@
+## 🚀 一键发版
+
+```bash
+cd /Users/zp/Code/fuel_records
+export JAVA_HOME=$(/usr/libexec/java_home -v 21)
+export $(grep -v '^#' .env | xargs)
+node scripts/upload-apk.js
+```
+
+自动完成：升版本号 → 构建 APK → 上传 Storage → INSERT 表
+
+---
+
 ## 目录
 
 1. [前置环境要求](#1-前置环境要求)
@@ -219,20 +232,20 @@ export $(grep -v '^#' .env | xargs)
 node scripts/upload-apk.js
 ```
 
-脚本自动完成（6 步按正确顺序）：
+脚本自动完成（5 步按正确顺序）：
 
-1. 查询 Supabase → 得到新 `version_code`
-2. **先更新** `upgrade.ts` 中 `CURRENT_VERSION_CODE`（保证构建时烘焙正确值）
-3. `npm version patch` → 升 `package.json` 版本号
-4. `npm run build:apk` → 构建 APK（code 已正确）
-5. 上传 APK 到 Supabase Storage
-6. INSERT 记录到 `app_versions` 表
+1. `npm version patch` → 升 `package.json` 版本号
+2. 从新 version 计算 `version_code`（公式: MAJOR×10000 + MINOR×100 + PATCH）
+3. `npm run build:apk` → 构建 APK（`upgrade.ts` 在构建时 `import pkg.version` 自动算出 code）
+4. 上传 APK 到 Supabase Storage
+5. INSERT 记录到 `app_versions` 表
 
 ### 版本检测流程
 
 ```
 用户打开 App
   → upgrade.ts: checkUpdate()
+    → 读取 package.json version → 自动计算 CURRENT_VERSION_CODE
     → fetch Supabase app_versions（匿名，RLS 允许）
       → 对比 CURRENT_VERSION_CODE vs 最新 version_code
         ├ 更大 → 弹"发现新版本"弹窗

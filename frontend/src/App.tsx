@@ -74,6 +74,7 @@ function App() {
   const [updateInfo, setUpdateInfo] = useState<UpdateInfo | null>(null)
   const [downloadProgress, setDownloadProgress] = useState<number | null>(null)
   const [downloadError, setDownloadError] = useState<string | null>(null)
+  const [installing, setInstalling] = useState(false)
 
   function handleToggleReminder() {
     const next = !reminder
@@ -329,10 +330,14 @@ function App() {
         setDownloadProgress(pct)
       })
       setDownloadProgress(null)
-      setUpdateInfo(null)
+      setInstalling(true)
       await installApk(localUri)
+      // 安装器成功唤起后才关闭弹窗
+      setUpdateInfo(null)
+      setInstalling(false)
     } catch (err) {
       setDownloadProgress(null)
+      setInstalling(false)
       setDownloadError(
         err instanceof Error ? err.message : '下载失败，请重试'
       )
@@ -408,6 +413,11 @@ function App() {
                 <p className="upgrade-progress-text">
                   正在下载... {downloadProgress}%
                 </p>
+              </>
+            ) : installing ? (
+              <>
+                <h2 className="upgrade-title">正在准备安装</h2>
+                <p className="upgrade-body">即将打开系统安装器…</p>
               </>
             ) : downloadError ? (
               <>

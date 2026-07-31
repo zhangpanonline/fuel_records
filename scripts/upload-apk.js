@@ -6,12 +6,11 @@
  *   export $(grep -v '^#' .env | xargs) && node scripts/upload-apk.js
  *
  * 流程：
- *   1. 查询 Supabase → 得到新 version_code
- *   2. 更新 upgrade.ts CURRENT_VERSION_CODE（先改，再构建）
- *   3. npm version patch → 升 package.json 版本号
- *   4. npm run build:apk → 此时 APK 内烘焙的 code 是正确的
- *   5. 上传 APK 到 Storage
- *   6. INSERT app_versions 表
+ *   1. npm version patch → 升 package.json 版本号
+ *   2. 从新的 version 字段自动计算 version_code（公式: MAJOR×10000 + MINOR×100 + PATCH）
+ *   3. npm run build:apk → upgrade.ts 在构建时 import pkg.version 自动算出 code
+ *   4. 上传 APK 到 Storage
+ *   5. INSERT app_versions 表
  */
 
 const fs = require('fs')
@@ -23,7 +22,6 @@ const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_KEY
 const FRONTEND_DIR = path.resolve(__dirname, '../frontend')
 const APK_PATH = path.resolve(FRONTEND_DIR, 'android/app/build/outputs/apk/debug/app-debug.apk')
 const PKG_PATH = path.resolve(FRONTEND_DIR, 'package.json')
-const UPGRADE_PATH = path.resolve(FRONTEND_DIR, 'src/services/upgrade.ts')
 
 if (!SUPABASE_SERVICE_KEY) {
   console.error('❌ 请设置环境变量 SUPABASE_SERVICE_KEY')
@@ -31,48 +29,28 @@ if (!SUPABASE_SERVICE_KEY) {
   process.exit(1)
 }
 
+/** 与 upgrade.ts 保持一致的算法：MAJOR×10000 + MINOR×100 + PATCH */
+function versionToCode(version) {
+  const [major, minor, patch] = version.split('.').map(Number)
+  return major * 10000 + minor * 100 + patch
+}
+
 async function main() {
-  const readHeaders = {
-    apikey: SUPABASE_SERVICE_KEY,
-    Authorization: `Bearer ${SUPABASE_SERVICE_KEY}`,
-  }
 
-  // 1. 查询当前最大 version_code → 得到新 code
-  console.log('🔍 查询 Supabase 最新版本...')
-  const queryRes = await fetch(
-    `${SUPABASE_URL}/rest/v1/app_versions?select=version_code&order=version_code.desc&limit=1`,
-    { headers: readHeaders }
-  )
-
-  let newCode = 1
-  if (queryRes.ok) {
-    const rows = await queryRes.json()
-    if (rows && rows.length > 0) {
-      newCode = rows[0].version_code + 1
-    }
-  }
-  console.log(`🔢 新 version_code: ${newCode}`)
-
-  // 2. 先更新 upgrade.ts 的 CURRENT_VERSION_CODE（再构建 APK 会把正确值烘焙进去）
-  let upgradeContent = fs.readFileSync(UPGRADE_PATH, 'utf-8')
-  const oldCode = upgradeContent.match(/const CURRENT_VERSION_CODE = (\d+)/)?.[1]
-  upgradeContent = upgradeContent.replace(
-    /const CURRENT_VERSION_CODE = \d+/,
-    `const CURRENT_VERSION_CODE = ${newCode}`
-  )
-  fs.writeFileSync(UPGRADE_PATH, upgradeContent, 'utf-8')
-  console.log(`🔄 upgrade.ts → CURRENT_VERSION_CODE: ${oldCode} → ${newCode}`)
-
-  // 3. 升版本号
+  // 1. 升版本号
   console.log('📌 npm version patch...')
   execSync('npm version patch', { cwd: FRONTEND_DIR, stdio: 'inherit' })
 
-  // 4. 构建 APK（此时 CURRENT_VERSION_CODE 正确）
+  // 2. 读取新 version → 计算 version_code
+  const pkg = JSON.parse(fs.readFileSync(PKG_PATH, 'utf-8'))
+  const newCode = versionToCode(pkg.version)
+  console.log(`🔢 新 version_code: ${newCode} (from v${pkg.version})`)
+
+  // 3. 构建 APK（upgrade.ts 会在构建时 import pkg.version，自动烘焙对应的 code）
   console.log('🔨 npm run build:apk...')
   execSync('npm run build:apk', { cwd: FRONTEND_DIR, stdio: 'inherit' })
 
-  // 5. 读取 APK 并上传
-  const pkg = JSON.parse(fs.readFileSync(PKG_PATH, 'utf-8'))
+  // 4. 上传 APK
   const apkBuffer = fs.readFileSync(APK_PATH)
   const apkSize = (apkBuffer.length / (1024 * 1024)).toFixed(1)
   console.log(`📦 APK: ${apkSize} MB (v${pkg.version}, code ${newCode})`)

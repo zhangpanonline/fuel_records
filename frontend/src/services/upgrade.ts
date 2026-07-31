@@ -6,12 +6,30 @@
  */
 
 import { Filesystem, Directory } from '@capacitor/filesystem'
+import { registerPlugin } from '@capacitor/core'
+import pkg from '../../package.json'
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL
 const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY
 
-/** 当前 App 的 version_code，首次发布为 1，之后每次发版通过 scripts/upload-apk.js 递增 */
-const CURRENT_VERSION_CODE = 8
+/** 将 semver 版本号转为整数 version_code，方便数值比较大小
+ *  "0.0.16" → 16, "0.1.15" → 115, "0.10.0" → 1000, "1.0.0" → 10000
+ *  公式: MAJOR×10000 + MINOR×100 + PATCH */
+function versionToCode(version: string): number {
+  const [major, minor, patch] = version.split('.').map(Number)
+  return major * 10000 + minor * 100 + patch
+}
+
+/** 当前 App 的 version_code，从 package.json 的 version 字段自动计算 */
+const CURRENT_VERSION_CODE = versionToCode(pkg.version)
+
+// ── 原生插件 ────────────────────────────────────────
+
+interface ApkInstallerPlugin {
+  install(options: { fileName: string }): Promise<{ success: boolean }>
+}
+
+const ApkInstaller = registerPlugin<ApkInstallerPlugin>('ApkInstaller')
 
 // ── 类型 ────────────────────────────────────────────
 
@@ -116,7 +134,7 @@ export function downloadApk(
         const result = await Filesystem.writeFile({
           path: 'fuel_records_update.apk',
           data: base64,
-          directory: Directory.ExternalStorage,
+          directory: Directory.Cache,
           recursive: true,
         })
 
@@ -133,13 +151,7 @@ export function downloadApk(
 
 // ── 安装 ────────────────────────────────────────────
 
-/** 调起系统安装器（Android 上通过文件 URI 触发系统 Package Installer） */
-export async function installApk(localUri: string): Promise<void> {
-  try {
-    // Capacitor WebView 中通过 window.open 打开 APK 文件
-    // Android 系统会识别 MIME 类型并调起 Package Installer
-    window.open(localUri, '_blank')
-  } catch {
-    throw new Error('无法打开安装器，请手动安装')
-  }
+/** 调起系统安装器（通过原生 FileProvider 插件） */
+export async function installApk(_localUri: string): Promise<void> {
+  await ApkInstaller.install({ fileName: 'fuel_records_update.apk' })
 }

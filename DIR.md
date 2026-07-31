@@ -221,15 +221,15 @@ fuel_records/
 │           │                     # └ parseRecord() → Decimal 字符串转数字
 │           ├── upgrade.ts        # 版本更新检测服务（P9 新增）
 │           │                     # ├ getLatestVersion()    → fetch Supabase app_versions 表
-│           │                     # ├ checkUpdate()         → 对比 CURRENT_VERSION_CODE
+│           │                     # ├ checkUpdate()         → 对比 CURRENT_VERSION_CODE（从 package.json version 自动计算）
 │           │                     # ├ downloadApk(url, onProgress) → XHR 下载 + 进度回调
 │           │                     # └ installApk(localPath) → Filesystem 写入 + Intent 调安装器
 │           ├── upgrade.md        # 版本更新功能规格书（/to-spec 产物）
 │           └── upgrade.tickets.md # 版本更新任务拆解清单（/to-tickets 产物）
 │
 ├── scripts/                     # 运维脚本（P9 新增）
-│   └── upload-apk.js            # 发版脚本：上传 APK → Supabase Storage → INSERT app_versions
-│                                # └ 用法：npm version patch && npm run build:apk && node scripts/upload-apk.js
+│   └── upload-apk.js            # 发版脚本：升版本号 → 计算 version_code → 构建 → 上传 → INSERT
+│                                # └ 用法：export $(grep -v '^#' .env | xargs) && node scripts/upload-apk.js
 │                                # └ 依赖环境变量：SUPABASE_SERVICE_KEY（service_role）
 │
 ```
@@ -247,7 +247,7 @@ export $(grep -v '^#' .env | xargs)
 node scripts/upload-apk.js
 ```
 
-脚本自动完成：查询新 code → 更新 upgrade.ts → npm version patch → build APK → 上传 Storage → INSERT 表
+脚本自动完成：npm version patch → 计算 version_code（MAJOR×10000+MINOR×100+PATCH） → build APK → 上传 Storage → INSERT 表
 
 ### Supabase 基础设施
 
@@ -265,7 +265,7 @@ App 启动
   → upgrade.ts: checkUpdate()
     → fetch Supabase app_versions 表（匿名读）
       → 获取最新 version_code
-        → 对比 CURRENT_VERSION_CODE（硬编码在 upgrade.ts）
+        → 对比 CURRENT_VERSION_CODE（build 时从 package.json version 自动计算）
           ├ code > CURRENT → 弹"发现新版本"弹窗
           └ code <= CURRENT → 静默跳过
 ```

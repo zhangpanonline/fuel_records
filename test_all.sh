@@ -8,7 +8,7 @@ check() {
   local desc="$1"
   local expected="$2"
   local actual="$3"
-  if echo "$actual" | grep -q "$expected"; then
+  if echo "$actual" | grep -Eq "$expected"; then
     echo "✅ $desc"
     PASS=$((PASS + 1))
   else
@@ -32,8 +32,16 @@ echo ""
 echo "--- Phase 4: Auth ---"
 REG=$(curl -s -X POST $BASE/auth/register -H "Content-Type: application/json" \
   -d '{"username":"autotest","password":"test123"}')
-check "注册新用户" "access_token" "$REG"
-TOKEN=$(echo "$REG" | python3 -c "import sys,json; print(json.load(sys.stdin)['access_token'])")
+# 首次运行注册成功，再次运行时用户已存在
+check "注册新用户" "access_token|已被注册" "$REG"
+TOKEN=$(echo "$REG" | python3 -c "import sys,json; print(json.load(sys.stdin).get('access_token',''))" 2>/dev/null)
+# 如果用户已存在（非首次运行），改用登录获取 Token
+if [ -z "$TOKEN" ]; then
+  echo "   (用户已存在，改登录获取Token)"
+  LOGIN_RES=$(curl -s -X POST $BASE/auth/login -H "Content-Type: application/json" \
+    -d '{"username":"autotest","password":"test123"}')
+  TOKEN=$(echo "$LOGIN_RES" | python3 -c "import sys,json; print(json.load(sys.stdin)['access_token'])")
+fi
 
 DUP=$(curl -s -X POST $BASE/auth/register -H "Content-Type: application/json" \
   -d '{"username":"autotest","password":"test123"}')
@@ -92,10 +100,12 @@ check "无vehicle_id被拒(422)" "422" "$NOVID_CODE"
 R1=$(curl -s -X POST $BASE/records/ -H "Content-Type: application/json" \
   -H "Authorization: Bearer $TOKEN" -d "{\"vehicle_id\":$VEH1_ID,\"mileage\":52000,\"fuel_volume\":12.5,\"fuel_cost\":98.75}")
 check "创建记录(基线)" "baseline" "$R1"
+R1_ID=$(echo "$R1" | python3 -c "import sys,json; print(json.load(sys.stdin)['id'])")
 
 R2=$(curl -s -X POST $BASE/records/ -H "Content-Type: application/json" \
   -H "Authorization: Bearer $TOKEN" -d "{\"vehicle_id\":$VEH1_ID,\"mileage\":52500,\"fuel_volume\":13.0,\"fuel_cost\":100.0}")
 check "创建第二条记录(有油耗)" "fuel_consumption" "$R2"
+R2_ID=$(echo "$R2" | python3 -c "import sys,json; print(json.load(sys.stdin)['id'])")
 
 # 里程倒退
 BACK=$(curl -s -X POST $BASE/records/ -H "Content-Type: application/json" \
@@ -111,6 +121,7 @@ check "不存在的车辆" "不存在" "$BADVEH"
 R3=$(curl -s -X POST $BASE/records/ -H "Content-Type: application/json" \
   -H "Authorization: Bearer $TOKEN" -d "{\"vehicle_id\":$VEH2_ID,\"mileage\":80000,\"fuel_volume\":40.0,\"fuel_cost\":320.0}")
 check "车辆2创建记录(基线)" "baseline" "$R3"
+R3_ID=$(echo "$R3" | python3 -c "import sys,json; print(json.load(sys.stdin)['id'])")
 
 # Phase 5: Per-vehicle filtering
 echo ""
@@ -136,7 +147,7 @@ BCROSS=$(curl -s -X POST $BASE/records/ -H "Content-Type: application/json" \
 check "B不能替A的车创建记录" "无权" "$BCROSS"
 
 # B 不能改 A 的记录
-BEDIT=$(curl -s -X PUT $BASE/records/1 -H "Content-Type: application/json" \
+BEDIT=$(curl -s -X PUT $BASE/records/$R1_ID -H "Content-Type: application/json" \
   -H "Authorization: Bearer $TOKEN2" -d '{"note":"hack"}')
 check "跨用户修改被拒" "无权" "$BEDIT"
 
@@ -145,11 +156,11 @@ echo ""
 echo "--- Phase 5: Delete ---"
 
 # 删除车辆1的基线记录（该车还有第2条，应允许）
-DEL1=$(curl -s -X DELETE $BASE/records/1 -H "Authorization: Bearer $TOKEN")
+DEL1=$(curl -s -X DELETE $BASE/records/$R1_ID -H "Authorization: Bearer $TOKEN")
 check "删除基线记录(非唯一)" "删除成功" "$DEL1"
 
 # 车辆2只有一条基线，删除应被拒
-DEL2=$(curl -s -X DELETE $BASE/records/3 -H "Authorization: Bearer $TOKEN")
+DEL2=$(curl -s -X DELETE $BASE/records/$R3_ID -H "Authorization: Bearer $TOKEN")
 check "删除唯一基线被拒" "无法删除" "$DEL2"
 
 # 删除有记录的车辆应被拒

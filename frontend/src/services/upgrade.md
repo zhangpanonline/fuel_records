@@ -142,8 +142,9 @@ export default defineConfig({
 
 - `checkUpdate(): Promise<{hasUpdate, latestVersion, apkUrl} | null>`
   - 调用 `getLatestVersion()`
-  - 用硬编码 `CURRENT_VERSION_CODE`（整数，初始值 1）对比 Supabase 返回的 `version_code`
-  - **注意**：`CURRENT_VERSION_CODE` 由 `upload-apk.js` 发版时自动回写，无需手动维护
+  - 用 `import pkg from '../../package.json'` 读取当前版本号
+  - 通过 `versionToCode()`（MAJOR×10000 + MINOR×100 + PATCH）自动计算 `CURRENT_VERSION_CODE`
+  - **无需手动维护**，发版时 `npm version patch` 自动递增，构建时自动烘焙正确的 code
   - 如果 `version_code > CURRENT_VERSION_CODE` → 返回 `{hasUpdate: true, ...}`
 
 - `downloadApk(apkUrl, onProgress): Promise<string>`

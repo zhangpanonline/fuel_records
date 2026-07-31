@@ -243,7 +243,7 @@
   - 编译 APK：`./gradlew assembleDebug`
   - 将 APK 传到 Huawei Mate40 Pro 安装
   - 验证 API 连通性
-  - 踩坑记录及修复：Gradle 下载超时、JDK 24 不兼容、Kotlin stdlib 冲突 → 见 `apk-build-guide.md`
+  - 踩坑记录及修复：Gradle 下载超时、JDK 24 不兼容、Kotlin stdlib 冲突 → 见 `APK-BUILD-GUIDE.md`
   - **依赖**：1.6.2, 1.6.3, 1.5.4
   - **难度**：★★
 

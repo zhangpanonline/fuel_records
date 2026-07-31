@@ -142,7 +142,7 @@ export function isLoggedIn(): boolean {
 
 const apiClient = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL || '',
-  timeout: 10000,
+  timeout: 60000, // 60s，容纳 Render 免费层冷启动（休眠后唤醒需 30-60s）
 })
 
 // 请求拦截器：自动附加 Authorization 头

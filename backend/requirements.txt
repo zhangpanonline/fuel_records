@@ -15,7 +15,7 @@ pydantic-settings==2.7.1  # 读取 .env 配置
 loguru==0.7.3
 
 # PostgreSQL 驱动（Render + Supabase 部署用）
-psycopg2-binary==2.9.10
+psycopg2-binary==2.9.12
 
 # 认证
 bcrypt==4.2.1   # 密码哈希

@@ -122,6 +122,8 @@ fuel_records/
 │   │   ├── pages/              # 页面组件
 │   │   ├── components/         # 通用组件
 │   │   ├── services/           # API 调用
+│   │   │   ├── api.ts
+│   │   │   └── upgrade.md       # App 版本更新检测规格书
 │   │   └── App.tsx
 │   ├── capacitor-config/       # Capacitor 原生配置
 │   ├── package.json
@@ -449,6 +451,7 @@ DEL  /api/v1/vehicles/{id}    删除车辆
 - 推送通知（提醒加油）
 - 暗黑模式
 - 性能优化
+- App 版本更新检测与自动安装（Supabase Storage 托管 APK → 启动检测 → 下载 → 系统安装器）→ 规格书：[`upgrade.md`](file:///Users/zp/Code/fuel_records/frontend/src/services/upgrade.md)
 
 ---
 

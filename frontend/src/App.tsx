@@ -12,6 +12,7 @@ import {
   type FuelRecord,
   type Vehicle,
 } from './services/api'
+import { checkUpdate, downloadApk, installApk, type UpdateInfo } from './services/upgrade'
 import './App.css'
 
 const VEHICLE_KEY = 'fuel_records_vehicle_id'
@@ -68,6 +69,11 @@ function App() {
   // ---- 加油提醒 ----
   const reminderEnabled = localStorage.getItem(REMINDER_KEY) === 'true'
   const [reminder, setReminder] = useState(reminderEnabled)
+
+  // ---- 版本更新 ----
+  const [updateInfo, setUpdateInfo] = useState<UpdateInfo | null>(null)
+  const [downloadProgress, setDownloadProgress] = useState<number | null>(null)
+  const [downloadError, setDownloadError] = useState<string | null>(null)
 
   function handleToggleReminder() {
     const next = !reminder
@@ -307,6 +313,37 @@ function App() {
     applyTheme(newTheme)
   }
 
+  // 版本检测（启动时执行一次）
+  useEffect(() => {
+    checkUpdate().then((info) => {
+      if (info) setUpdateInfo(info)
+    })
+  }, [])
+
+  async function handleStartDownload() {
+    if (!updateInfo) return
+    setDownloadProgress(0)
+    setDownloadError(null)
+    try {
+      const localUri = await downloadApk(updateInfo.apk_url, (pct) => {
+        setDownloadProgress(pct)
+      })
+      setDownloadProgress(null)
+      setUpdateInfo(null)
+      await installApk(localUri)
+    } catch (err) {
+      setDownloadProgress(null)
+      setDownloadError(
+        err instanceof Error ? err.message : '下载失败，请重试'
+      )
+    }
+  }
+
+  async function handleRetryDownload() {
+    setDownloadError(null)
+    await handleStartDownload()
+  }
+
   // 从 stats 返回时恢复主题
   useEffect(() => {
     applyTheme(theme)
@@ -355,6 +392,58 @@ function App() {
 
   return (
     <div className="app">
+      {/* 版本更新弹窗 */}
+      {updateInfo && (
+        <div className="upgrade-overlay">
+          <div className="upgrade-modal animate-scale">
+            {downloadProgress !== null ? (
+              <>
+                <h2 className="upgrade-title">正在下载更新</h2>
+                <div className="upgrade-progress-bar">
+                  <div
+                    className="upgrade-progress-fill"
+                    style={{ width: `${downloadProgress}%` }}
+                  />
+                </div>
+                <p className="upgrade-progress-text">
+                  正在下载... {downloadProgress}%
+                </p>
+              </>
+            ) : downloadError ? (
+              <>
+                <h2 className="upgrade-title">下载失败</h2>
+                <p className="upgrade-body">{downloadError}</p>
+                <div className="upgrade-actions">
+                  <button className="upgrade-btn secondary" onClick={handleRetryDownload}>
+                    重试
+                  </button>
+                </div>
+              </>
+            ) : (
+              <>
+                <h2 className="upgrade-title">发现新版本</h2>
+                <p className="upgrade-body">
+                  当前版本：v{import.meta.env.VITE_APP_VERSION || '1.0.0'}
+                  <br />
+                  最新版本：v{updateInfo.version_name}
+                </p>
+                <div className="upgrade-actions">
+                  <button
+                    className="upgrade-btn secondary"
+                    onClick={() => setUpdateInfo(null)}
+                  >
+                    暂不更新
+                  </button>
+                  <button className="upgrade-btn primary" onClick={handleStartDownload}>
+                    立即更新
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      )}
+
       <div className="header">
         <h1 className="title">油耗记录</h1>
         <div className="header-actions">

@@ -435,3 +435,12 @@
 2026-07-30 14:25:44 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
 2026-07-30 14:25:56 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
 2026-07-30 14:26:07 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-07-30 14:36:03 | INFO     | main:lifespan:23 - 应用关闭
+2026-07-30 16:25:38 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-07-30 16:25:38 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-07-30 16:25:38 | INFO     | main:lifespan:19 - 应用启动中...
+2026-07-30 16:25:42 | INFO     | database:init_db:78 - 数据库迁移已完成（Alembic upgrade head）
+2026-07-30 16:25:42 | INFO     | main:lifespan:21 - 应用启动完成
+2026-07-30 17:27:08 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-07-30 17:27:08 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-07-30 17:27:10 | INFO     | database:init_db:66 - 数据库表已就绪（create_all 检查完成）

@@ -310,3 +310,184 @@ export async function exportCSV(vehicleId: number): Promise<Blob> {
 
   return res.blob()
 }
+
+// ---- Expense Types ----
+
+export interface ExpenseCategory {
+  id: number
+  name: string
+  level: number
+  sort_order: number
+  children: ExpenseCategory[]
+}
+
+export interface Expense {
+  id: number
+  amount: number
+  category_l1: string
+  category_l2: string
+  category_l3: string
+  note: string | null
+  expense_date: string
+  created_at: string
+  updated_at: string | null
+}
+
+export interface CreateExpensePayload {
+  amount: number
+  category_l1: string
+  category_l2: string
+  category_l3: string
+  note?: string
+  expense_date: string
+}
+
+export interface UpdateExpensePayload {
+  amount?: number
+  category_l1?: string
+  category_l2?: string
+  category_l3?: string
+  note?: string
+  expense_date?: string
+}
+
+export interface ExpenseListResponse {
+  items: Expense[]
+  total: number
+  page: number
+  page_size: number
+}
+
+export interface CreateCategoryPayload {
+  name: string
+  parent_id?: number
+  sort_order?: number
+}
+
+export interface UpdateCategoryPayload {
+  name?: string
+  sort_order?: number
+}
+
+export interface BreakdownItem {
+  category_l1: string
+  category_l2: string | null
+  category_l3: string | null
+  total: number
+  percentage: number | null
+}
+
+export interface PeriodItem {
+  period: string
+  total: number
+  count: number
+  breakdown: BreakdownItem[]
+}
+
+export interface ExpenseStatsResponse {
+  group_by: string
+  total_amount?: number
+  record_count?: number
+  avg_daily?: number
+  category_breakdown?: BreakdownItem[]
+  items?: PeriodItem[]
+}
+
+// ---- Expense API ----
+
+export async function fetchExpenses(
+  page = 1,
+  pageSize = 20,
+  startDate?: string,
+  endDate?: string,
+  categoryL1?: string,
+  categoryL2?: string,
+  categoryL3?: string,
+): Promise<ExpenseListResponse> {
+  const params: Record<string, number | string> = { page, page_size: pageSize }
+  if (startDate) params.start_date = startDate
+  if (endDate) params.end_date = endDate
+  if (categoryL1) params.category_l1 = categoryL1
+  if (categoryL2) params.category_l2 = categoryL2
+  if (categoryL3) params.category_l3 = categoryL3
+  const res = await apiClient.get<ExpenseListResponse>('/api/v1/expenses/', { params })
+  return res.data
+}
+
+export async function createExpense(
+  payload: CreateExpensePayload,
+): Promise<Expense> {
+  const res = await apiClient.post<Expense>('/api/v1/expenses/', payload)
+  return res.data
+}
+
+export async function updateExpense(
+  id: number,
+  payload: UpdateExpensePayload,
+): Promise<Expense> {
+  const res = await apiClient.put<Expense>(`/api/v1/expenses/${id}`, payload)
+  return res.data
+}
+
+export async function deleteExpense(id: number): Promise<void> {
+  await apiClient.delete(`/api/v1/expenses/${id}`)
+}
+
+// ---- Category API ----
+
+export async function fetchCategories(): Promise<ExpenseCategory[]> {
+  const res = await apiClient.get<{ categories: ExpenseCategory[] }>(
+    '/api/v1/expenses/categories',
+  )
+  return res.data.categories
+}
+
+export async function createCategory(
+  payload: CreateCategoryPayload,
+): Promise<ExpenseCategory> {
+  const res = await apiClient.post<ExpenseCategory>(
+    '/api/v1/expenses/categories',
+    payload,
+  )
+  return res.data
+}
+
+export async function updateCategory(
+  id: number,
+  payload: UpdateCategoryPayload,
+): Promise<ExpenseCategory> {
+  const res = await apiClient.put<ExpenseCategory>(
+    `/api/v1/expenses/categories/${id}`,
+    payload,
+  )
+  return res.data
+}
+
+export async function deleteCategory(id: number): Promise<void> {
+  await apiClient.delete(`/api/v1/expenses/categories/${id}`)
+}
+
+// ---- Expense Stats API ----
+
+export async function fetchExpenseStats(
+  startDate: string,
+  endDate: string,
+  groupBy: string = 'none',
+  categoryL1?: string,
+  categoryL2?: string,
+  categoryL3?: string,
+): Promise<ExpenseStatsResponse> {
+  const params: Record<string, string> = {
+    start_date: startDate,
+    end_date: endDate,
+    group_by: groupBy,
+  }
+  if (categoryL1) params.category_l1 = categoryL1
+  if (categoryL2) params.category_l2 = categoryL2
+  if (categoryL3) params.category_l3 = categoryL3
+  const res = await apiClient.get<ExpenseStatsResponse>(
+    '/api/v1/expenses/stats',
+    { params },
+  )
+  return res.data
+}

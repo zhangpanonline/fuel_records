@@ -11,6 +11,10 @@ from sqlalchemy.pool import StaticPool
 from database import Base, get_db
 from core.security import generate_access_token, hash_password
 
+# 确保新模型在 Base.metadata 中注册（test fixture 的 create_all 依赖此导入）
+import models.expense  # noqa: F401
+import models.expense_category  # noqa: F401
+
 # ─── Test App（不用 main.py 的 lifespan，避免 Alembic / 真实库连接）───
 TEST_DATABASE_URL = "sqlite:///:memory:"
 
@@ -42,6 +46,8 @@ def client(db_session):
     from routers.auth import router as auth_router
     from routers.vehicles import router as vehicles_router
     from routers.stats import router as stats_router
+    from routers.expenses import router as expenses_router
+    from routers.expense_categories import router as expense_categories_router
 
     app = FastAPI()
     app.add_middleware(
@@ -60,6 +66,8 @@ def client(db_session):
     app.include_router(auth_router)
     app.include_router(vehicles_router)
     app.include_router(stats_router)
+    app.include_router(expenses_router)
+    app.include_router(expense_categories_router)
 
     def _override_get_db():
         yield db_session

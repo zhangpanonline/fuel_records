@@ -647,6 +647,198 @@
 
 ---
 
+## Phase 10 — "个人记账"
+
+> **目标**：在 App 中新增独立的个人记账模块。用户共享、数据隔离，三级分类体系 + 多维度统计图表。
+> **规格书**：[`EXPENSE_SPEC.md`](file:///Users/zp/Code/fuel_records/EXPENSE_SPEC.md)
+
+### Ticket 10.1: 后端 — 数据模型与迁移
+
+- [ ] **10.1.1 创建 ExpenseCategory ORM 模型**
+  - `models/expense_category.py`：id, user_id(FK), parent_id(FK→self), name, level(1/2/3), sort_order, created_at, updated_at
+  - 树形自引用结构（parent_id=NULL 为一级分类）
+  - 关联 User（多对一）
+  - **依赖**：1.1.5（数据库连接）
+  - **难度**：★★
+
+- [ ] **10.1.2 创建 Expense ORM 模型**
+  - `models/expense.py`：id, user_id(FK), amount(>0), category_l1/l2/l3(冗余存储), note, expense_date, created_at, updated_at
+  - 关联 User（多对一）
+  - **依赖**：10.1.1
+  - **难度**：★
+
+- [ ] **10.1.3 补充 User 模型级联关系**
+  - `models/user.py`：添加 `expenses` 和 `categories` 两个 relationship（`cascade="all, delete-orphan"`）
+  - **依赖**：10.1.1, 10.1.2
+  - **难度**：★
+
+- [ ] **10.1.4 Alembic 迁移 + 现有文件导入更新**
+  - 生成迁移脚本（expenses + expense_categories 表 + 4 个索引）
+  - 更新 `models/__init__.py`：导入 Expense, ExpenseCategory
+  - 更新 `alembic/env.py`：导入两个新模型
+  - 更新 `database.py`：`init_db()` 导入两个新模型
+  - **依赖**：10.1.3
+  - **难度**：★★
+
+### Ticket 10.2: 后端 — Schema 与 Service
+
+- [ ] **10.2.1 Pydantic Schema**
+  - `schemas/expense.py`：ExpenseCreate/Update/Response + CategoryCreate/Update/Response
+  - `schemas/expense_stats.py`：BreakdownItem/PeriodItem/StatsResponse（注意与 fuel 统计的 `schemas/stats.py` 区分）
+  - 校验：amount > 0、category_l1/l2/l3 非空、expense_date 格式
+  - **依赖**：10.1.2
+  - **难度**：★★
+
+- [ ] **10.2.2 支出记录业务逻辑**
+  - `services/expense_service.py`：
+    - `create_expense()`：校验分类链（L1→L2→L3 父子关系）+ 分类存在 + 属于当前用户
+    - `get_expenses()`：分页查询（按 user_id + category_l1/l2/l3 + 日期范围，日期倒序）
+    - `update_expense()`：修改 + 重新校验分类链 + 校验归属
+    - `delete_expense()`：校验归属后删除
+  - **依赖**：10.2.1
+  - **难度**：★★★
+
+- [ ] **10.2.3 统计聚合逻辑**
+  - `services/expense_stats_service.py`：
+    - `get_stats()`：多维度聚合
+      - `group_by="none"` → total_amount/record_count/avg_daily + L1+L2+L3 全层级扁平列表
+      - `group_by="month/week/year"` → 分时段 items（含 breakdown）
+    - **跨数据库兼容**：SQLite 用多次 GROUP BY + Python UNION 聚合，PostgreSQL/MySQL 用 `GROUP BY ROLLUP(category_l1, category_l2, category_l3)`
+    - 支持分类过滤
+  - **依赖**：10.2.1
+  - **难度**：★★★
+
+### Ticket 10.3: 后端 — 路由注册
+
+- [ ] **10.3.1 支出记录路由**
+  - `routers/expenses.py`：POST/GET/PUT/DELETE `/api/v1/expenses`
+  - 全部需 JWT 鉴权（`get_current_user`）
+  - **依赖**：10.2.2
+  - **难度**：★★
+
+- [ ] **10.3.2 分类管理 + 统计路由**
+  - `routers/expense_categories.py`：分类 CRUD + `GET /api/v1/expenses/stats`
+  - 创建分类时 `level` 自动计算（禁止前端传入）
+  - 修改分类禁止改 `parent_id`
+  - 删除分类校验子分类 + 关联记录
+  - 在 `main.py` 注册两个新路由
+  - **依赖**：10.2.2, 10.2.3
+  - **难度**：★★
+
+### Ticket 10.4: 前端 — 全局导航重构
+
+- [ ] **10.4.1 TopBar + BottomNav 组件**
+  - `components/TopBar.tsx`：40px 顶栏，左侧 App 名称，右侧主题切换 + 退出登录
+  - `components/BottomNav.tsx`：底部固定双 Tab 导航（⛽ 油耗 / 💰 记账）
+  - 主题切换通过 `localStorage` + `data-theme` 属性共享
+  - **依赖**：8.2.1（暗黑模式 CSS 变量）
+  - **难度**：★★
+
+- [ ] **10.4.2 main.tsx 路由改造**
+  - 包裹 TopBar + BottomNav + Outlet（除 /login 外）
+  - 路由变更：`/` → 重定向 `/fuel`，`/stats` → `/fuel/stats`，新增 `/expense`
+  - 登录页不显示导航（保持独立主题按钮）
+  - **依赖**：10.4.1
+  - **难度**：★★
+
+- [ ] **10.4.3 App.tsx 拆分**
+  - 主题切换 → 移到 TopBar
+  - 退出登录 → 移到 TopBar
+  - 保留：车辆选择器、加油表单、记录列表、筛选、导出、加油提醒、版本更新检测、分页
+  - **依赖**：10.4.2
+  - **难度**：★★
+
+### Ticket 10.5: 前端 — 记账主页面
+
+- [ ] **10.5.1 类型定义 + API 函数**
+  - `services/api.ts` 新增：Expense/ExpenseCategory/Stats 类型 + 全部 API 函数
+  - 复用现有 axios 拦截器（自动 token + 401 跳转）
+  - **依赖**：10.3.2
+  - **难度**：★
+
+- [ ] **10.5.2 ExpensePage 页面骨架**
+  - `pages/ExpensePage.tsx`：金额 → 分类 → 日期 → 备注 → 提交 → 列表 → 底部面板入口
+  - `pages/ExpensePage.css`：独立样式（复用 CSS 变量主题系统）
+  - 状态管理：amount/selectedL1-L3/date/note/editingId/expenses[]
+  - **依赖**：10.5.1
+  - **难度**：★★
+
+- [ ] **10.5.3 AmountInput + DatePicker + NoteInput**
+  - 大号 `<input type="number" inputmode="decimal">` + CSS 大字号
+  - 日期默认当天（`<input type="date">`）
+  - 可选备注文本框
+  - 提交按钮大号圆角，提交中 disabled + loading
+  - **依赖**：10.5.2
+  - **难度**：★
+
+- [ ] **10.5.4 CategoryPicker（三级级联）**
+  - 挂载时调 `GET /categories` 获取分类树
+  - 选 L1 → 筛 L2 → 选 L2 → 筛 L3
+  - 每级末尾"+ 新建"（弹出快速创建，回车自动选中）
+  - 冷启动：L1 显示"+ 新建"
+  - 编辑模式：回填当前分类
+  - **依赖**：10.5.2
+  - **难度**：★★★
+
+- [ ] **10.5.5 ExpenseList（历史记录 + 左滑删除）**
+  - 日期倒序，显示 `餐饮 / 午餐 / 外卖`（颜色递减灰阶）+ 金额/备注/日期
+  - 编辑按钮 → 回填表单 → 提交变"更新"
+  - 删除按钮 → `window.confirm` 确认
+  - 左滑删除手势（CSS `translateX` + `touchstart/touchend`）
+  - 分页"加载更多"（每页 20 条）
+  - 空状态："还没记过账"
+  - **依赖**：10.5.2
+  - **难度**：★★★
+
+### Ticket 10.6: 前端 — 底部弹出面板
+
+- [ ] **10.6.1 BottomPanel 容器**
+  - 弹出/收起动画（`transform: translateY`）
+  - 打开时锁定 body 滚动
+  - 内部双 Tab：分类管理 / 统计图表
+  - `components/BottomPanel.tsx`
+  - **依赖**：10.5.2
+  - **难度**：★★
+
+- [ ] **10.6.2 CategoryManager（分类管理）**
+  - 树形展示（一级→二级→三级）
+  - 添加子分类 / 内联编辑 / 删除（校验子分类 + 关联记录）
+  - **依赖**：10.6.1
+  - **难度**：★★
+
+- [ ] **10.6.3 StatsPanel 统计图表**
+  - 时间快捷选择：本月/本年/近一周/自定义（默认"本月"）
+  - 安装依赖：`npm install @nivo/sunburst @nivo/core`
+  - 旭日图（`@nivo/sunburst`）+ 堆叠柱状图（`recharts`）+ 饼图下钻（`recharts`）+ 明细表
+  - 数据流：`fetchExpenseStats()` → 扁平列表 → `buildTree()` → 图表
+  - 空数据时灰色占位
+  - **依赖**：10.6.1
+  - **难度**：★★★
+
+### Ticket 10.7: 集成与测试
+
+- [ ] **10.7.1 前后端联调**
+  - 本地启动验证全流程：底部导航切换、分类 CRUD、支出 CRUD、统计图表、旧路由重定向、登录页隔离
+  - **依赖**：10.6.3
+  - **难度**：★
+
+- [ ] **10.7.2 后端测试**
+  - 更新 `tests/conftest.py`：client fixture 注册 2 个新路由
+  - `tests/test_expense_services.py`：CRUD + 分类链校验 + 级联删除保护 + 统计聚合
+  - `tests/test_expense_api.py`：端点 + 鉴权 + 数据隔离
+  - 运行 `pytest` 确保全部通过
+  - **依赖**：10.3.2, 10.7.1
+  - **难度**：★★
+
+- [ ] **10.7.3 文档更新 + 构建验证**
+  - 更新 `DIR.md`：新增/修改文件的目录结构说明
+  - 更新 `TEST_CHECKLIST.md`：记账模块测试清单
+  - 构建 APK 验证：@nivo 包增加约 25KB gzip
+  - **依赖**：10.7.2
+  - **难度**：★
+
+---
+
 ## 依赖关系总图
 
 ```
@@ -656,6 +848,10 @@ Phase 1 ──→ Phase 2 ──→ Phase 3 ──→ Phase 4 ──→ Phase 5 
   └── Docker ──────────────┘
        │
        └── Render + Supabase 部署 ──→ Phase 4 需要线上 API ──→ Phase 7 CI/CD 需要 Render
+                                                               │
+                                                               └── Phase 10 依赖 Phase 4（JWT 鉴权）
+                                                                     依赖 Phase 8（暗黑模式 CSS 变量）
+                                                                     依赖 Phase 6（recharts 图表经验）
 ```
 
 **Phase 1 是绝对基础**，建议按 Ticket 1.1 → 1.2 → 1.3 → 1.4 → 1.5 → 1.6 的顺序依次推进。
@@ -675,6 +871,7 @@ Phase 1 ──→ Phase 2 ──→ Phase 3 ──→ Phase 4 ──→ Phase 5 
 ---
 
 > **更新记录**
+> - 2026-07-31: Phase 10 新增 — 个人记账模块（Expense/ExpenseCategory 数据模型 + 分类 CRUD API + 统计聚合 ROLLUP + 底部双 Tab 导航重构 + CategoryPicker 三级级联 + @nivo 旭日图/饼图下钻 + 左滑删除手势）共 19 个原子 Ticket
 > - 2026-07-30: Ticket 8.4 完成 — UI 美学升级（8 个 @keyframes 动画 + 玻璃态卡片 + 对角渐变背景 + 装饰光斑 + 4 色统计卡片 + 暗色模式增强 + 大圆角系统 + Python 3.9 Optional[X] 兼容 + HTTPBearer 403→401 修复）
 > - 2026-07-30: Phase 8 完成 — 锦上添花（CSV 导出 + 下载/分享 + 暗黑模式 CSS 变量 + 加油提醒 Notification + 统计截图 html2canvas + 数据库索引优化 + 前端分页加载更多）
 > - 2026-07-29: Phase 5 完成 — 多车管理（Vehicle 模型 + CRUD API + 前端车辆选择器/添加表单 + 油耗按车辆分组独立计算 + database 自动迁移 vehicle_id 列）

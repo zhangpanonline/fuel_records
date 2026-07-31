@@ -29,6 +29,8 @@ from database import Base  # noqa: E402
 from models.fuel_record import FuelRecord  # noqa: E402, F401
 from models.user import User  # noqa: E402, F401
 from models.vehicle import Vehicle  # noqa: E402, F401
+from models.expense import Expense  # noqa: E402, F401
+from models.expense_category import ExpenseCategory  # noqa: E402, F401
 
 target_metadata = Base.metadata
 

@@ -1,5 +1,6 @@
 import { useState, useEffect, type FormEvent } from 'react'
 import axios from 'axios'
+import { useNavigate } from 'react-router-dom'
 import {
   fetchRecords,
   createRecord,
@@ -7,7 +8,6 @@ import {
   deleteRecord,
   fetchVehicles,
   createVehicle,
-  clearToken,
   exportCSV,
   type FuelRecord,
   type Vehicle,
@@ -16,23 +16,12 @@ import { checkUpdate, downloadApk, installApk, type UpdateInfo } from './service
 import './App.css'
 
 const VEHICLE_KEY = 'fuel_records_vehicle_id'
-const THEME_KEY = 'fuel_records_theme'
 const REMINDER_KEY = 'fuel_records_reminder'
 const REMINDER_INTERVAL = 7 * 24 * 60 * 60 * 1000 // 7 天
 
-function getTheme(): string {
-  return localStorage.getItem(THEME_KEY) || 'auto'
-}
-
-function applyTheme(theme: string) {
-  if (theme === 'auto') {
-    document.documentElement.removeAttribute('data-theme')
-  } else {
-    document.documentElement.setAttribute('data-theme', theme)
-  }
-}
-
 function App() {
+  const navigate = useNavigate()
+
   // ---- 车辆状态 ----
   const [vehicles, setVehicles] = useState<Vehicle[]>([])
   const [selectedVehicleId, setSelectedVehicleId] = useState<number | null>(null)
@@ -62,9 +51,6 @@ function App() {
   const [filterEndDate, setFilterEndDate] = useState('')
   const [filterFullTank, setFilterFullTank] = useState<boolean | undefined>(undefined)
   const [filterNote, setFilterNote] = useState('')
-
-  // ---- 主题状态 ----
-  const [theme, setTheme] = useState(getTheme)
 
   // ---- 加油提醒 ----
   const reminderEnabled = localStorage.getItem(REMINDER_KEY) === 'true'
@@ -297,21 +283,8 @@ function App() {
     setFuelCost('')
   }
 
-  function handleLogout() {
-    clearToken()
-    window.location.href = '/login'
-  }
-
   function handleGoStats() {
-    window.location.href = '/stats'
-  }
-
-  function handleToggleTheme() {
-    const next: Record<string, string> = { auto: 'light', light: 'dark', dark: 'auto' }
-    const newTheme = next[theme] || 'auto'
-    setTheme(newTheme)
-    localStorage.setItem(THEME_KEY, newTheme)
-    applyTheme(newTheme)
+    navigate('/fuel/stats')
   }
 
   // 版本检测（启动时执行一次）
@@ -348,11 +321,6 @@ function App() {
     setDownloadError(null)
     await handleStartDownload()
   }
-
-  // 从 stats 返回时恢复主题
-  useEffect(() => {
-    applyTheme(theme)
-  }, [theme])
 
   async function handleExport() {
     if (selectedVehicleId === null) return
@@ -455,19 +423,12 @@ function App() {
       )}
 
       <div className="header">
-        <h1 className="title">油耗记录</h1>
-        <div className="header-actions">
+        <div className="header-actions" style={{ justifyContent: 'flex-end', width: '100%' }}>
           <button className="nav-btn" onClick={handleGoStats}>
             统计
           </button>
           <button className="export-btn" onClick={handleExport}>
             导出
-          </button>
-          <button className="theme-btn" onClick={handleToggleTheme}>
-            {theme === 'auto' ? '🌓' : theme === 'dark' ? '🌙' : '☀️'}
-          </button>
-          <button className="logout-btn" onClick={handleLogout}>
-            退出
           </button>
         </div>
       </div>

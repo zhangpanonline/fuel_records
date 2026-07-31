@@ -54,10 +54,14 @@ from routers.records import router as records_router
 from routers.auth import router as auth_router
 from routers.vehicles import router as vehicles_router
 from routers.stats import router as stats_router
+from routers.expenses import router as expenses_router
+from routers.expense_categories import router as expense_categories_router
 app.include_router(records_router)
 app.include_router(auth_router)
 app.include_router(vehicles_router)
 app.include_router(stats_router)
+app.include_router(expenses_router)
+app.include_router(expense_categories_router)
 
 
 if __name__ == "__main__":

@@ -1,0 +1,391 @@
+/* ============================================================
+   ExpensePage — 记账页面样式
+   ============================================================ */
+
+.expense-page {
+  padding: 16px;
+  padding-bottom: 80px;
+  max-width: 480px;
+  margin: 0 auto;
+}
+
+/* ── 金额输入 ── */
+.amount-section {
+  margin-bottom: 16px;
+}
+
+.amount-input-wrapper {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 4px;
+}
+
+.amount-yuan {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.amount-input {
+  font-size: 36px;
+  font-weight: 700;
+  width: 160px;
+  text-align: center;
+  border: none;
+  border-bottom: 2px solid var(--border);
+  background: transparent;
+  color: var(--text-primary);
+  outline: none;
+  padding: 4px 0;
+  border-radius: 0;
+  -moz-appearance: textfield;
+}
+
+.amount-input::-webkit-outer-spin-button,
+.amount-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.amount-input:focus {
+  border-bottom-color: var(--accent);
+}
+
+/* ── 分类级联 ── */
+.category-section {
+  margin-bottom: 12px;
+}
+
+.category-row {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.category-select {
+  flex: 1;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: var(--input-bg);
+  color: var(--text-primary);
+  font-size: 14px;
+  outline: none;
+  cursor: pointer;
+  -webkit-appearance: none;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L5 5L9 1' stroke='%23888' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  padding-right: 28px;
+}
+
+.category-select:focus {
+  border-color: var(--accent);
+}
+
+.category-select:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.category-path {
+  font-size: 12px;
+  color: var(--text-dim);
+  margin-top: 2px;
+}
+
+/* ── 日期 + 备注 ── */
+.meta-row {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.date-input {
+  flex: 1;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: var(--input-bg);
+  color: var(--text-primary);
+  font-size: 14px;
+  outline: none;
+}
+
+.date-input:focus {
+  border-color: var(--accent);
+}
+
+.note-input {
+  flex: 2;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: var(--input-bg);
+  color: var(--text-primary);
+  font-size: 14px;
+  outline: none;
+}
+
+.note-input:focus {
+  border-color: var(--accent);
+}
+
+/* ── 提交按钮 ── */
+.submit-section {
+  margin-bottom: 20px;
+}
+
+.submit-btn-expense {
+  width: 100%;
+  padding: 14px;
+  border: none;
+  border-radius: 14px;
+  background: var(--accent);
+  color: #fff;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  animation: glowPulse 3s ease-in-out infinite;
+}
+
+.submit-btn-expense:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  animation: none;
+}
+
+.submit-btn-expense:active:not(:disabled) {
+  transform: scale(0.97);
+}
+
+.cancel-edit-btn {
+  width: 100%;
+  margin-top: 8px;
+  padding: 10px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 14px;
+  cursor: pointer;
+}
+
+/* ── 记录列表 ── */
+.expense-list-section h2 {
+  font-size: 14px;
+  color: var(--text-muted);
+  margin-bottom: 12px;
+}
+
+.expense-item {
+  display: flex;
+  align-items: center;
+  padding: 14px 12px;
+  background: var(--card-bg);
+  border-radius: 14px;
+  margin-bottom: 8px;
+  position: relative;
+  overflow: hidden;
+  touch-action: pan-y;
+  user-select: none;
+}
+
+.expense-item-left {
+  flex: 1;
+  min-width: 0;
+}
+
+.expense-item-category {
+  font-size: 12px;
+  margin-bottom: 2px;
+}
+
+.expense-item-category .cat-l1 { color: var(--text-secondary); }
+.expense-item-category .cat-l2 { color: var(--text-muted); }
+.expense-item-category .cat-l3 { color: var(--text-dim); }
+.expense-item-category .cat-sep { color: var(--text-dim); margin: 0 2px; }
+
+.expense-item-bottom {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--text-dim);
+}
+
+.expense-item-amount {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-left: 12px;
+  white-space: nowrap;
+}
+
+.expense-item-actions {
+  display: flex;
+  gap: 4px;
+  margin-left: 8px;
+}
+
+.expense-edit-btn, .expense-delete-btn {
+  padding: 6px 10px;
+  border: none;
+  border-radius: 8px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.expense-edit-btn {
+  background: var(--border-light);
+  color: var(--text-secondary);
+}
+
+.expense-delete-btn {
+  background: rgba(239, 68, 68, 0.08);
+  color: #ef4444;
+}
+
+.expense-edit-btn:active, .expense-delete-btn:active {
+  opacity: 0.6;
+}
+
+/* 左滑删除 */
+.expense-swipe-bg {
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: 80px;
+  background: #ef4444;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  border-radius: 0 14px 14px 0;
+}
+
+.expense-item-inner {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  transition: transform 0.2s ease-out;
+}
+
+/* 加载更多 */
+.load-more-row {
+  text-align: center;
+  padding: 12px;
+}
+
+.load-more-btn-expense {
+  padding: 10px 24px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--card-bg);
+  color: var(--accent);
+  font-size: 14px;
+  cursor: pointer;
+}
+
+/* 空状态 */
+.empty-state {
+  text-align: center;
+  padding: 40px 20px;
+  color: var(--text-dim);
+  font-size: 14px;
+}
+
+/* 底部浮动按钮 */
+.fab {
+  position: fixed;
+  bottom: 80px;
+  right: 20px;
+  width: 52px;
+  height: 52px;
+  border-radius: 26px;
+  border: none;
+  background: var(--accent);
+  color: #fff;
+  font-size: 24px;
+  cursor: pointer;
+  box-shadow: 0 4px 16px rgba(99, 102, 241, 0.4);
+  z-index: 50;
+  transition: transform 0.2s;
+}
+
+.fab:active {
+  transform: scale(0.9);
+}
+
+/* 快速创建分类弹窗 */
+.quick-create-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.3);
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.quick-create-dialog {
+  background: var(--card-bg-solid);
+  border-radius: 18px;
+  padding: 24px;
+  width: 280px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+}
+
+.quick-create-dialog h3 {
+  font-size: 16px;
+  margin-bottom: 12px;
+  color: var(--text-primary);
+}
+
+.quick-create-dialog input {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--input-bg);
+  color: var(--text-primary);
+  font-size: 14px;
+  outline: none;
+  margin-bottom: 12px;
+  box-sizing: border-box;
+}
+
+.quick-create-dialog input:focus {
+  border-color: var(--accent);
+}
+
+.quick-create-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.quick-create-actions button {
+  padding: 8px 16px;
+  border-radius: 10px;
+  border: none;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.quick-create-confirm {
+  background: var(--accent);
+  color: #fff;
+}
+
+.quick-create-cancel {
+  background: var(--border-light);
+  color: var(--text-secondary);
+}

@@ -64,6 +64,8 @@ def init_db():
     from models.fuel_record import FuelRecord  # noqa: F401
     from models.user import User  # noqa: F401
     from models.vehicle import Vehicle  # noqa: F401
+    from models.expense import Expense  # noqa: F401
+    from models.expense_category import ExpenseCategory  # noqa: F401
 
     # 定位 alembic.ini 配置文件（backend/ 目录下）
     alembic_ini = Path(__file__).resolve().parent / "alembic.ini"

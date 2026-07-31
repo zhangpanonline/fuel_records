@@ -24,3 +24,9 @@ class User(Base):
 
     # 一对多关系：一个用户有多辆车
     vehicles = relationship("Vehicle", back_populates="user")
+
+    # 一对多关系：一个用户有多条支出记录
+    expenses = relationship("Expense", back_populates="user", cascade="all, delete-orphan")
+
+    # 一对多关系：一个用户有多条分类
+    categories = relationship("ExpenseCategory", back_populates="user", cascade="all, delete-orphan")

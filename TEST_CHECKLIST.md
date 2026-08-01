@@ -6,26 +6,40 @@
 
 ## 测试环境说明
 
+> [!CAUTION]
+> **线上手动测试必须使用测试数据库（`postgresql_test`），禁止碰生产数据库。**
+> 生产数据库（`DB_PG_URL`）仅用于 Render 部署环境，不在本地或其他环境直连测试。
+
 ### 本地环境
 - 后端: `http://localhost:8000`
 - 数据库: SQLite (`DB_TYPE=sqlite`)，文件 `backend/fuel_records.db`
 
-### 线上环境
+### 线上测试环境
+- 数据库: Supabase 测试项目 (`fuel-records-test`)，`DB_TYPE=postgresql_test`
+- 连接串: `DB_PG_URL_TEST` 指向独立测试数据库，与生产数据完全隔离
+- 使用方法: 修改 `.env` 第一行为 `DB_TYPE=postgresql_test`，启动后端即可
+
+### 线上生产环境
 - 后端: `https://fuel-records.onrender.com`
-- 数据库: PostgreSQL (Supabase)，`DB_TYPE=postgresql`
+- 数据库: Supabase 生产项目，`DB_TYPE=postgresql`
+- **仅 Render 部署自动使用，严禁本地手动连接**
 
 ### 测试前准备
 
 ```bash
-# 本地：清空数据库重新开始
+# 本地 SQLite 测试（日常开发）
 rm -f backend/fuel_records.db
-
-# 启动后端
 cd backend && source .venv/bin/activate && uvicorn main:app --host 0.0.0.0 --port 8000 &
 cd ..
-
-# 设置变量
 BASE="http://localhost:8000/api/v1"
+```
+
+```bash
+# 线上测试库（需要真数据验证时）
+# 1. 修改 backend/.env: DB_TYPE=postgresql_test
+# 2. 确保 DB_PG_URL_TEST 已配置测试 Supabase 项目连接串
+# 3. 启动后端同上
+# 注意: 测试库和生产库完全隔离，可随意增删改
 ```
 
 ---

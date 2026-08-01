@@ -48,7 +48,7 @@ def _compute_breakdown_rollup(db: Session, q) -> list[BreakdownItem]:
     """
     db_type = settings.DB_TYPE
 
-    if db_type in ("postgresql", "mysql"):
+    if db_type in ("postgresql", "postgresql_test", "mysql"):
         # 原生 ROLLUP
         col_l1 = Expense.category_l1
         col_l2 = Expense.category_l2

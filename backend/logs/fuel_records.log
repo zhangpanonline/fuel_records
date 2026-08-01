@@ -771,3 +771,4 @@
 2026-08-01 20:27:03 | INFO     | main:lifespan:19 - 应用启动中...
 2026-08-01 20:27:05 | INFO     | database:init_db:80 - 数据库迁移已完成（Alembic upgrade head）
 2026-08-01 20:27:05 | INFO     | main:lifespan:21 - 应用启动完成
+2026-08-01 20:44:03 | INFO     | main:lifespan:23 - 应用关闭

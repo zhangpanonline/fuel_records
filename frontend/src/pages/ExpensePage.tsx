@@ -6,7 +6,6 @@ import {
   deleteExpense,
   createCategory,
   type Expense,
-  type ExpenseCategory,
   type CreateExpensePayload,
 } from '../services/api'
 import { useExpenseData } from '../context/ExpenseDataContext'
@@ -25,7 +24,6 @@ export default function ExpensePage() {
     categories,
     expenses,
     total,
-    page,
     loading,
     multiSummary,
     refreshCategories,

@@ -1,13 +1,17 @@
 ## 🚀 一键发版
 
 ```bash
-cd /Users/zp/Code/fuel_records
-export JAVA_HOME=$(/usr/libexec/java_home -v 21)
-export $(grep -v '^#' .env | xargs)
-node scripts/upload-apk.js
+./build_apk.sh
 ```
 
-自动完成：升版本号 → 构建 APK → 上传 Storage → INSERT 表
+自动完成：检查 JDK 21 → 加载 .env → 升版本号 → 构建 APK → 上传 Storage → INSERT 表
+
+> 等价于手动执行：
+> ```bash
+> export JAVA_HOME=$(/usr/libexec/java_home -v 21)
+> export $(grep -v '^#' .env | xargs)
+> node scripts/upload-apk.js
+> ```
 
 ---
 

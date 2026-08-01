@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useRef, useCallback } from 'react'
+import { useState, useEffect, useMemo, useRef } from 'react'
 import { type ExpenseCategory } from '../services/api'
 import './CategoryPicker.css'
 

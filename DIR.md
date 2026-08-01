@@ -106,10 +106,11 @@ fuel_records/
 │   │   │                         # ├ CategoryCreate → 创建分类（name + parent_id）
 │   │   │                         # ├ CategoryUpdate → 修改分类（name + sort_order，禁止改 parent_id）
 │   │   │                         # └ CategoryResponse → 分类响应（含 children 树形）
-│   │   └── expense_stats.py      # 支出统计 Schema（P10 新增）
-│   │                             # ├ BreakdownItem → 分类汇总行（category_l1/l2/l3 + total + percentage）
-│   │                             # ├ PeriodItem → 分时段汇总（period + total + count + breakdown）
-│   │                             # └ ExpenseStatsResponse → 统计响应（支持 group_by=none/month）
+│       │   └── expense_stats.py      # 支出统计 Schema（P10 新增）
+│       │                             # ├ BreakdownItem → 分类汇总行（category_l1/l2/l3 + total + percentage）
+│       │                             # ├ PeriodItem → 分时段汇总（period + total + count + breakdown）
+│       │                             # ├ ExpenseStatsResponse → 统计响应（支持 group_by=none/month）
+│       │                             # └ MultiSummaryResponse → 六区间累计金额（P10.6 新增：current_year/month/week + recent_year/month/week）
 │   │
 │   ├── routers/                  # API 路由层：定义 HTTP 端点
 │   │   ├── __init__.py           # Python 包标记
@@ -128,19 +129,21 @@ fuel_records/
 │   │   │                         # ├ PUT    /api/v1/vehicles/{id}   → 修改车辆信息
 │   │   │                         # └ DELETE /api/v1/vehicles/{id}   → 删除车辆（校验无关联记录）
 │   │   └── stats.py              # 统计路由（P6 新增）
-│   │                             # ├ GET /api/v1/stats/summary → 汇总统计（含 vehicle_id）
-│   │                             # └ GET /api/v1/stats/monthly → 月度统计（含 vehicle_id + year）
+│   │                             # ├ GET /api/v1/stats/summary → 汇总统计（含 vehicle_id + start_date/end_date 日期筛选）
+│   │                             # ├ GET /api/v1/stats/monthly → 月度统计（含 vehicle_id + start_date/end_date 日期筛选）
+│   │                             # └ GET /api/v1/stats/timeline → 时间线统计（P10 新增：group_by=day/week/month 智能粒度）
 │   │   ├── expenses.py           # 支出记录路由（P10 新增）
 │   │   │                         # ├ POST   /api/v1/expenses          → 创建支出记录（201）
 │   │   │                         # ├ GET    /api/v1/expenses          → 分页查询（按分类/日期筛选）
 │   │   │                         # ├ PUT    /api/v1/expenses/{id}     → 修改记录（校验归属+分类链）
 │   │   │                         # └ DELETE /api/v1/expenses/{id}     → 删除记录（204）
-│   │   └── expense_categories.py # 分类 & 统计路由（P10 新增）
-│   │                             # ├ POST   /api/v1/expenses/categories      → 创建分类（level 自动计算）
-│   │                             # ├ GET    /api/v1/expenses/categories      → 获取分类树（树形返回）
-│   │                             # ├ PUT    /api/v1/expenses/categories/{id} → 修改分类（仅 name/sort_order）
-│   │                             # ├ DELETE /api/v1/expenses/categories/{id} → 删除分类（校验子分类+记录）
-│   │                             # └ GET    /api/v1/expenses/stats           → 多维度统计（group_by + 分类过滤）
+│       │   └── expense_categories.py # 分类 & 统计路由（P10 新增）
+│       │                             # ├ POST   /api/v1/expenses/categories      → 创建分类（level 自动计算）
+│       │                             # ├ GET    /api/v1/expenses/categories      → 获取分类树（树形返回）
+│       │                             # ├ PUT    /api/v1/expenses/categories/{id} → 修改分类（仅 name/sort_order）
+│       │                             # ├ DELETE /api/v1/expenses/categories/{id} → 删除分类（校验子分类+记录）
+│       │                             # ├ GET    /api/v1/expenses/stats           → 多维度统计（group_by + 分类过滤）
+│       │                             # └ GET    /api/v1/expenses/multi_summary   → 六区间累计金额（P10.6 新增：当年/当月/当周/近一年/近一月/近一周）
 │   │
 │   ├── services/                 # 业务逻辑层：核心算法
 │   │   ├── __init__.py           # Python 包标记
@@ -158,9 +161,12 @@ fuel_records/
 │   │                             # ├ get_vehicles()     → 获取当前用户的车辆列表
 │   │                             # ├ update_vehicle()   → 修改车辆（校验归属）
 │   │                             # └ delete_vehicle()   → 删除车辆（校验归属 + 无关联记录）
-│   │   ├── stats_service.py      # 统计服务（P6 新增）
-│   │   │                         # ├ get_summary() → 汇总统计（总里程/总油量/总金额/平均油耗/平均单价）
-│   │   │                         # └ get_monthly() → 月度统计（按月分组：次数/油量/金额/油耗）
+│   │   ├── stats_service.py      # 统计服务（P6 新增，P10 重构）
+│       │   │                         # ├ get_summary() → 汇总统计（支持日期范围筛选，end_date +1天确保当天数据不截断）
+│       │   │                         # ├ get_monthly() → 月度统计（按月分组，支持日期范围）
+│       │   │                         # ├ get_timeline() → 时间线统计（P10 新增：按天/周/月聚合，week=每7天一段）
+│       │   │                         # ├ get_multi_summary() → 六区间累计统计（P10.6 新增：当年/当月/当周/近一年/近一月/近一周）
+│       │   │                         # └ _parse_date() → 日期解析辅助函数
 │   │   ├── expense_service.py    # 支出记录服务（P10 新增）
 │   │   │                         # ├ _validate_category_chain() → 校验 L1→L2→L3 分类链（父子关系+用户归属）
 │   │   │                         # ├ create_expense() → 创建支出（含分类链校验）
@@ -168,9 +174,10 @@ fuel_records/
 │   │   │                         # ├ get_expense_by_id() → 获取单条记录
 │   │   │                         # ├ update_expense() → 修改（分类链重校验+归属校验）
 │   │   │                         # └ delete_expense() → 删除（归属校验）
-│   │   └── expense_stats_service.py # 支出统计服务（P10 新增）
-│   │                             # ├ get_stats() → 多维度聚合（支持 group_by=none/month/week/year）
-│   │                             # └ 跨数据库兼容：PostgreSQL 用 GROUP BY ROLLUP，SQLite 用多次 GROUP BY + UNION
+│       │   └── expense_stats_service.py # 支出统计服务（P10 新增）
+│       │                             # ├ get_stats() → 多维度聚合（支持 group_by=none/month/week/year）
+│       │                             # ├ get_multi_summary() → 六区间累计金额（P10.6 新增：当年/当月/当周/近一年/近一月/近一周）
+│       │                             # └ 跨数据库兼容：PostgreSQL 用 GROUP BY ROLLUP，SQLite 用多次 GROUP BY + UNION
 │   │
 │   └── core/                     # 基础设施层
 │       ├── __init__.py           # Python 包标记
@@ -228,13 +235,19 @@ fuel_records/
 │   └── src/                      # React 源码
 │       ├── main.tsx              # React 入口：BrowserRouter + Routes 路由配置（P4 新增路由守卫，P6 新增 /stats 路由）
 │       │                         # └ P10 新增：Layout 包裹 TopBar/BottomNav/Outlet，/ → 重定向 /fuel，新增 /expense
-│       ├── App.tsx               # 加油主页面：加油表单 + 记录列表 + 车辆选择器（P5）+ 筛选面板（P6）+ 统计入口
-│       │                         # └ P4 新增：退出登录（clearToken + 跳转）
+│       │                         # └ P10.5 新增：FuelDataLayout → FuelDataProvider 包裹 /fuel 和 /fuel/stats（跨路由数据保持）
+│       │                         # └ P10.5 新增：ExpenseDataLayout → ExpenseDataProvider 包裹 /expense 和 /expense/stats（跨路由数据保持）
+│       │                         # └ P10.6 变更：DataProviders 合并，同时挂载两个 Context，Tab 切换不重新 fetch
+│       ├── App.tsx               # 加油主页面：加油表单 + 记录列表 + 车辆选择器（P5）+ 筛选面板（P6）
 │       │                         # └ P5 新增：车辆下拉选择器 + 添加车辆表单 + localStorage 记忆
-│       │                         # └ P6 新增：筛选面板（日期范围/加满/备注搜索）+ "统计"按钮跳转 /stats
-│       │                         # └ P8 新增：导出按钮（CSV）+ 主题切换 + 加油提醒 + 分页加载更多
+│       │                         # └ P6 新增：筛选面板（日期范围/加满/备注搜索），位于表单与记录列表之间
+│       │                         # └ P8 新增：导出按钮（CSV）+ 主题切换 + 分页加载更多
 │       │                         # └ P9 新增：useEffect checkUpdate() 启动检测 + 升级弹窗 UI
-│       │                         # └ P10 变更：主题切换+退出登录移到 TopBar，保留加油核心功能
+│       │                         # └ P10 变更：主题切换+退出登录移到 TopBar；移除加油提醒功能；移除 BottomPanel/FAB
+│       │                         # └ P10 重构：筛选入口改为带图标的卡片按钮，筛选按钮右对齐，面板滑入动画
+│       │                         # └ P10.5 重构：状态迁移到 FuelDataContext，useFuelData() 替代本地 useState
+│       │                         # └ P10.6 新增：累计统计下拉框（当年/当月/自上月累计油耗+金额），与筛选按钮同行，localStorage 记忆选择
+│       │                         # └ P10.6 新增：PullToRefresh 下拉刷新 + FuelPageSkeleton 骨架屏
 │       ├── App.css               # 主页面样式：CSS 变量主题系统（P8 暗色模式）+ 卡片布局 + 按钮
 │       │                         # └ P8.4 新增：8 个 @keyframes（fadeInUp/scaleIn/bgShift/shimmer/glowPulse/float）
 │       │                         #          玻璃态卡片（backdrop-filter）+ 对角渐变背景游走
@@ -246,52 +259,86 @@ fuel_records/
 │       │   ├── LoginPage.tsx     # 登录/注册页面（P4 新增）
 │       │   │                     # └ 两个 Tab 切换登录/注册，成功后存 token 并跳转首页
 │       │   │                     # └ P9 新增：底部显示 app-version（v0.0.1）
-│       │   ├── StatsPage.tsx     # 油耗统计页面（P6 新增）
-│       │   │                     # ├ 概览卡片（总里程/平均油耗/总花费/总加油量）
-│       │   │                     # ├ 年份选择器 + 月度油耗趋势折线图（Recharts 双Y轴）
-│       │   │                     # ├ 月度明细表
-│       │   │                     # └ P8 新增：截图分享（html2canvas）+ 主题切换
-│       │   │                     # └ P8.4 新增：入场动画 class + 4 色渐变装饰线 + 数值 hover 缩放
+│       │   ├── StatsPage.tsx     # 油耗统计页面（全屏，P6 新增，P10 重构）
+│       │   │                     # ├ 概览卡片（总里程/平均油耗/总花费/总加油量），筛选后仅更新数字不重新渲染
+│       │   │                     # ├ 日期选择器（开始日期 ↔ 结束日期）+ 快捷按钮（近一年/近一月/近一周）
+│       │   │                     # ├ 油耗趋势图（Recharts 双Y轴，粒度智能切换：≤14天→按天 ≤90天→按周 >90天→按月）
+│       │   │                     # ├ Y 轴标签水平排列在图表上方（左油耗 / 右花费），增大图表可用宽度
+│       │   │                     # ├ 无数据日期填充 0 保持连续曲线，空数据点不画圆点
+│       │   │                     # ├ 月度明细表（始终按月统计，由日期范围筛选）
+│       │   │                     # ├ P10.5：状态迁移到 FuelDataContext，useFuelData() 替代本地 loadVehicles() + VEHICLE_KEY
+│       │   │                     # └ 已删除：年份选择器、截图分享按钮
 │       │   ├── StatsPage.css      # 油耗统计页面样式：CSS 变量主题 + 玻璃态卡片 + 4 色渐变装饰线
-│       │   │                     # └ P8.4 新增：统计卡片 stagger 交错延迟 fadeInUp + 装饰线 hover 伸长
+│       │   │                     # └ 新增：日期行/快捷按钮(chart-period-btn)、图表卡片(chart-card)
 │       │   ├── LoginPage.css      # 登录页面样式（P4 新增，P8.4 动画增强）
-│       │   ├── ExpensePage.tsx   # 记账主页面（P10 新增）：金额 → 三级分类级联 → 日期 → 备注 → 提交 → 列表 → 底部面板入口
-│       │   │                     # └ 状态：amount/l1/l2/l3/date/note/editingId/expenses[]/page
-│       │   │                     # └ 编辑回填、左滑删除（touchstart/touchend）、分页加载更多
-│       │   └── ExpensePage.css   # 记账页面样式（P10 新增）：大号金额 ¥ 输入、分类 select、提交按钮、列表项
+│       │   ├── ExpensePage.tsx   # 记账主页面（P10 新增）：金额 → CategoryPicker 合并选择器 → 日期 → 备注 → 提交 → 列表
+│       │   │                     # └ 状态：amount/l1/l2/l3/date/note/editingId
+│       │   │                     # └ 编辑回填、左滑删除（touchstart/touchend + swipe-bg 可点击）、分页加载更多
+│       │   │                     # └ 提交/删除时自动更新 CategoryPicker 频次计数（+1/–1）
+│       │   │                     # └ P10.5 重构：状态迁移到 useExpenseData()，三级 select → CategoryPicker
+│       │   │                     # └ P10.6 新增：ExpenseSummaryCards 六卡片（当年/当月/当周/近一年/近一月/近一周累计金额）
+│       │   │                     # └ P10.6 新增：PullToRefresh 下拉刷新 + ExpensePageSkeleton 骨架屏
+│       │   ├── ExpenseStatsPage.tsx  # 记账统计全屏页（P10 重构）：汇总卡片 + 饼图下钻/堆叠柱状图/旭日图 + 折叠式分类管理
+│       │   │                         # └ 分类管理：树形展示 + 内联编辑/添加/删除，点击"管理分类"展开/折叠
+│       │   │                         # └ 统计图表：时间快捷选择 + 饼图下钻（recharts）+ 堆叠柱状图 + 旭日环形图 + 明细表
+│       │   │                         # └ P10.5 重构：categories 迁移到 useExpenseData()，移除本地加载
+│       │   ├── ExpenseStatsPage.css  # 记账统计页样式
+│       │   └── ExpensePage.css   # 记账页面样式（P10 新增）：大号金额 ¥ 输入，CategoryPicker / 日期 / 备注毛玻璃对齐
+│       │                         # └ 记录列表三行堆叠布局（分类 / 金额+编辑 / 日期+备注），gap:0 紧凑，min-height:80px
 │       │
-│       ├── components/           # 通用组件（P10 新增）
-│       │   ├── TopBar.tsx        # 全局顶栏（40px）：左侧 App 名称，右侧主题切换 + 退出登录
+│       ├── components/           # 通用组件
+│       │   ├── TopBar.tsx        # 全局顶栏（40px）：左侧 App 名称/子页←返回按钮，右侧主题切换 + 退出登录
+│       │   │                     # └ 子页面自动显示"← 返回"按钮，页面标题按路由精确匹配
 │       │   │                     # └ 主题：light/dark/auto 三态循环，通过 localStorage + data-theme 共享
-│       │   ├── TopBar.css         # 顶栏样式：固定顶部、左右布局、主题按钮
-│       │   ├── BottomNav.tsx      # 底部导航：双 Tab（⛽ 油耗 / 💰 记账），固定底部
+│       │   ├── TopBar.css         # 顶栏样式：固定顶部、左右布局、主题按钮、.back-btn 返回按钮
+│       │   ├── BottomNav.tsx      # 底部导航：双 Tab（⛽ 油耗 / 💰 记账），固定底部，全局可见（含子页面）
 │       │   ├── BottomNav.css      # 底部导航样式：icon + label、active 高亮
-│       │   ├── Layout.tsx         # 全局布局：TopBar + Outlet + BottomNav（/login 除外）
-│       │   ├── BottomPanel.tsx    # 底部弹出面板：分类管理 Tab + 统计 Tab
-│       │   │                     # ├ CategoryNode：树形递归渲染 + 内联重命名/添加子分类/删除
-│       │   │                     # ├ CategoryManager：分类树 + 添加一级分类
-│       │   │                     # └ StatsPanel：汇总卡片 + 饼图下钻/堆叠柱状图/旭日环形图 + 时间选择
-│       │   └── BottomPanel.css    # 面板样式：slideUp 弹出动画 + body 滚动锁定 + Tab 栏
+│       │   ├── Layout.tsx         # 全局布局：TopBar + Outlet + BottomNav + SmartFAB（/login 除外）
+│       │   ├── SmartFAB.tsx       # 智能浮动按钮（P10 重构）：路由感知，主页→统计/统计→返回，可拖拽，位置持久化
+│       │   │                     # └ routeActions 映射表可扩展，后续可改为弹出菜单
+│       │   ├── SmartFAB.css       # FAB 样式：胶囊形 + 对角渐变 + 玻璃态 + 呼吸光晕 + 拖拽反馈
+│       │   ├── CategoryPicker.tsx  # 记账分类合并选择器（P10.5 新增）：搜索 + Top5 常用 + 级联树 + 上次记忆
+│       │   │                       # └ 面板打开时 div 避免移动端键盘，二次点击变 input 可搜索
+│       │   │                       # └ 提交 +1 / 删除 –1 频次计数，localStorage 最近 7 天懒清理
+│       │   │                       # └ 创建子分类时弹窗标题带完整父级路径
+│       │   └── CategoryPicker.css  # 分类选择器样式：触发器对齐车辆选择器 + 玻璃态 + 箭头动画 + 背景锁定
+│       │   ├── ExpenseSummaryCards.tsx  # 记账统计卡片组件（P10.6 新增）：两行三列 grid，显示当年/当月/当周/近一年/近一月/近一周累计金额
+│       │   ├── ExpenseSummaryCards.css  # 卡片毛玻璃样式
+│       │   ├── ExpensePageSkeleton.tsx  # 记账页骨架屏（P10.6 新增）：金额→分类→日期→6卡片→4记录，布局与真实页面一致
+│       │   ├── ExpensePageSkeleton.css  # 骨架屏 shift 动画 + 渐变底色
+│       │   ├── FuelPageSkeleton.tsx     # 油耗页骨架屏（P10.6 新增）：车辆栏→表单→统计行→4记录，布局与真实页面一致
+│       │   ├── FuelPageSkeleton.css     # 骨架屏 shift 动画 + 渐变底色
+│       │   ├── PullToRefresh.tsx        # 下拉刷新通用组件（P10.6 新增）：触摸手势 + 方向阈值（避免与左滑删除冲突）+ 旋转 spinner
+│       │   └── PullToRefresh.css        # 下拉刷新样式：indicator + spin 动画
+│       │
+│       ├── context/               # React Context 状态管理（P10.5 新增）
+│       │   ├── FuelDataContext.tsx  # 加油数据共享 Context：vehicles / selectedVehicleId / records / filters 等
+│       │   │                        # └ FuelDataProvider 包裹 /fuel 和 /fuel/stats 路由，切换页面状态不丢失
+│       │   │                        # └ useFuelData() hook：子组件消费共享状态
+│       │   └── ExpenseDataContext.tsx # 记账数据共享 Context（P10.5 新增）：categories / expenses / total / page / loading
+│       │                              # └ ExpenseDataProvider 包裹 /expense 和 /expense/stats 路由，切换页面不重复请求
+│       │                              # └ P10.6 新增：multiSummary / multiSummaryLoading 状态 + refreshMultiSummary() 方法
 │       │
 │       └── services/
 │           ├── api.ts            # API 服务层
 │           │                     # ├ FuelRecord / Vehicle 类型定义
-│           │                     # ├ Stats 类型：SummaryStats / MonthlyStats / MonthlyItem（P6 新增）
+│           │                     # ├ Stats 类型：SummaryStats / MonthlyStats / MonthlyItem / TimelineStats / TimelineItem（P6/P10）
 │           │                     # ├ Auth API: register(), login()
 │           │                     # ├ Token 管理: getToken(), setToken(), clearToken()
 │           │                     # ├ 请求拦截器：自动附加 Authorization: Bearer <token>
 │           │                     # ├ 响应拦截器：401 自动清除 token 并跳转登录页
 │           │                     # ├ Records CRUD: create/fetch（支持筛选参数）/update/delete
-│           │                     # ├ Stats API: fetchSummary() / fetchMonthly()（P6 新增）
+│           │                     # ├ Stats API: fetchSummary() / fetchMonthly() / fetchTimeline()（均支持 start_date/end_date）
 │           │                     # ├ Export API: exportCSV()（P8 新增）
 │           │                     # ├ Expense API: fetch/create/update/delete + fetchCategories + Category CRUD + fetchExpenseStats（P10 新增）
+│           │                     # ├ Expense API: fetchMultiSummary()（P10.6 新增：六区间累计金额）
 │           │                     # └ parseRecord() → Decimal 字符串转数字
-│           ├── upgrade.ts        # 版本更新检测服务（P9 新增）
+│           ├── upgrade.ts        # 版本更新检测服务（P9 新增）⚠️ 最高优先级，修改前必须征得用户同意
 │           │                     # ├ getLatestVersion()    → fetch Supabase app_versions 表
 │           │                     # ├ checkUpdate()         → 对比 CURRENT_VERSION_CODE（从 package.json version 自动计算）
 │           │                     # ├ downloadApk(url, onProgress) → XHR 下载 + 进度回调
 │           │                     # └ installApk(localPath) → Filesystem 写入 + Intent 调安装器
-│           ├── upgrade.md        # 版本更新功能规格书（/to-spec 产物）
+│           ├── upgrade.md        # 版本更新功能规格书（/to-spec 产物）⚠️ 包含保护约束
 │           └── upgrade.tickets.md # 版本更新任务拆解清单（/to-tickets 产物）
 │
 ├── scripts/                     # 运维脚本（P9 新增）

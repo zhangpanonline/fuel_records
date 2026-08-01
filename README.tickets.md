@@ -583,15 +583,17 @@
   - **依赖**：1.6.3
   - **难度**：★
 
-- [x] **8.2.2 加油提醒推送**
+- [x] **8.2.2 加油提醒推送（已移除）**
   - 使用浏览器 Notification API
   - 设置提醒周期（每 7 天弹出通知）
+  - **P10 重构时移除，功能未验证可行**
   - **依赖**：1.6.4
   - **难度**：★★
 
-- [x] **8.2.3 记录分享截图**
+- [x] **8.2.3 记录分享截图（已移除）**
   - 使用 `html2canvas` 库截图统计页面
   - 支持分享（navigator.share）或保存为图片
+  - **P10 重构时移除，简化统计页 UI**
   - **依赖**：8.2.1
   - **难度**：★★
 
@@ -839,6 +841,314 @@
 
 ---
 
+## Phase 10.5 — "导航与统计重构"（2026-08-01）
+
+> **目标**：底部抽屉 → 全屏独立页面，智能 FAB 导航，统计图表功能增强。
+
+### Ticket 10.5.1: 抽屉 → 全屏页面
+
+- [x] **10.5.1.1 删除 BottomPanel 抽屉**
+  - 删除 `components/BottomPanel.tsx` + `.css`
+  - 从 App.tsx 和 ExpensePage.tsx 移除 `showPanel` 状态、FAB、BottomPanel 引用
+  - **依赖**：10.6.1
+  - **难度**：★
+
+- [x] **10.5.1.2 新建 ExpenseStatsPage 全屏统计页**
+  - `pages/ExpenseStatsPage.tsx`：汇总卡片 + 饼图下钻/堆叠柱状图/旭日图 + 折叠式分类管理
+  - 分类管理：树形展示 + 内联编辑/添加/删除，点击"管理分类"展开/折叠（方案 A）
+  - **依赖**：10.5.1.1
+  - **难度**：★★★
+
+- [x] **10.5.1.3 路由注册**
+  - `main.tsx`：注册 `/expense/stats` 路由
+  - Layout 嵌入 SmartFAB
+  - **依赖**：10.5.1.2
+  - **难度**：★
+
+### Ticket 10.5.2: 智能 FAB
+
+- [x] **10.5.2.1 SmartFAB 组件**
+  - `components/SmartFAB.tsx`：路由感知，`routeActions` 映射表
+  - 主页 → 跳转统计页（带路由过渡动画）
+  - 统计页 → 返回主页
+  - 可拖拽任意位置，位置持久化 localStorage
+  - 火花星标 SVG 图标 + 对角渐变 + 玻璃态 + 呼吸光晕
+  - **依赖**：10.5.1.3
+  - **难度**：★★
+
+- [x] **10.5.2.2 TopBar 返回按钮**
+  - 子页面（统计页）自动显示"← 返回"按钮
+  - 页面标题按路由精确匹配（"油耗统计" / "记账统计"）
+  - **依赖**：10.5.1.3
+  - **难度**：★
+
+### Ticket 10.5.3: 油耗统计页重构
+
+- [x] **10.5.3.1 日期筛选改造**
+  - 移除年份选择器、截图分享按钮
+  - 新增开始日期 ↔ 结束日期日期选择器 + 快捷按钮（近一年/近一月/近一周）
+  - 点击快捷按钮 → 自动填充日期 → 自动查询
+  - 手动改日期 → 两端都有值 → 自动查询
+  - **依赖**：10.5.1.3
+  - **难度**：★★
+
+- [x] **10.5.3.2 智能粒度图表**
+  - 后端新增 `GET /api/v1/stats/timeline?group_by=day|week|month`
+  - 前端自动切换：≤14天→按天、≤90天→按周（7天一段）、>90天→按月
+  - Y 轴标签水平排列（左油耗/右花费），增大图表宽度
+  - 无数据日期填充 0 连续曲线，空数据点不画圆点
+  - **依赖**：10.5.3.1
+  - **难度**：★★★
+
+- [x] **10.5.3.3 减震加载**
+  - 首次加载显示 loading，后续筛选仅原地更新数字不重新渲染卡片
+  - `firstLoad` ref 控制过渡动画
+  - **依赖**：10.5.3.1
+  - **难度**：★
+
+### Ticket 10.5.4: 加油页面 UI 优化
+
+- [x] **10.5.4.1 移除加油提醒**
+  - 删除 `REMINDER_KEY` / `REMINDER_INTERVAL` 常量
+  - 删除 `reminder` 状态 + `handleToggleReminder` + `requestNotificationPermission` + 定时器
+  - **依赖**：10.5.1.1
+  - **难度**：★
+
+- [x] **10.5.4.2 筛选功能重排**
+  - 筛选移到表单与记录列表之间
+  - 筛选按钮右对齐，带汉堡图标
+  - 筛选面板：2 列 grid 布局 + 滑入动画
+  - 车辆栏：左侧选择框自适应 + 添加按钮完整显示
+  - **依赖**：10.5.4.1
+  - **难度**：★★
+
+### Ticket 10.5.5: Bug 修复
+
+- [x] **10.5.5.1 日期时区修正**
+  - `fmtDate()` 从 `toISOString()`（UTC）改为 `getFullYear()`/`getMonth()`/`getDate()`（本地时间）
+  - 修复东八区用户 8 月 1 日数据被算作 7 月 31 日的问题
+  - **难度**：★★
+
+- [x] **10.5.5.2 日期过滤边界修正**
+  - `end_date` 过滤从 `<= date` 改为 `< date + 1 day`
+  - 修复当天记录被截断的问题
+  - **难度**：★
+
+### Ticket 10.5.6: 跨路由数据保持
+
+- [x] **10.5.6.1 FuelDataContext 状态提升**
+  - 新建 `context/FuelDataContext.tsx`：通过 React Context 将共享状态提升到路由层级
+  - 共享状态：`vehicles` / `selectedVehicleId` / `records` / `page` / `total` / `loading` / `error` / `filters`
+  - Provider 自动加载车辆列表 + localStorage 恢复选中车辆
+  - 车辆变化时自动加载对应记录
+  - `useFuelData()` hook 供子组件消费
+  - **依赖**：10.5.3.3
+  - **难度**：★★
+
+- [x] **10.5.6.2 路由嵌套：FuelDataLayout**
+  - `main.tsx`：新增 `FuelDataLayout` 组件，`FuelDataProvider` 包裹 `/fuel` 和 `/fuel/stats` 两个路由
+  - Context 在路由间不卸载 → 切换页面不重新请求数据
+  - **依赖**：10.5.6.1
+  - **难度**：★
+
+- [x] **10.5.6.3 App.tsx 迁移**
+  - 本地 `useState`（vehicles / selectedVehicleId / records / filters 等）替换为 `useFuelData()`
+  - 移除 `fetchRecords` / `fetchVehicles` / `Vehicle` 等直接 import
+  - 保留表单、编辑、升级等局部状态
+  - **依赖**：10.5.6.1
+  - **难度**：★★
+
+- [x] **10.5.6.4 StatsPage.tsx 迁移**
+  - 移除本地 `loadVehicles()` 函数和对应 `useEffect`
+  - 移除 `VEHICLE_KEY` 常量
+  - `vehicles` / `selectedVehicleId` 改用 `useFuelData()`
+  - **依赖**：10.5.6.1
+  - **难度**：★
+
+### Ticket 10.5.7: 记账模块 Context 化
+
+- [x] **10.5.7.1 ExpenseDataContext 状态提升**
+  - 新建 `context/ExpenseDataContext.tsx`：通过 React Context 将记账共享状态提升到路由层级
+  - 共享状态：`categories` / `expenses` / `total` / `page` / `loading`
+  - Provider 自动加载分类树 + 支出列表
+  - `useExpenseData()` hook 供子组件消费
+  - **依赖**：10.5.6（FuelDataContext 模式参考）
+  - **难度**：★★
+
+- [x] **10.5.7.2 路由嵌套：ExpenseDataLayout**
+  - `main.tsx`：新增 `ExpenseDataLayout` 组件，`ExpenseDataProvider` 包裹 `/expense` 和 `/expense/stats`
+  - Context 在路由间不卸载 → 切换页面不重新请求分类数据
+  - **依赖**：10.5.7.1
+  - **难度**：★
+
+- [x] **10.5.7.3 ExpensePage 迁移**
+  - 本地 `categories` / `expenses` / `loading` 状态替换为 `useExpenseData()`
+  - 移除 `fetchExpenses` / `fetchCategories` / `PAGE_SIZE` / `useCallback` 等本地逻辑
+  - 保留表单、编辑、左滑删除等局部状态
+  - **依赖**：10.5.7.1
+  - **难度**：★★
+
+- [x] **10.5.7.4 ExpenseStatsPage 迁移**
+  - 本地 `categories` / `categoriesLoading` / `loadCategories` 替换为 `useExpenseData()`
+  - 移除 `fetchCategories` import
+  - **依赖**：10.5.7.1
+  - **难度**：★
+
+### Ticket 10.5.8: CategoryPicker 合并选择器
+
+- [x] **10.5.8.1 CategoryPicker 组件**
+  - 新建 `components/CategoryPicker.tsx`：合并三级分类选择器，替代原有三个独立 `<select>`
+  - 功能一：搜索框与选择器合一，关闭状态显示已选路径，打开面板搜索实时过滤级联树
+  - 功能二：Top 5 常用分类，面板顶部优先展示，完整三级路径，按提交次数排序
+  - 功能三：上次选择记忆，`localStorage` key `expense_last_category`，打开时自动回填
+  - 功能四：频次计数，提交成功 +1、删除 –1、编辑不改，最近 7 天懒清理，存 `expense_category_counts`
+  - 功能五：每级末尾"+ 新建"，弹窗标题带完整父级路径（如"新建「餐饮 / 午餐」下的分类"）
+  - 面板打开时渲染 `<div>` 避免移动端弹出键盘，二次点击切换为 `<input>` 可搜索
+  - 面板打开时锁定 body 滚动（`overflow: hidden`）
+  - **依赖**：10.5.7（useExpenseData 提供 categories）
+  - **难度**：★★★
+
+- [x] **10.5.8.2 CategoryPicker 样式**
+  - 新建 `components/CategoryPicker.css`：触发器对齐车辆选择器（14px 圆角 + 12px 16px padding + 毛玻璃）
+  - 右侧三角箭头 `▼`，打开时翻转 `▲`
+  - focus 状态：accent 边框 + glow 光圈
+  - 下拉面板：树形缩进 + hover 高亮 + 选中粗体 + "+ 新建"链接色
+  - **依赖**：10.5.8.1
+  - **难度**：★
+
+- [x] **10.5.8.3 ExpensePage 接入 CategoryPicker**
+  - 三个 `<select>` → 单个 `<CategoryPicker>`
+  - 提交时调用 `updateFrequentCategories()` +1，删除时调用 –1
+  - **依赖**：10.5.8.1
+  - **难度**：★★
+
+### Ticket 10.5.9: 记账 UI 细节优化
+
+- [x] **10.5.9.1 日期/备注样式对齐**
+  - 日期 `<input type="date">` 和备注 `<input type="text">` 统一毛玻璃样式（14px 圆角 + 12px 16px padding + blur + glow）
+  - `flex: 1` 等宽平分 + `min-width: 0` 防溢出
+  - **难度**：★
+
+- [x] **10.5.9.2 记录列表三行堆叠布局**
+  - 原单行多列 → 三行纵向布局：第一行分类（nowrap 完整展示）、第二行金额+编辑靠右、第三行日期+备注
+  - `gap: 0` 紧凑排列，`min-height: 80px`
+  - 金额 `flex-shrink: 0` 防挤压，`margin-left: 16px` 与左侧间距
+  - **难度**：★★
+
+- [x] **10.5.9.3 左滑删除完善**
+  - 移除每条记录右侧的显式删除按钮，统一用左滑删除
+  - `swipe-bg` 加 `onClick`，左滑露出红色"删除"后可点击删除
+  - **难度**：★
+
+### Ticket 10.5.10: 左滑删除动画优化
+
+- [x] **10.5.10.1 删除按钮跟手滑出**
+  - `swipe-bg` 从条件渲染改为始终在 DOM 中，`translateX: 100%` 初始隐藏
+  - JS inline style 实时驱动按钮 `translateX = 80 + touchTranslateX`，与卡片完全同步
+  - 松手回弹时 CSS transition 负责平滑过渡
+  - `data-swiping` 属性驱动渐显，`cubic-bezier(0.22, 0.61, 0.36, 1)` 弹性曲线
+  - 渐变红 `#e74c4c → #c0392b` + 弥散投影 + 高光线
+  - **难度**：★★
+
+---
+
+## Phase 10.6 — "体验增强"（2026-08-01）
+
+> **目标**：记账统计卡片 + 油耗累计下拉框 + 下拉刷新 + 页面骨架屏。
+
+### Ticket 10.6.1: 记账六区间统计卡片
+
+- [x] **10.6.1.1 后端 multi_summary 接口**
+  - 新增 `GET /api/v1/expenses/multi_summary`（零参数，基于当天）
+  - 一次返回 6 个区间累计金额：当年/当月/当周/近一年/近一月/近一周
+  - `schema/expense_stats.py` 新增 `MultiSummaryResponse`（6 个 Decimal 字段）
+  - `services/expense_stats_service.py` 新增 `get_multi_summary()`：`_sum_between()` 复用查询
+  - 日期边界：当年=1月1日~今天、当月=本月1日~今天、当周=本周一~今天、近一年=12个月前~今天(不含起始日)、近一月=30天前~今天、近一周=7天前~今天
+  - **依赖**：10.2.3
+  - **难度**：★★
+
+- [x] **10.6.1.2 前端统计卡片组件**
+  - 新建 `ExpenseSummaryCards.tsx`：两行三列 grid，每个卡片两行一列（金额 + 标签）
+  - 标签：当年/当月/当周/近一年/近一月/近一周
+  - `ExpenseDataContext` 新增 `multiSummary` / `multiSummaryLoading` 状态
+  - 页面进入 + 新增/删除后自动刷新
+  - 无数据时显示 `¥0.00`
+  - **依赖**：10.6.1.1, 10.5.7.1
+  - **难度**：★★
+
+### Ticket 10.6.2: 油耗页累计统计下拉框
+
+- [x] **10.6.2.1 累计统计下拉框**
+  - 筛选按钮左侧新增自定义下拉框，与车辆选择器同款毛玻璃样式
+  - 三种选项：当年累计/当月累计/自上月今天累计（油耗+金额）
+  - 后端复用 `GET /api/v1/stats/summary?start_date=&end_date=`
+  - 三种模式同时取数（`fetchAllSummaries` 并行请求）
+  - 选中后展示纯数字 `88.88L / 888.88¥`，展开选项有完整文字
+  - `localStorage` key `fuel_summary_mode` 记忆选择
+  - 新增/编辑/删除后自动刷新累计值
+  - `flex: 1; min-width: 0` 自适应筛选按钮宽度变化
+  - SVG 三角图标 + `z-index: 200` 防遮挡
+  - **依赖**：10.5.4.2
+  - **难度**：★★★
+
+### Ticket 10.6.3: 下拉刷新
+
+- [x] **10.6.3.1 PullToRefresh 通用组件**
+  - 新建 `PullToRefresh.tsx`：监听 `.layout-content` 的 `scrollTop`，仅顶部触发
+  - 方向阈值：垂直偏移 > 水平偏移 × 1.6，避免与左滑删除冲突
+  - `dy < 5` 过滤微动，阻尼系数 0.4
+  - 旋转 spinner 下拉指示器
+  - 串行刷新：先记录后统计
+  - **依赖**：无
+  - **难度**：★★
+
+- [x] **10.6.3.2 记账页集成**
+  - `ExpensePage.tsx` 包裹 PullToRefresh
+  - 下拉刷新：`refreshExpenses(1)` → `refreshMultiSummary()`
+  - **依赖**：10.6.3.1, 10.5.7.3
+  - **难度**：★
+
+- [x] **10.6.3.3 油耗页集成**
+  - `App.tsx` 包裹 PullToRefresh
+  - 下拉刷新：`loadRecords(vehicleId, 1)` → `fetchAllSummaries(vehicleId)`
+  - **依赖**：10.6.3.1, 10.5.6.3
+  - **难度**：★
+
+### Ticket 10.6.4: 页面骨架屏
+
+- [x] **10.6.4.1 ExpensePageSkeleton**
+  - 金额输入 → 分类选择器 → 日期/备注行 → 提交按钮 → 6 统计卡片 → 4 条记录
+  - 布局与真实页面一致，`min-height: 100vh` 填满全屏
+  - `sk-bar` 使用 `::after` 伪元素 gradient + `translateX` 动画闪动（跨浏览器兼容）
+  - PullToRefresh 刷新时也切换到骨架屏
+  - **依赖**：10.6.1.2
+  - **难度**：★★
+
+- [x] **10.6.4.2 FuelPageSkeleton**
+  - 车辆选择器 → 录入表单 → 统计行+筛选按钮 → 4 条记录卡片
+  - 布局与真实页面一致，`min-height: 100vh` 填满全屏
+  - 骨架屏闪动动画与记账页复用同一机制
+  - PullToRefresh 刷新时也切换到骨架屏
+  - **依赖**：10.6.2.1
+  - **难度**：★★
+
+### Ticket 10.6.5: 底部导航 Tab 调换
+
+- [x] **10.6.5.1 Tab 顺序调整**
+  - `BottomNav.tsx`：记账 Tab 移到第一位，油耗第二位
+  - 默认路由 `/` → `/expense`
+  - **依赖**：10.4.1
+  - **难度**：★
+
+- [x] **10.6.5.2 DataProviders 合并**
+  - `main.tsx`：`FuelDataLayout` + `ExpenseDataLayout` 合并为单一 `DataProviders`
+  - 两个 Context 同时挂载并包裹所有主路由
+  - Layout 始终存在 → Tab 切换不触发 useEffect 重新 fetch
+  - **依赖**：10.5.6.2, 10.5.7.2
+  - **难度**：★
+
+---
+
 ## 依赖关系总图
 
 ```
@@ -871,6 +1181,9 @@ Phase 1 ──→ Phase 2 ──→ Phase 3 ──→ Phase 4 ──→ Phase 5 
 ---
 
 > **更新记录**
+> - 2026-08-01: Phase 10.6 完成 — 体验增强（记账六区间统计卡片 + 油耗累计统计下拉框 + PullToRefresh 下拉刷新 + 页面骨架屏 + BottomNav Tab 调换 + DataProviders 合并 + 左滑删除动画优化）
+> - 2026-08-01: Phase 10.5.7~10.5.9 完成 — 记账模块全面优化（ExpenseDataContext 跨路由数据保持 + CategoryPicker 合并三级选择器：搜索+Top5常用+上次记忆+频次计数+parent路径 + 日期/备注毛玻璃对齐 + 记录列表三行堆叠布局 + 左滑删除完善 + 移动端键盘控制）
+> - 2026-08-01: Phase 10.5 完成 — 导航与统计重构（抽屉→全屏页 + SmartFAB 拖拽导航 + 统计日期筛选/智能粒度/减震加载 + 移除加油提醒 + 筛选重排 + UTC 时区修复 + FuelDataContext 跨路由数据保持）
 > - 2026-07-31: Phase 10 新增 — 个人记账模块（Expense/ExpenseCategory 数据模型 + 分类 CRUD API + 统计聚合 ROLLUP + 底部双 Tab 导航重构 + CategoryPicker 三级级联 + @nivo 旭日图/饼图下钻 + 左滑删除手势）共 19 个原子 Ticket
 > - 2026-07-30: Ticket 8.4 完成 — UI 美学升级（8 个 @keyframes 动画 + 玻璃态卡片 + 对角渐变背景 + 装饰光斑 + 4 色统计卡片 + 暗色模式增强 + 大圆角系统 + Python 3.9 Optional[X] 兼容 + HTTPBearer 403→401 修复）
 > - 2026-07-30: Phase 8 完成 — 锦上添花（CSV 导出 + 下载/分享 + 暗黑模式 CSS 变量 + 加油提醒 Notification + 统计截图 html2canvas + 数据库索引优化 + 前端分页加载更多）

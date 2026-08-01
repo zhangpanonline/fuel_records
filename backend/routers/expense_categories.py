@@ -10,8 +10,8 @@ from database import get_db
 from models.expense_category import ExpenseCategory
 from models.expense import Expense
 from schemas.expense import CategoryCreate, CategoryUpdate, CategoryResponse, CategoryListResponse
-from schemas.expense_stats import ExpenseStatsResponse
-from services.expense_stats_service import get_stats
+from schemas.expense_stats import ExpenseStatsResponse, MultiSummaryResponse
+from services.expense_stats_service import get_stats, get_multi_summary
 from core.deps import get_current_user
 from models.user import User
 
@@ -257,3 +257,12 @@ def api_get_stats(
         category_l2=category_l2,
         category_l3=category_l3,
     )
+
+
+@router.get("/multi_summary", response_model=MultiSummaryResponse)
+def api_multi_summary(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """一次返回当年/当月/当周/近一年/近一月/近一周累计金额"""
+    return get_multi_summary(db=db, user_id=current_user.id)

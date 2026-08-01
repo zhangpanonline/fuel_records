@@ -1,0 +1,169 @@
+/* ── 记账页骨架屏 ── */
+.expense-skeleton {
+  padding: 16px;
+  max-width: 480px;
+  margin: 0 auto;
+  min-height: 100vh;
+}
+
+.sk-amount {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 16px;
+}
+
+.sk-amount-bar {
+  width: 120px;
+  height: 36px;
+  border-radius: 8px;
+}
+
+.sk-category {
+  margin-bottom: 12px;
+}
+
+.sk-category-bar {
+  height: 44px;
+  border-radius: 12px;
+}
+
+.sk-row2 {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.sk-half {
+  flex: 1;
+  height: 38px;
+  border-radius: 10px;
+}
+
+.sk-btn {
+  margin-bottom: 20px;
+}
+
+.sk-btn-bar {
+  height: 48px;
+  border-radius: 14px;
+}
+
+.sk-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.sk-card {
+  padding: 10px 6px;
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.sk-card-val {
+  width: 70%;
+  height: 16px;
+  border-radius: 4px;
+}
+
+.sk-card-label {
+  width: 40%;
+  height: 12px;
+  border-radius: 4px;
+}
+
+.sk-record {
+  padding: 14px 12px;
+  border-radius: 12px;
+  margin-bottom: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.sk-rec-cat {
+  width: 75%;
+  height: 14px;
+  border-radius: 4px;
+}
+
+.sk-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.sk-rec-amount {
+  width: 35%;
+  height: 18px;
+  border-radius: 4px;
+}
+
+.sk-rec-btn {
+  width: 40px;
+  height: 14px;
+  border-radius: 4px;
+}
+
+.sk-rec-date {
+  width: 50%;
+  height: 12px;
+  border-radius: 4px;
+}
+
+/* ── 共享闪动动画 ── */
+.sk-bar,
+.sk-card {
+  background: hsl(0, 0%, 50%);
+  opacity: 0.12;
+}
+
+.sk-bar {
+  position: relative;
+  overflow: hidden;
+}
+
+.sk-bar::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    hsl(0, 0%, 80%) 40%,
+    hsl(0, 0%, 80%) 60%,
+    transparent 100%
+  );
+  opacity: 0.3;
+  animation: skShimmer 1.5s ease-in-out infinite;
+}
+
+.sk-card {
+  position: relative;
+  overflow: hidden;
+}
+
+.sk-card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 12px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    hsl(0, 0%, 80%) 40%,
+    hsl(0, 0%, 80%) 60%,
+    transparent 100%
+  );
+  opacity: 0.3;
+  animation: skShimmer 1.5s ease-in-out infinite;
+}
+
+@keyframes skShimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}

@@ -1,39 +1,33 @@
 import { useState, useEffect, useMemo, useCallback } from 'react'
 import axios from 'axios'
 import {
+  fetchExpenseStats,
   createCategory,
   updateCategory,
   deleteCategory,
-  fetchExpenseStats,
   type ExpenseCategory,
   type BreakdownItem,
   type PeriodItem,
 } from '../services/api'
+import { useExpenseData } from '../context/ExpenseDataContext'
 import {
-  PieChart,
-  Pie,
-  Cell,
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
+  PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis,
+  CartesianGrid, Tooltip, Legend, ResponsiveContainer,
 } from 'recharts'
-import './BottomPanel.css'
-
-interface BottomPanelProps {
-  categories: ExpenseCategory[]
-  onCategoriesChange: () => void
-  onClose: () => void
-}
-
-type PanelTab = 'categories' | 'stats'
+import './ExpenseStatsPage.css'
 
 /* ================================================================
-   CategoryNode — 可展开分类节点（支持内联编辑/添加子分类/删除）
+   常量
+   ================================================================ */
+type ChartType = 'pie' | 'bar' | 'sunburst'
+
+const CHART_COLORS = [
+  '#5470c6', '#91cc75', '#fac858', '#ee6666', '#73c0de',
+  '#3ba272', '#fc8452', '#9a60b4', '#ea7ccc', '#6e7074',
+]
+
+/* ================================================================
+   CategoryNode — 可展开分类节点
    ================================================================ */
 function CategoryNode({
   cat,
@@ -157,54 +151,17 @@ function CategoryNode({
 }
 
 /* ================================================================
-   CategoryManager — 分类管理面板
+   ExpenseStatsPage — 记账统计全屏页
    ================================================================ */
-function CategoryManager({
-  categories,
-  loading,
-  onRefresh,
-  onAddRoot,
-}: {
-  categories: ExpenseCategory[]
-  loading: boolean
-  onRefresh: () => void
-  onAddRoot: () => void
-}) {
-  if (loading) return <div style={{ textAlign: 'center', padding: 40, color: 'var(--text-dim)' }}>加载中...</div>
+export default function ExpenseStatsPage() {
+  const { categories, refreshCategories } = useExpenseData()
 
-  return (
-    <div className="category-tree">
-      {categories.length === 0 && (
-        <div style={{ textAlign: 'center', padding: 40, color: 'var(--text-dim)', fontSize: 14 }}>
-          还没有分类
-        </div>
-      )}
-      {categories.map((cat) => (
-        <CategoryNode key={cat.id} cat={cat} depth={0} onRefresh={onRefresh} />
-      ))}
-      <button className="add-category-btn" onClick={onAddRoot}>
-        + 添加一级分类
-      </button>
-    </div>
-  )
-}
-
-/* ================================================================
-   StatsPanel — 统计面板（饼图下钻 + 堆叠柱状图 + 旭日图）
-   ================================================================ */
-type ChartType = 'pie' | 'bar' | 'sunburst'
-
-const CHART_COLORS = [
-  '#5470c6', '#91cc75', '#fac858', '#ee6666', '#73c0de',
-  '#3ba272', '#fc8452', '#9a60b4', '#ea7ccc', '#6e7074',
-]
-
-function StatsPanel() {
+  // ── 时间选择 ──
   const [period, setPeriod] = useState('month')
   const [chartType, setChartType] = useState<ChartType>('pie')
   const [loading, setLoading] = useState(true)
 
-  // summary 数据（饼图 / 旭日图用）
+  // ── 统计数据 ──
   const [summaryData, setSummaryData] = useState<{
     total_amount: number
     record_count: number
@@ -212,15 +169,18 @@ function StatsPanel() {
     category_breakdown: BreakdownItem[]
   } | null>(null)
 
-  // monthly 数据（堆叠柱状图用）
   const [monthlyData, setMonthlyData] = useState<PeriodItem[] | null>(null)
+  const [summaryLoaded, setSummaryLoaded] = useState(false)
+  const [monthlyLoaded, setMonthlyLoaded] = useState(false)
 
-  // 饼图下钻状态
+  // ── 饼图下钻 ──
   const [drillL1, setDrillL1] = useState<string | null>(null)
   const [drillL2, setDrillL2] = useState<string | null>(null)
 
-  const [summaryLoaded, setSummaryLoaded] = useState(false)
-  const [monthlyLoaded, setMonthlyLoaded] = useState(false)
+  // ── 分类管理 ──
+  const [showCategories, setShowCategories] = useState(false)
+  const [addingRoot, setAddingRoot] = useState(false)
+  const [newRootName, setNewRootName] = useState('')
 
   const getDateRange = useCallback((p: string): [string, string] => {
     const now = new Date()
@@ -238,7 +198,6 @@ function StatsPanel() {
     return [start, end]
   }, [])
 
-  // 加载汇总数据
   const loadSummary = useCallback(async () => {
     try {
       const [start, end] = getDateRange(period)
@@ -253,12 +212,9 @@ function StatsPanel() {
     } catch {
       setSummaryData(null)
       setSummaryLoaded(true)
-    } finally {
-      // 汇总数据加载完毕可停止 loading
     }
   }, [period, getDateRange])
 
-  // 加载月度数据
   const loadMonthly = useCallback(async () => {
     try {
       const [start, end] = getDateRange(period)
@@ -275,7 +231,6 @@ function StatsPanel() {
     setLoading(true)
     setDrillL1(null)
     setDrillL2(null)
-    // 懒加载：只请求当前图表类型需要的数据
     if (chartType === 'bar') {
       setMonthlyLoaded(false)
       loadMonthly()
@@ -290,6 +245,26 @@ function StatsPanel() {
       setLoading(false)
     }
   }, [summaryLoaded, monthlyLoaded, chartType])
+
+  useEffect(() => {
+    if (showCategories) {
+      refreshCategories()
+    }
+  }, [showCategories, refreshCategories])
+
+  async function handleAddRoot() {
+    if (!newRootName.trim()) return
+    try {
+      await createCategory({ name: newRootName.trim() })
+      setNewRootName('')
+      setAddingRoot(false)
+      await refreshCategories()
+    } catch (err: unknown) {
+      let msg = '创建失败'
+      if (axios.isAxiosError(err) && err.response?.data?.detail) msg = err.response.data.detail
+      alert(msg)
+    }
+  }
 
   const periods = [
     { key: 'month', label: '本月' },
@@ -307,46 +282,30 @@ function StatsPanel() {
   const pieData = useMemo(() => {
     const breakdown = summaryData?.category_breakdown || []
     if (!drillL1 && !drillL2) {
-      // L1 汇总
       return breakdown
         .filter((b) => b.category_l2 === null && b.category_l3 === null)
         .map((b) => ({ name: b.category_l1 || '未分类', value: Number(b.total) }))
     }
     if (drillL1 && !drillL2) {
-      // L2 汇总（指定 L1 下的）
       return breakdown
-        .filter(
-          (b) =>
-            b.category_l1 === drillL1 &&
-            b.category_l2 !== null &&
-            b.category_l3 === null,
-        )
+        .filter((b) => b.category_l1 === drillL1 && b.category_l2 !== null && b.category_l3 === null)
         .map((b) => ({ name: b.category_l2 || '', value: Number(b.total) }))
     }
     if (drillL1 && drillL2) {
-      // L3 明细
       return breakdown
-        .filter(
-          (b) =>
-            b.category_l1 === drillL1 &&
-            b.category_l2 === drillL2 &&
-            b.category_l3 !== null,
-        )
+        .filter((b) => b.category_l1 === drillL1 && b.category_l2 === drillL2 && b.category_l3 !== null)
         .map((b) => ({ name: b.category_l3 || '', value: Number(b.total) }))
     }
     return []
   }, [summaryData, drillL1, drillL2])
 
   const pieTitle = drillL1
-    ? drillL2
-      ? `${drillL1} / ${drillL2}`
-      : drillL1
+    ? drillL2 ? `${drillL1} / ${drillL2}` : drillL1
     : '一级分类'
 
   // ── 堆叠柱状图数据 ──
   const barData = useMemo(() => {
     if (!monthlyData) return []
-    // 收集所有 L1 categories
     const l1Set = new Set<string>()
     monthlyData.forEach((p) => {
       p.breakdown
@@ -354,23 +313,18 @@ function StatsPanel() {
         .forEach((b) => l1Set.add(b.category_l1!))
     })
     const l1List = Array.from(l1Set)
-
     return monthlyData.map((p) => {
       const row: Record<string, number | string> = { period: p.period }
       const l1Totals: Record<string, number> = {}
       p.breakdown
         .filter((b) => b.category_l2 === null && b.category_l3 === null && b.category_l1)
-        .forEach((b) => {
-          l1Totals[b.category_l1!] = Number(b.total)
-        })
-      l1List.forEach((l1) => {
-        row[l1] = l1Totals[l1] || 0
-      })
+        .forEach((b) => { l1Totals[b.category_l1!] = Number(b.total) })
+      l1List.forEach((l1) => { row[l1] = l1Totals[l1] || 0 })
       return row
     })
   }, [monthlyData])
 
-  // ── 旭日图数据 — 直接用 L1 汇总行 ──
+  // ── 旭日图数据 ──
   const sunburstData = useMemo(() => {
     const breakdown = summaryData?.category_breakdown || []
     return breakdown
@@ -378,11 +332,10 @@ function StatsPanel() {
       .map((b) => ({ name: b.category_l1 || '未分类', value: Number(b.total) }))
   }, [summaryData])
 
-  // 简易旭日图 - 用 recharts Pie 叠加实现（无 @nivo 依赖的备选）
   const hasPieData = pieData.length > 0
 
   return (
-    <div>
+    <div className="expense-stats-page">
       {/* 时间快捷选择 */}
       <div className="stats-time-row">
         {periods.map((p) => (
@@ -407,21 +360,15 @@ function StatsPanel() {
           {/* 汇总卡片 */}
           <div className="stats-summary">
             <div className="stats-card">
-              <div className="stats-card-value">
-                ¥{summaryData.total_amount.toFixed(2)}
-              </div>
+              <div className="stats-card-value">¥{summaryData.total_amount.toFixed(2)}</div>
               <div className="stats-card-label">总支出</div>
             </div>
             <div className="stats-card">
-              <div className="stats-card-value">
-                {summaryData.record_count}
-              </div>
+              <div className="stats-card-value">{summaryData.record_count}</div>
               <div className="stats-card-label">笔数</div>
             </div>
             <div className="stats-card">
-              <div className="stats-card-value">
-                ¥{summaryData.avg_daily.toFixed(2)}
-              </div>
+              <div className="stats-card-value">¥{summaryData.avg_daily.toFixed(2)}</div>
               <div className="stats-card-label">日均</div>
             </div>
           </div>
@@ -448,27 +395,19 @@ function StatsPanel() {
           {/* 饼图下钻 */}
           {chartType === 'pie' && (
             <div style={{ marginTop: 12 }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4, marginBottom: 4 }}>
+              <div className="pie-drill-header">
                 {drillL1 && (
                   <button
                     className="stats-time-btn"
-                    onClick={() => {
-                      if (drillL2) {
-                        setDrillL2(null)
-                      } else {
-                        setDrillL1(null)
-                      }
-                    }}
+                    onClick={() => drillL2 ? setDrillL2(null) : setDrillL1(null)}
                   >
                     ← 返回
                   </button>
                 )}
-                <span style={{ fontSize: 12, color: 'var(--text-secondary)' }}>
-                  {pieTitle}
-                </span>
+                <span className="pie-drill-title">{pieTitle}</span>
               </div>
               {hasPieData ? (
-                <ResponsiveContainer width="100%" height={240}>
+                <ResponsiveContainer width="100%" height={260}>
                   <PieChart>
                     <Pie
                       data={pieData}
@@ -476,25 +415,21 @@ function StatsPanel() {
                       nameKey="name"
                       cx="50%"
                       cy="50%"
-                      outerRadius={80}
+                      outerRadius={90}
                       label={({ name, percent }) =>
                         `${name} ${((percent ?? 0) * 100).toFixed(0)}%`
                       }
                       onClick={(_, index) => {
                         const item = pieData[index]
-                        const name = item.name
                         if (!drillL1) {
-                          setDrillL1(name)
+                          setDrillL1(item.name)
                         } else if (!drillL2) {
-                          setDrillL2(name)
+                          setDrillL2(item.name)
                         }
                       }}
                     >
                       {pieData.map((_, i) => (
-                        <Cell
-                          key={i}
-                          fill={CHART_COLORS[i % CHART_COLORS.length]}
-                        />
+                        <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />
                       ))}
                     </Pie>
                     <Tooltip formatter={(v) => `¥${Number(v).toFixed(2)}`} />
@@ -510,7 +445,7 @@ function StatsPanel() {
           {chartType === 'bar' && (
             <div style={{ marginTop: 12 }}>
               {barData.length > 0 ? (
-                <ResponsiveContainer width="100%" height={240}>
+                <ResponsiveContainer width="100%" height={260}>
                   <BarChart data={barData}>
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis dataKey="period" tick={{ fontSize: 11 }} />
@@ -520,12 +455,7 @@ function StatsPanel() {
                     {Object.keys(barData[0] || {})
                       .filter((k) => k !== 'period')
                       .map((l1, i) => (
-                        <Bar
-                          key={l1}
-                          dataKey={l1}
-                          stackId="a"
-                          fill={CHART_COLORS[i % CHART_COLORS.length]}
-                        />
+                        <Bar key={l1} dataKey={l1} stackId="a" fill={CHART_COLORS[i % CHART_COLORS.length]} />
                       ))}
                   </BarChart>
                 </ResponsiveContainer>
@@ -539,7 +469,7 @@ function StatsPanel() {
           {chartType === 'sunburst' && (
             <div style={{ marginTop: 12 }}>
               {sunburstData.length > 0 ? (
-                <ResponsiveContainer width="100%" height={240}>
+                <ResponsiveContainer width="100%" height={260}>
                   <PieChart>
                     <Pie
                       data={sunburstData}
@@ -547,17 +477,14 @@ function StatsPanel() {
                       nameKey="name"
                       cx="50%"
                       cy="50%"
-                      innerRadius={30}
-                      outerRadius={80}
+                      innerRadius={35}
+                      outerRadius={90}
                       label={({ name, percent }) =>
                         `${name} ${((percent ?? 0) * 100).toFixed(0)}%`
                       }
                     >
                       {sunburstData.map((_, i) => (
-                        <Cell
-                          key={i}
-                          fill={CHART_COLORS[i % CHART_COLORS.length]}
-                        />
+                        <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />
                       ))}
                     </Pie>
                     <Tooltip formatter={(v) => `¥${Number(v).toFixed(2)}`} />
@@ -570,96 +497,50 @@ function StatsPanel() {
           )}
         </>
       )}
-    </div>
-  )
-}
 
-/* ================================================================
-   BottomPanel — 主容器
-   ================================================================ */
-export default function BottomPanel({
-  categories,
-  onCategoriesChange,
-  onClose,
-}: BottomPanelProps) {
-  const [tab, setTab] = useState<PanelTab>('stats')
-  const [addingRoot, setAddingRoot] = useState(false)
-  const [newRootName, setNewRootName] = useState('')
+      {/* ── 分类管理（可折叠） ── */}
+      <div className="categories-section">
+        <button
+          className="categories-toggle"
+          onClick={() => setShowCategories(!showCategories)}
+        >
+          {showCategories ? '收起分类管理 ▲' : '管理分类 ▼'}
+        </button>
 
-  async function handleAddRoot() {
-    if (!newRootName.trim()) return
-    try {
-      await createCategory({ name: newRootName.trim() })
-      setNewRootName('')
-      setAddingRoot(false)
-      onCategoriesChange()
-    } catch (err: unknown) {
-      let msg = '创建失败'
-      if (axios.isAxiosError(err) && err.response?.data?.detail) msg = err.response.data.detail
-      alert(msg)
-    }
-  }
+        {showCategories && (
+          <div className="categories-body">
+            {categories.length === 0 && (
+              <div style={{ textAlign: 'center', padding: 20, color: 'var(--text-dim)', fontSize: 14 }}>
+                还没有分类
+              </div>
+            )}
+            {categories.map((cat) => (
+              <CategoryNode key={cat.id} cat={cat} depth={0} onRefresh={refreshCategories} />
+            ))}
 
-  // 锁定 body 滚动
-  useEffect(() => {
-    document.body.style.overflow = 'hidden'
-    return () => {
-      document.body.style.overflow = ''
-    }
-  }, [])
-
-  return (
-    <div className="bottom-panel-overlay" onClick={onClose}>
-      <div className="bottom-panel" onClick={(e) => e.stopPropagation()}>
-        <div className="panel-header">
-          <div className="panel-tabs">
-            <button
-              className={`panel-tab ${tab === 'stats' ? 'active' : ''}`}
-              onClick={() => setTab('stats')}
-            >
-              统计
-            </button>
-            <button
-              className={`panel-tab ${tab === 'categories' ? 'active' : ''}`}
-              onClick={() => setTab('categories')}
-            >
-              分类管理
-            </button>
-          </div>
-          <button className="panel-close" onClick={onClose}>
-            ✕
-          </button>
-        </div>
-        <div className="panel-body">
-          {tab === 'categories' && (
-            <CategoryManager
-              categories={categories}
-              loading={false}
-              onRefresh={onCategoriesChange}
-              onAddRoot={() => {
-                setAddingRoot(true)
-                setNewRootName('')
-              }}
-            />
-          )}
-          {tab === 'stats' && <StatsPanel />}
-        </div>
-
-        {/* 添加根分类弹窗 */}
-        {addingRoot && (
-          <div style={{ padding: '0 20px 20px' }} className="inline-edit">
-            <input
-              placeholder="一级分类名称"
-              value={newRootName}
-              onChange={(e) => setNewRootName(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') handleAddRoot()
-                if (e.key === 'Escape') setAddingRoot(false)
-              }}
-              autoFocus
-            />
-            <button className="inline-edit-save" onClick={handleAddRoot}>添加</button>
-            <button className="inline-edit-cancel" onClick={() => setAddingRoot(false)}>取消</button>
+            {addingRoot ? (
+              <div className="inline-edit" style={{ marginTop: 12 }}>
+                <input
+                  placeholder="一级分类名称"
+                  value={newRootName}
+                  onChange={(e) => setNewRootName(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') handleAddRoot()
+                    if (e.key === 'Escape') setAddingRoot(false)
+                  }}
+                  autoFocus
+                />
+                <button className="inline-edit-save" onClick={handleAddRoot}>添加</button>
+                <button className="inline-edit-cancel" onClick={() => setAddingRoot(false)}>取消</button>
+              </div>
+            ) : (
+              <button
+                className="add-category-btn"
+                onClick={() => { setAddingRoot(true); setNewRootName('') }}
+              >
+                + 添加一级分类
+              </button>
+            )}
           </div>
         )}
       </div>

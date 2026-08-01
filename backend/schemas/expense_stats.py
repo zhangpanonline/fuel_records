@@ -34,3 +34,13 @@ class ExpenseStatsResponse(BaseModel):
 
     # group_by="month/week/year"（分时段模式）专属字段
     items: Optional[list[PeriodItem]] = None
+
+
+class MultiSummaryResponse(BaseModel):
+    """多时间区间汇总（当年/当月/当周/近一年/近一月/近一周）"""
+    current_year: Decimal = Decimal("0")
+    current_month: Decimal = Decimal("0")
+    current_week: Decimal = Decimal("0")
+    recent_year: Decimal = Decimal("0")
+    recent_month: Decimal = Decimal("0")
+    recent_week: Decimal = Decimal("0")

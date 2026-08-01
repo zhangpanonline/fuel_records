@@ -1,0 +1,198 @@
+/* ── 油耗页骨架屏 ── */
+.fuel-skeleton {
+  padding: 16px;
+  max-width: 480px;
+  margin: 0 auto;
+  min-height: 100vh;
+}
+
+/* 车辆选择器 */
+.fsk-vehicle-bar {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.fsk-select {
+  flex: 1;
+  height: 44px;
+  border-radius: 14px;
+}
+
+.fsk-add-btn {
+  width: 80px;
+  height: 44px;
+  border-radius: 14px;
+}
+
+/* 表单 */
+.fsk-form {
+  padding: 16px;
+  border-radius: 16px;
+  margin-bottom: 16px;
+}
+
+.fsk-form-header {
+  margin-bottom: 14px;
+}
+
+.fsk-form-title {
+  width: 40%;
+  height: 18px;
+  border-radius: 4px;
+}
+
+.fsk-form-grid {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.fsk-field {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.fsk-label {
+  width: 40%;
+  height: 12px;
+  border-radius: 4px;
+}
+
+.fsk-input {
+  height: 40px;
+  border-radius: 10px;
+}
+
+.fsk-submit {
+  height: 48px;
+  border-radius: 14px;
+}
+
+/* 统计 + 筛选行 */
+.fsk-filter-row {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.fsk-summary {
+  flex: 1;
+  height: 44px;
+  border-radius: 14px;
+}
+
+.fsk-filter-btn {
+  width: 80px;
+  height: 44px;
+  border-radius: 14px;
+}
+
+/* 记录卡片 */
+.fsk-record {
+  padding: 14px 12px;
+  border-radius: 12px;
+  margin-bottom: 8px;
+}
+
+.fsk-rec-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.fsk-rec-title {
+  width: 40%;
+  height: 16px;
+  border-radius: 4px;
+}
+
+.fsk-rec-tag {
+  width: 50px;
+  height: 14px;
+  border-radius: 4px;
+}
+
+.fsk-rec-body {
+  display: flex;
+  justify-content: space-between;
+}
+
+.fsk-rec-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  align-items: center;
+}
+
+.fsk-rec-label-s {
+  width: 36px;
+  height: 10px;
+  border-radius: 3px;
+}
+
+.fsk-rec-val {
+  width: 40px;
+  height: 14px;
+  border-radius: 4px;
+}
+
+/* ── 共享闪动动画 ── */
+.fuel-skeleton .sk-bar,
+.fsk-form,
+.fsk-record {
+  background: hsl(0, 0%, 50%);
+  opacity: 0.12;
+}
+
+.fuel-skeleton .sk-bar {
+  position: relative;
+  overflow: hidden;
+}
+
+.fuel-skeleton .sk-bar::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    hsl(0, 0%, 80%) 40%,
+    hsl(0, 0%, 80%) 60%,
+    transparent 100%
+  );
+  opacity: 0.3;
+  animation: fskShimmer 1.5s ease-in-out infinite;
+}
+
+.fsk-form,
+.fsk-record {
+  position: relative;
+  overflow: hidden;
+}
+
+.fsk-form::after,
+.fsk-record::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    hsl(0, 0%, 80%) 40%,
+    hsl(0, 0%, 80%) 60%,
+    transparent 100%
+  );
+  opacity: 0.3;
+  animation: fskShimmer 1.5s ease-in-out infinite;
+}
+
+@keyframes fskShimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}

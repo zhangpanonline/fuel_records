@@ -1,0 +1,26 @@
+.pull-to-refresh-wrapper {
+  min-height: 100%;
+}
+
+/* ── 下拉指示器 ── */
+.pull-indicator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  transition: height 0.2s ease, opacity 0.2s ease;
+}
+
+.pull-spinner {
+  color: var(--text-dim, #999);
+  transition: transform 0.3s ease;
+}
+
+.pull-spinner.spinning {
+  animation: pullSpin 0.8s linear infinite;
+}
+
+@keyframes pullSpin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}

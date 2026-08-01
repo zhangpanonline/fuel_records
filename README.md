@@ -66,6 +66,7 @@
 │  │  /api/v1/auth     ─  用户认证                  │  │
 │  │  /api/v1/vehicles ─  车辆管理                  │  │
 │  │  /api/v1/stats    ─  统计数据                  │  │
+│  │  /api/v1/expenses ─  记账模块 (P10)             │  │
 │  └───────────────────────────────────────────────┘  │
 ├─────────────────────────────────────────────────────┤
 │                 Business Layer                       │
@@ -75,13 +76,16 @@
 │  │  auth_service.py   ─  JWT 鉴权               │  │
 │  │  vehicle_service.py ─ 车辆管理                 │  │
 │  │  stats_service.py  ─  统计聚合                 │  │
+│  │  expense_service.py ─ 记账业务 (P10)           │  │
+│  │  expense_stats_service.py ─ 记账统计 (P10)     │  │
 │  └───────────────────────────────────────────────┘  │
 ├─────────────────────────────────────────────────────┤
 │                 Data Layer                           │
 │  ┌──────────────────────┐ ┌──────────────────────┐  │
 │  │    Models (ORM)      │ │    Database           │  │
 │  │  User, Vehicle,      │ │  SQLAlchemy Session   │  │
-│  │  FuelRecord          │ │  Connection Pool      │  │
+│  │  FuelRecord, Expense, │ │  Connection Pool      │  │
+│  │  ExpenseCategory      │ │                       │  │
 │  └──────────────────────┘ └──────────────────────┘  │
 ├─────────────────────────────────────────────────────┤
 │               Foundation Layer                       │
@@ -123,14 +127,30 @@ fuel_records/
 ├── frontend/                   # React + Capacitor 前端
 │   ├── src/                    # React 源码
 │   │   ├── pages/              # 页面组件
+│   │   │   ├── LoginPage.tsx   # 登录/注册
+│   │   │   ├── ExpensePage.tsx  # 记账主页 (P10)
+│   │   │   └── ExpenseStatsPage.tsx  # 记账统计 (P10)
 │   │   ├── components/         # 通用组件
+│   │   │   ├── TopBar.tsx      # 全局顶栏 (P10)
+│   │   │   ├── BottomNav.tsx   # 底部双Tab导航 (P10)
+│   │   │   ├── SmartFAB.tsx    # 智能浮动按钮 (P10.5)
+│   │   │   ├── CategoryPicker.tsx  # 合并三级选择器 (P10.5)
+│   │   │   ├── PullToRefresh.tsx  # 下拉刷新 (P10.6)
+│   │   │   ├── ExpenseSummaryCards.tsx  # 六区间统计卡片 (P10.6)
+│   │   │   ├── ExpensePageSkeleton.tsx  # 记账骨架屏 (P10.6)
+│   │   │   └── FuelPageSkeleton.tsx  # 油耗骨架屏 (P10.6)
+│   │   ├── context/            # React Context (P10.5)
+│   │   │   ├── FuelDataContext.tsx  # 加油数据共享
+│   │   │   └── ExpenseDataContext.tsx  # 记账数据共享
 │   │   ├── services/           # API 调用
-│   │   │   ├── api.ts
-│   │   │   └── upgrade.md       # App 版本更新检测规格书
-│   │   └── App.tsx
+│   │   │   ├── api.ts          # 全部 API 函数
+│   │   │   ├── upgrade.ts      # 版本更新检测 (P9)
+│   │   │   └── upgrade.md       # 版本更新规格书
+│   │   ├── App.tsx             # 加油主页面
+│   │   └── main.tsx            # 路由入口 + DataProviders (P10.6)
 │   ├── capacitor-config/       # Capacitor 原生配置
 │   ├── package.json
-│   └── Dockerfile
+│   └── vite.config.ts
 ├── docker-compose.yml          # 多容器编排（FastAPI + MySQL）
 ├── .env                        # 环境配置（不上仓库）
 ├── .gitignore
@@ -276,11 +296,12 @@ DEL  /api/v1/records/{id}    删除记录
 | start_date | str | 可选 | 开始日期（筛选） |
 | end_date | str | 可选 | 结束日期（筛选） |
 
-### 5.3 统计 API（Phase 6）
+### 5.3 统计 API（Phase 6 + P10 重构）
 
 ```
-GET /api/v1/stats/summary?vehicle_id=1    总里程、总油耗、总金额、平均油耗
-GET /api/v1/stats/monthly?vehicle_id=1    按月统计
+GET /api/v1/stats/summary?vehicle_id=1&start_date=2026-07-01&end_date=2026-08-01    总里程、总油耗、总金额、平均油耗（支持日期范围筛选）
+GET /api/v1/stats/monthly?vehicle_id=1&start_date=2026-07-01&end_date=2026-08-01    按月统计（支持日期范围筛选）
+GET /api/v1/stats/timeline?vehicle_id=1&group_by=day&start_date=2026-07-30&end_date=2026-08-01    时间线统计（P10 新增：group_by=day|week|month 智能粒度）
 ```
 
 ### 5.4 用户认证 API（Phase 4）
@@ -297,6 +318,21 @@ POST /api/v1/vehicles         添加车辆
 GET  /api/v1/vehicles         我的车辆列表
 PUT  /api/v1/vehicles/{id}    修改车辆信息
 DEL  /api/v1/vehicles/{id}    删除车辆
+```
+
+### 5.6 记账模块 API（P10 / P10.6）
+
+```
+POST   /api/v1/expenses                 创建支出记录
+GET    /api/v1/expenses                 分页查询记录列表
+PUT    /api/v1/expenses/{id}            修改记录
+DELETE /api/v1/expenses/{id}            删除记录
+POST   /api/v1/expenses/categories      创建分类
+GET    /api/v1/expenses/categories      获取分类树
+PUT    /api/v1/expenses/categories/{id} 修改分类
+DELETE /api/v1/expenses/categories/{id} 删除分类
+GET    /api/v1/expenses/stats           多维度统计（group_by + 分类过滤）
+GET    /api/v1/expenses/multi_summary   六区间累计金额（P10.6 新增：当年/当月/当周/近一年/近一月/近一周）
 ```
 
 ---
@@ -422,12 +458,13 @@ DEL  /api/v1/vehicles/{id}    删除车辆
 **新增工作**：
 - 统计 API（总里程、总油耗、总金额、平均油耗）
 - 月度统计接口
-- 前端：统计页面、图表（ECharts 或 Recharts）
+- 前端：统计页面、图表（Recharts）
+- P10.6 新增：油耗页累计统计下拉框（当年/当月/自上月累计油耗+金额，localStorage 记忆选择）
 
 **学到的知识点**：
 1. SQLAlchemy 聚合查询（group_by、func）
 2. 数据清洗与聚合逻辑
-3. Flutter 图表组件使用
+3. Recharts 图表组件使用
 
 ---
 
@@ -450,11 +487,14 @@ DEL  /api/v1/vehicles/{id}    删除车辆
 
 **新增工作**：
 - 数据导出（CSV / Excel）
-- 加油记录分享截图
-- 推送通知（提醒加油）
 - 暗黑模式
 - 性能优化
 - App 版本更新检测与自动安装（Supabase Storage 托管 APK → 启动检测 → 下载 → 系统安装器）→ 规格书：[`upgrade.md`](file:///Users/zp/Code/fuel_records/frontend/src/services/upgrade.md)
+
+> [!CAUTION]
+> **自动更新是本 App 的生命线**。App 无应用商店分发渠道，一旦自动更新功能被破坏，用户将永久停留在旧版本且无法联系到开发者。详见 [`TEST_CHECKLIST.md 自动更新保护章节`](file:///Users/zp/Code/fuel_records/TEST_CHECKLIST.md)。
+
+- **已移除**：加油提醒推送（Phase 10.5 移除）、统计截图分享（Phase 10.5 移除）
 
 ---
 

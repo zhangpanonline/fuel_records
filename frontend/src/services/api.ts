@@ -76,7 +76,7 @@ export interface SummaryStats {
 }
 
 export interface MonthlyItem {
-  month: number
+  period: string           // "2026-08"
   count: number
   total_volume: number
   total_cost: number
@@ -84,8 +84,21 @@ export interface MonthlyItem {
 }
 
 export interface MonthlyStats {
-  year: number
   months: MonthlyItem[]
+}
+
+// ---- Timeline types (group_by: day / week / month) ----
+
+export interface TimelineItem {
+  period: string          // "2026-08-01" | "08-01~08-07" | "2026-08"
+  count: number
+  total_volume: number
+  total_cost: number
+  avg_consumption: number | null
+}
+
+export interface TimelineStats {
+  items: TimelineItem[]
 }
 
 export interface TokenResponse {
@@ -276,20 +289,40 @@ export async function deleteVehicle(id: number): Promise<void> {
 
 // ---- Stats API ----
 
-export async function fetchSummary(vehicleId: number): Promise<SummaryStats> {
-  const res = await apiClient.get<SummaryStats>('/api/v1/stats/summary', {
-    params: { vehicle_id: vehicleId },
-  })
+export async function fetchSummary(
+  vehicleId: number,
+  startDate?: string,
+  endDate?: string,
+): Promise<SummaryStats> {
+  const params: Record<string, string | number> = { vehicle_id: vehicleId }
+  if (startDate) params.start_date = startDate
+  if (endDate) params.end_date = endDate
+  const res = await apiClient.get<SummaryStats>('/api/v1/stats/summary', { params })
   return res.data
 }
 
 export async function fetchMonthly(
   vehicleId: number,
-  year: number,
+  startDate?: string,
+  endDate?: string,
 ): Promise<MonthlyStats> {
-  const res = await apiClient.get<MonthlyStats>('/api/v1/stats/monthly', {
-    params: { vehicle_id: vehicleId, year },
-  })
+  const params: Record<string, string | number> = { vehicle_id: vehicleId }
+  if (startDate) params.start_date = startDate
+  if (endDate) params.end_date = endDate
+  const res = await apiClient.get<MonthlyStats>('/api/v1/stats/monthly', { params })
+  return res.data
+}
+
+export async function fetchTimeline(
+  vehicleId: number,
+  groupBy: string,
+  startDate?: string,
+  endDate?: string,
+): Promise<TimelineStats> {
+  const params: Record<string, string | number> = { vehicle_id: vehicleId, group_by: groupBy }
+  if (startDate) params.start_date = startDate
+  if (endDate) params.end_date = endDate
+  const res = await apiClient.get<TimelineStats>('/api/v1/stats/timeline', { params })
   return res.data
 }
 
@@ -393,6 +426,15 @@ export interface ExpenseStatsResponse {
   items?: PeriodItem[]
 }
 
+export interface MultiSummaryResponse {
+  current_year: number
+  current_month: number
+  current_week: number
+  recent_year: number
+  recent_month: number
+  recent_week: number
+}
+
 // ---- Expense API ----
 
 export async function fetchExpenses(
@@ -431,6 +473,11 @@ export async function updateExpense(
 
 export async function deleteExpense(id: number): Promise<void> {
   await apiClient.delete(`/api/v1/expenses/${id}`)
+}
+
+export async function fetchMultiSummary(): Promise<MultiSummaryResponse> {
+  const res = await apiClient.get<MultiSummaryResponse>('/api/v1/expenses/multi_summary')
+  return res.data
 }
 
 // ---- Category API ----

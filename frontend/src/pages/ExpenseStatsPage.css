@@ -1,0 +1,223 @@
+/* ============================================================
+   ExpenseStatsPage — 记账统计全屏页样式
+   ============================================================ */
+
+.expense-stats-page {
+  padding: 8px 0 24px;
+}
+
+/* ── 时间/图表切换 ── */
+.stats-time-row {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.stats-time-btn {
+  padding: 6px 14px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--card-bg);
+  color: var(--text-secondary);
+  font-size: 13px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s;
+}
+
+.stats-time-btn.active {
+  background: rgba(99, 102, 241, 0.1);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+/* ── 汇总卡片 ── */
+.stats-summary {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.stats-card {
+  padding: 16px;
+  border-radius: 14px;
+  background: var(--card-bg);
+  text-align: center;
+}
+
+.stats-card-value {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.stats-card-label {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+
+.chart-placeholder {
+  text-align: center;
+  padding: 40px;
+  color: var(--text-dim);
+  font-size: 14px;
+}
+
+/* ── 饼图下钻 ── */
+.pie-drill-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  margin-bottom: 4px;
+}
+
+.pie-drill-title {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+/* ── 分类管理折叠区 ── */
+.categories-section {
+  margin-top: 24px;
+  border-top: 1px solid var(--border);
+  padding-top: 16px;
+}
+
+.categories-toggle {
+  width: 100%;
+  padding: 10px;
+  border: none;
+  border-radius: 12px;
+  background: var(--card-bg);
+  color: var(--accent);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.categories-toggle:hover {
+  background: rgba(99, 102, 241, 0.06);
+}
+
+.categories-body {
+  margin-top: 12px;
+}
+
+/* ── 分类树 ── */
+.category-node {
+  margin-bottom: 2px;
+  font-size: 14px;
+}
+
+.category-node-header {
+  display: flex;
+  align-items: center;
+  padding: 8px 10px;
+  border-radius: 10px;
+  transition: background 0.15s;
+}
+
+.category-node-header:hover {
+  background: var(--border-light);
+}
+
+.category-node-expand {
+  width: 20px;
+  font-size: 10px;
+  color: var(--text-dim);
+  flex-shrink: 0;
+  cursor: pointer;
+}
+
+.category-node-name {
+  flex: 1;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.category-node-actions {
+  display: flex;
+  gap: 4px;
+}
+
+.category-node-actions button {
+  padding: 3px 8px;
+  border: none;
+  border-radius: 6px;
+  font-size: 11px;
+  cursor: pointer;
+  background: var(--border-light);
+  color: var(--text-secondary);
+}
+
+.category-children {
+  margin-left: 20px;
+}
+
+.add-category-btn {
+  width: 100%;
+  padding: 10px;
+  margin-top: 12px;
+  border: 1px dashed var(--border);
+  border-radius: 12px;
+  background: transparent;
+  color: var(--accent);
+  font-size: 14px;
+  cursor: pointer;
+}
+
+/* ── 内联编辑 ── */
+.inline-edit {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  padding: 4px 0;
+}
+
+.inline-edit input {
+  flex: 1;
+  padding: 6px 10px;
+  border: 1px solid var(--accent);
+  border-radius: 8px;
+  font-size: 13px;
+  outline: none;
+  background: var(--input-bg);
+  color: var(--text-primary);
+}
+
+.inline-edit button {
+  padding: 4px 10px;
+  border: none;
+  border-radius: 6px;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.inline-edit-save {
+  background: var(--accent);
+  color: #fff;
+}
+
+.inline-edit-cancel {
+  background: var(--border-light);
+  color: var(--text-secondary);
+}
+
+/* ── 响应式 ── */
+@media (max-width: 400px) {
+  .stats-summary {
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 8px;
+  }
+  .stats-card {
+    padding: 12px 8px;
+  }
+  .stats-card-value {
+    font-size: 18px;
+  }
+}

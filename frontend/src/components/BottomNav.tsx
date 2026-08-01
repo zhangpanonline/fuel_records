@@ -6,8 +6,8 @@ function BottomNav() {
   const location = useLocation()
 
   const tabs = [
-    { path: '/fuel', label: '油耗', icon: '⛽' },
     { path: '/expense', label: '记账', icon: '💰' },
+    { path: '/fuel', label: '油耗', icon: '⛽' },
   ]
 
   return (

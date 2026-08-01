@@ -517,3 +517,257 @@
 2026-08-01 12:24:47 | INFO     | main:lifespan:19 - 应用启动中...
 2026-08-01 12:24:49 | INFO     | database:init_db:80 - 数据库迁移已完成（Alembic upgrade head）
 2026-08-01 12:24:49 | INFO     | main:lifespan:21 - 应用启动完成
+2026-08-01 12:30:24 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-08-01 12:30:29 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-08-01 12:31:25 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-08-01 12:31:28 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-08-01 12:31:40 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-08-01 12:31:40 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-08-01 12:31:41 | INFO     | main:lifespan:19 - 应用启动中...
+2026-08-01 12:31:43 | INFO     | database:init_db:80 - 数据库迁移已完成（Alembic upgrade head）
+2026-08-01 12:31:43 | INFO     | main:lifespan:21 - 应用启动完成
+2026-08-01 15:06:18 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-08-01 15:06:18 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-08-01 15:06:46 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-08-01 15:06:46 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-08-01 15:06:46 | INFO     | main:lifespan:19 - 应用启动中...
+2026-08-01 15:06:48 | INFO     | database:init_db:80 - 数据库迁移已完成（Alembic upgrade head）
+2026-08-01 15:06:48 | INFO     | main:lifespan:21 - 应用启动完成
+2026-08-01 15:08:47 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-08-01 15:08:47 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-08-01 15:08:47 | INFO     | main:lifespan:19 - 应用启动中...
+2026-08-01 15:08:49 | INFO     | database:init_db:80 - 数据库迁移已完成（Alembic upgrade head）
+2026-08-01 15:08:49 | INFO     | main:lifespan:21 - 应用启动完成
+2026-08-01 15:20:30 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-08-01 15:20:30 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-08-01 15:20:30 | INFO     | main:lifespan:19 - 应用启动中...
+2026-08-01 15:20:32 | INFO     | database:init_db:80 - 数据库迁移已完成（Alembic upgrade head）
+2026-08-01 15:20:32 | INFO     | main:lifespan:21 - 应用启动完成
+2026-08-01 15:37:41 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-08-01 15:37:41 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-08-01 15:37:41 | INFO     | main:lifespan:19 - 应用启动中...
+2026-08-01 15:37:43 | INFO     | database:init_db:80 - 数据库迁移已完成（Alembic upgrade head）
+2026-08-01 15:37:43 | INFO     | main:lifespan:21 - 应用启动完成
+2026-08-01 15:41:53 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-08-01 15:41:53 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-08-01 15:41:53 | INFO     | main:lifespan:19 - 应用启动中...
+2026-08-01 15:41:56 | INFO     | database:init_db:80 - 数据库迁移已完成（Alembic upgrade head）
+2026-08-01 15:41:56 | INFO     | main:lifespan:21 - 应用启动完成
+2026-08-01 15:42:45 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-08-01 15:42:47 | INFO     | services.stats_service:get_timeline:126 - [timeline] group_by=day start=2026-08-01 end=2026-08-01 → 2 rows, first=2026-08-01 12:35:56.796822 last=2026-08-01 12:35:57.702584
+2026-08-01 15:42:48 | INFO     | services.stats_service:get_timeline:126 - [timeline] group_by=month start=2026-08-01 end=2026-08-01 → 2 rows, first=2026-08-01 12:35:56.796822 last=2026-08-01 12:35:57.702584
+2026-08-01 15:44:17 | INFO     | services.stats_service:get_timeline:126 - [timeline] group_by=month start=2026-07-02 end=2026-08-01 → 2 rows, first=2026-08-01 13:15:24.063536 last=2026-08-01 13:16:23.596379
+2026-08-01 15:44:17 | INFO     | services.stats_service:get_timeline:126 - [timeline] group_by=month start=2026-07-02 end=2026-08-01 → 2 rows, first=2026-08-01 13:15:24.063536 last=2026-08-01 13:16:23.596379
+2026-08-01 15:44:17 | INFO     | services.stats_service:get_timeline:126 - [timeline] group_by=week start=2026-07-02 end=2026-08-01 → 2 rows, first=2026-08-01 13:15:24.063536 last=2026-08-01 13:16:23.596379
+2026-08-01 15:44:17 | INFO     | services.stats_service:get_timeline:126 - [timeline] group_by=week start=2026-07-02 end=2026-08-01 → 2 rows, first=2026-08-01 13:15:24.063536 last=2026-08-01 13:16:23.596379
+2026-08-01 15:44:35 | INFO     | services.stats_service:get_timeline:126 - [timeline] group_by=month start=2026-07-02 end=2026-08-01 → 2 rows, first=2026-08-01 13:15:24.063536 last=2026-08-01 13:16:23.596379
+2026-08-01 15:44:35 | INFO     | services.stats_service:get_timeline:126 - [timeline] group_by=week start=2026-07-02 end=2026-08-01 → 2 rows, first=2026-08-01 13:15:24.063536 last=2026-08-01 13:16:23.596379
+2026-08-01 15:45:21 | INFO     | services.stats_service:get_timeline:126 - [timeline] group_by=month start=2026-07-02 end=2026-08-01 → 2 rows, first=2026-08-01 13:15:24.063536 last=2026-08-01 13:16:23.596379
+2026-08-01 15:45:21 | INFO     | services.stats_service:get_timeline:126 - [timeline] group_by=week start=2026-07-02 end=2026-08-01 → 2 rows, first=2026-08-01 13:15:24.063536 last=2026-08-01 13:16:23.596379
+2026-08-01 15:45:24 | INFO     | services.stats_service:get_timeline:126 - [timeline] group_by=month start=2026-07-25 end=2026-08-01 → 2 rows, first=2026-08-01 13:15:24.063536 last=2026-08-01 13:16:23.596379
+2026-08-01 15:45:24 | INFO     | services.stats_service:get_timeline:126 - [timeline] group_by=day start=2026-07-25 end=2026-08-01 → 2 rows, first=2026-08-01 13:15:24.063536 last=2026-08-01 13:16:23.596379
+2026-08-01 15:45:32 | INFO     | services.stats_service:get_timeline:126 - [timeline] group_by=month start=2026-07-02 end=2026-08-01 → 2 rows, first=2026-08-01 13:15:24.063536 last=2026-08-01 13:16:23.596379
+2026-08-01 15:45:32 | INFO     | services.stats_service:get_timeline:126 - [timeline] group_by=week start=2026-07-02 end=2026-08-01 → 2 rows, first=2026-08-01 13:15:24.063536 last=2026-08-01 13:16:23.596379
+2026-08-01 15:45:42 | INFO     | services.stats_service:get_timeline:126 - [timeline] group_by=month start=2026-07-25 end=2026-08-01 → 2 rows, first=2026-08-01 13:15:24.063536 last=2026-08-01 13:16:23.596379
+2026-08-01 15:45:42 | INFO     | services.stats_service:get_timeline:126 - [timeline] group_by=day start=2026-07-25 end=2026-08-01 → 2 rows, first=2026-08-01 13:15:24.063536 last=2026-08-01 13:16:23.596379
+2026-08-01 15:46:38 | INFO     | services.stats_service:get_timeline:126 - [timeline] group_by=week start=2026-07-02 end=2026-08-01 → 2 rows, first=2026-08-01 13:15:24.063536 last=2026-08-01 13:16:23.596379
+2026-08-01 15:46:38 | INFO     | services.stats_service:get_timeline:126 - [timeline] group_by=month start=2026-07-02 end=2026-08-01 → 2 rows, first=2026-08-01 13:15:24.063536 last=2026-08-01 13:16:23.596379
+2026-08-01 15:46:40 | INFO     | services.stats_service:get_timeline:126 - [timeline] group_by=month start=2026-07-25 end=2026-08-01 → 2 rows, first=2026-08-01 13:15:24.063536 last=2026-08-01 13:16:23.596379
+2026-08-01 15:46:40 | INFO     | services.stats_service:get_timeline:126 - [timeline] group_by=day start=2026-07-25 end=2026-08-01 → 2 rows, first=2026-08-01 13:15:24.063536 last=2026-08-01 13:16:23.596379
+2026-08-01 15:48:04 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-08-01 15:48:04 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-08-01 15:48:04 | INFO     | main:lifespan:19 - 应用启动中...
+2026-08-01 15:48:06 | INFO     | database:init_db:80 - 数据库迁移已完成（Alembic upgrade head）
+2026-08-01 15:48:06 | INFO     | main:lifespan:21 - 应用启动完成
+2026-08-01 15:48:06 | INFO     | main:lifespan:23 - 应用关闭
+2026-08-01 15:48:20 | INFO     | services.stats_service:get_timeline:126 - [timeline] group_by=week start=2026-07-02 end=2026-08-01 → 2 rows, first=2026-08-01 13:15:24.063536 last=2026-08-01 13:16:23.596379
+2026-08-01 15:48:20 | INFO     | services.stats_service:get_timeline:126 - [timeline] group_by=month start=2026-07-02 end=2026-08-01 → 2 rows, first=2026-08-01 13:15:24.063536 last=2026-08-01 13:16:23.596379
+2026-08-01 15:48:24 | INFO     | services.stats_service:get_timeline:126 - [timeline] group_by=month start=2026-07-25 end=2026-08-01 → 2 rows, first=2026-08-01 13:15:24.063536 last=2026-08-01 13:16:23.596379
+2026-08-01 15:48:24 | INFO     | services.stats_service:get_timeline:126 - [timeline] group_by=day start=2026-07-25 end=2026-08-01 → 2 rows, first=2026-08-01 13:15:24.063536 last=2026-08-01 13:16:23.596379
+2026-08-01 15:48:27 | INFO     | services.stats_service:get_timeline:126 - [timeline] group_by=month start=2025-08-01 end=2026-08-01 → 2 rows, first=2026-08-01 13:15:24.063536 last=2026-08-01 13:16:23.596379
+2026-08-01 15:48:27 | INFO     | services.stats_service:get_timeline:126 - [timeline] group_by=month start=2025-08-01 end=2026-08-01 → 2 rows, first=2026-08-01 13:15:24.063536 last=2026-08-01 13:16:23.596379
+2026-08-01 15:48:31 | INFO     | services.stats_service:get_timeline:126 - [timeline] group_by=week start=2026-07-02 end=2026-08-01 → 2 rows, first=2026-08-01 13:15:24.063536 last=2026-08-01 13:16:23.596379
+2026-08-01 15:48:31 | INFO     | services.stats_service:get_timeline:126 - [timeline] group_by=month start=2026-07-02 end=2026-08-01 → 2 rows, first=2026-08-01 13:15:24.063536 last=2026-08-01 13:16:23.596379
+2026-08-01 15:48:35 | INFO     | services.stats_service:get_timeline:126 - [timeline] group_by=day start=2026-07-25 end=2026-08-01 → 2 rows, first=2026-08-01 13:15:24.063536 last=2026-08-01 13:16:23.596379
+2026-08-01 15:48:35 | INFO     | services.stats_service:get_timeline:126 - [timeline] group_by=month start=2026-07-25 end=2026-08-01 → 2 rows, first=2026-08-01 13:15:24.063536 last=2026-08-01 13:16:23.596379
+2026-08-01 15:50:52 | INFO     | services.stats_service:get_timeline:126 - [timeline] group_by=month start=2026-07-02 end=2026-08-01 → 3 rows, first=2026-08-01 13:15:24.063536 last=2026-08-01 15:50:45.190725
+2026-08-01 15:50:52 | INFO     | services.stats_service:get_timeline:126 - [timeline] group_by=week start=2026-07-02 end=2026-08-01 → 3 rows, first=2026-08-01 13:15:24.063536 last=2026-08-01 15:50:45.190725
+2026-08-01 15:50:53 | INFO     | services.stats_service:get_timeline:126 - [timeline] group_by=month start=2025-08-01 end=2026-08-01 → 3 rows, first=2026-08-01 13:15:24.063536 last=2026-08-01 15:50:45.190725
+2026-08-01 15:50:53 | INFO     | services.stats_service:get_timeline:126 - [timeline] group_by=month start=2025-08-01 end=2026-08-01 → 3 rows, first=2026-08-01 13:15:24.063536 last=2026-08-01 15:50:45.190725
+2026-08-01 15:50:54 | INFO     | services.stats_service:get_timeline:126 - [timeline] group_by=day start=2026-07-25 end=2026-08-01 → 3 rows, first=2026-08-01 13:15:24.063536 last=2026-08-01 15:50:45.190725
+2026-08-01 15:50:54 | INFO     | services.stats_service:get_timeline:126 - [timeline] group_by=month start=2026-07-25 end=2026-08-01 → 3 rows, first=2026-08-01 13:15:24.063536 last=2026-08-01 15:50:45.190725
+2026-08-01 15:50:56 | INFO     | services.stats_service:get_timeline:126 - [timeline] group_by=week start=2026-07-02 end=2026-08-01 → 3 rows, first=2026-08-01 13:15:24.063536 last=2026-08-01 15:50:45.190725
+2026-08-01 15:50:56 | INFO     | services.stats_service:get_timeline:126 - [timeline] group_by=month start=2026-07-02 end=2026-08-01 → 3 rows, first=2026-08-01 13:15:24.063536 last=2026-08-01 15:50:45.190725
+2026-08-01 15:50:58 | INFO     | services.stats_service:get_timeline:126 - [timeline] group_by=month start=2025-08-01 end=2026-08-01 → 3 rows, first=2026-08-01 13:15:24.063536 last=2026-08-01 15:50:45.190725
+2026-08-01 15:50:58 | INFO     | services.stats_service:get_timeline:126 - [timeline] group_by=month start=2025-08-01 end=2026-08-01 → 3 rows, first=2026-08-01 13:15:24.063536 last=2026-08-01 15:50:45.190725
+2026-08-01 15:51:08 | INFO     | services.stats_service:get_timeline:126 - [timeline] group_by=week start=2026-07-02 end=2026-08-01 → 3 rows, first=2026-08-01 13:15:24.063536 last=2026-08-01 15:50:45.190725
+2026-08-01 15:51:08 | INFO     | services.stats_service:get_timeline:126 - [timeline] group_by=month start=2026-07-02 end=2026-08-01 → 3 rows, first=2026-08-01 13:15:24.063536 last=2026-08-01 15:50:45.190725
+2026-08-01 15:51:10 | INFO     | services.stats_service:get_timeline:126 - [timeline] group_by=day start=2026-07-25 end=2026-08-01 → 3 rows, first=2026-08-01 13:15:24.063536 last=2026-08-01 15:50:45.190725
+2026-08-01 15:51:10 | INFO     | services.stats_service:get_timeline:126 - [timeline] group_by=month start=2026-07-25 end=2026-08-01 → 3 rows, first=2026-08-01 13:15:24.063536 last=2026-08-01 15:50:45.190725
+2026-08-01 15:51:21 | INFO     | services.stats_service:get_timeline:123 - [timeline] group_by=month start=2026-07-25 end=2026-08-01 → 0 rows (s=2026-07-25 e=2026-08-01)
+2026-08-01 15:51:21 | INFO     | services.stats_service:get_timeline:123 - [timeline] group_by=day start=2026-07-25 end=2026-08-01 → 0 rows (s=2026-07-25 e=2026-08-01)
+2026-08-01 15:51:24 | INFO     | services.stats_service:get_timeline:126 - [timeline] group_by=month start=2026-07-25 end=2026-08-01 → 3 rows, first=2026-08-01 13:15:24.063536 last=2026-08-01 15:50:45.190725
+2026-08-01 15:51:24 | INFO     | services.stats_service:get_timeline:126 - [timeline] group_by=day start=2026-07-25 end=2026-08-01 → 3 rows, first=2026-08-01 13:15:24.063536 last=2026-08-01 15:50:45.190725
+2026-08-01 15:52:32 | INFO     | services.stats_service:get_timeline:126 - [timeline] group_by=week start=2026-07-02 end=2026-08-01 → 3 rows, first=2026-08-01 13:15:24.063536 last=2026-08-01 15:50:45.190725
+2026-08-01 15:52:32 | INFO     | services.stats_service:get_timeline:126 - [timeline] group_by=month start=2026-07-02 end=2026-08-01 → 3 rows, first=2026-08-01 13:15:24.063536 last=2026-08-01 15:50:45.190725
+2026-08-01 15:52:32 | INFO     | services.stats_service:get_timeline:126 - [timeline] group_by=week start=2026-07-02 end=2026-08-01 → 3 rows, first=2026-08-01 13:15:24.063536 last=2026-08-01 15:50:45.190725
+2026-08-01 15:52:32 | INFO     | services.stats_service:get_timeline:126 - [timeline] group_by=month start=2026-07-02 end=2026-08-01 → 3 rows, first=2026-08-01 13:15:24.063536 last=2026-08-01 15:50:45.190725
+2026-08-01 15:52:52 | INFO     | services.stats_service:get_timeline:126 - [timeline] group_by=month start=2025-08-01 end=2026-08-01 → 3 rows, first=2026-08-01 13:15:24.063536 last=2026-08-01 15:50:45.190725
+2026-08-01 15:52:52 | INFO     | services.stats_service:get_timeline:126 - [timeline] group_by=month start=2025-08-01 end=2026-08-01 → 3 rows, first=2026-08-01 13:15:24.063536 last=2026-08-01 15:50:45.190725
+2026-08-01 15:53:06 | INFO     | services.stats_service:get_timeline:126 - [timeline] group_by=week start=2026-07-02 end=2026-08-01 → 3 rows, first=2026-08-01 13:15:24.063536 last=2026-08-01 15:50:45.190725
+2026-08-01 15:53:06 | INFO     | services.stats_service:get_timeline:126 - [timeline] group_by=month start=2026-07-02 end=2026-08-01 → 3 rows, first=2026-08-01 13:15:24.063536 last=2026-08-01 15:50:45.190725
+2026-08-01 15:53:09 | INFO     | services.stats_service:get_timeline:126 - [timeline] group_by=month start=2025-08-01 end=2026-08-01 → 3 rows, first=2026-08-01 13:15:24.063536 last=2026-08-01 15:50:45.190725
+2026-08-01 15:53:09 | INFO     | services.stats_service:get_timeline:126 - [timeline] group_by=month start=2025-08-01 end=2026-08-01 → 3 rows, first=2026-08-01 13:15:24.063536 last=2026-08-01 15:50:45.190725
+2026-08-01 15:53:12 | INFO     | services.stats_service:get_timeline:126 - [timeline] group_by=month start=2026-07-02 end=2026-08-01 → 3 rows, first=2026-08-01 13:15:24.063536 last=2026-08-01 15:50:45.190725
+2026-08-01 15:53:12 | INFO     | services.stats_service:get_timeline:126 - [timeline] group_by=week start=2026-07-02 end=2026-08-01 → 3 rows, first=2026-08-01 13:15:24.063536 last=2026-08-01 15:50:45.190725
+2026-08-01 15:53:17 | INFO     | services.stats_service:get_timeline:126 - [timeline] group_by=day start=2026-07-25 end=2026-08-01 → 3 rows, first=2026-08-01 13:15:24.063536 last=2026-08-01 15:50:45.190725
+2026-08-01 15:53:17 | INFO     | services.stats_service:get_timeline:126 - [timeline] group_by=month start=2026-07-25 end=2026-08-01 → 3 rows, first=2026-08-01 13:15:24.063536 last=2026-08-01 15:50:45.190725
+2026-08-01 15:53:19 | INFO     | services.stats_service:get_timeline:126 - [timeline] group_by=month start=2026-07-02 end=2026-08-01 → 3 rows, first=2026-08-01 13:15:24.063536 last=2026-08-01 15:50:45.190725
+2026-08-01 15:53:19 | INFO     | services.stats_service:get_timeline:126 - [timeline] group_by=week start=2026-07-02 end=2026-08-01 → 3 rows, first=2026-08-01 13:15:24.063536 last=2026-08-01 15:50:45.190725
+2026-08-01 15:53:59 | INFO     | services.stats_service:get_timeline:126 - [timeline] group_by=week start=2026-07-02 end=2026-08-01 → 2 rows, first=2026-08-01 13:15:24.063536 last=2026-08-01 13:16:23.596379
+2026-08-01 15:53:59 | INFO     | services.stats_service:get_timeline:126 - [timeline] group_by=month start=2026-07-02 end=2026-08-01 → 2 rows, first=2026-08-01 13:15:24.063536 last=2026-08-01 13:16:23.596379
+2026-08-01 15:54:09 | INFO     | services.stats_service:get_timeline:126 - [timeline] group_by=month start=2026-07-02 end=2026-08-01 → 2 rows, first=2026-08-01 13:15:24.063536 last=2026-08-01 13:16:23.596379
+2026-08-01 15:54:09 | INFO     | services.stats_service:get_timeline:126 - [timeline] group_by=week start=2026-07-02 end=2026-08-01 → 2 rows, first=2026-08-01 13:15:24.063536 last=2026-08-01 13:16:23.596379
+2026-08-01 15:54:15 | INFO     | services.stats_service:get_timeline:126 - [timeline] group_by=day start=2026-07-25 end=2026-08-01 → 2 rows, first=2026-08-01 13:15:24.063536 last=2026-08-01 13:16:23.596379
+2026-08-01 15:54:15 | INFO     | services.stats_service:get_timeline:126 - [timeline] group_by=month start=2026-07-25 end=2026-08-01 → 2 rows, first=2026-08-01 13:15:24.063536 last=2026-08-01 13:16:23.596379
+2026-08-01 15:54:18 | INFO     | services.stats_service:get_timeline:126 - [timeline] group_by=week start=2026-07-02 end=2026-08-01 → 2 rows, first=2026-08-01 13:15:24.063536 last=2026-08-01 13:16:23.596379
+2026-08-01 15:54:18 | INFO     | services.stats_service:get_timeline:126 - [timeline] group_by=month start=2026-07-02 end=2026-08-01 → 2 rows, first=2026-08-01 13:15:24.063536 last=2026-08-01 13:16:23.596379
+2026-08-01 15:54:21 | INFO     | services.stats_service:get_timeline:126 - [timeline] group_by=month start=2025-08-01 end=2026-08-01 → 3 rows, first=2026-07-01 15:50:45.190725 last=2026-08-01 13:16:23.596379
+2026-08-01 15:54:21 | INFO     | services.stats_service:get_timeline:126 - [timeline] group_by=month start=2025-08-01 end=2026-08-01 → 3 rows, first=2026-07-01 15:50:45.190725 last=2026-08-01 13:16:23.596379
+2026-08-01 15:54:23 | INFO     | services.stats_service:get_timeline:126 - [timeline] group_by=month start=2026-07-02 end=2026-08-01 → 2 rows, first=2026-08-01 13:15:24.063536 last=2026-08-01 13:16:23.596379
+2026-08-01 15:54:23 | INFO     | services.stats_service:get_timeline:126 - [timeline] group_by=week start=2026-07-02 end=2026-08-01 → 2 rows, first=2026-08-01 13:15:24.063536 last=2026-08-01 13:16:23.596379
+2026-08-01 15:54:26 | INFO     | services.stats_service:get_timeline:126 - [timeline] group_by=month start=2025-08-01 end=2026-08-01 → 3 rows, first=2026-07-01 15:50:45.190725 last=2026-08-01 13:16:23.596379
+2026-08-01 15:54:26 | INFO     | services.stats_service:get_timeline:126 - [timeline] group_by=month start=2025-08-01 end=2026-08-01 → 3 rows, first=2026-07-01 15:50:45.190725 last=2026-08-01 13:16:23.596379
+2026-08-01 15:54:31 | INFO     | services.stats_service:get_timeline:126 - [timeline] group_by=week start=2026-07-02 end=2026-08-01 → 2 rows, first=2026-08-01 13:15:24.063536 last=2026-08-01 13:16:23.596379
+2026-08-01 15:54:31 | INFO     | services.stats_service:get_timeline:126 - [timeline] group_by=month start=2026-07-02 end=2026-08-01 → 2 rows, first=2026-08-01 13:15:24.063536 last=2026-08-01 13:16:23.596379
+2026-08-01 15:54:34 | INFO     | services.stats_service:get_timeline:126 - [timeline] group_by=month start=2025-08-01 end=2026-08-01 → 3 rows, first=2026-07-01 15:50:45.190725 last=2026-08-01 13:16:23.596379
+2026-08-01 15:54:34 | INFO     | services.stats_service:get_timeline:126 - [timeline] group_by=month start=2025-08-01 end=2026-08-01 → 3 rows, first=2026-07-01 15:50:45.190725 last=2026-08-01 13:16:23.596379
+2026-08-01 15:54:46 | INFO     | services.stats_service:get_timeline:126 - [timeline] group_by=month start=2026-07-02 end=2026-08-01 → 2 rows, first=2026-08-01 13:15:24.063536 last=2026-08-01 13:16:23.596379
+2026-08-01 15:54:46 | INFO     | services.stats_service:get_timeline:126 - [timeline] group_by=week start=2026-07-02 end=2026-08-01 → 2 rows, first=2026-08-01 13:15:24.063536 last=2026-08-01 13:16:23.596379
+2026-08-01 15:54:51 | INFO     | services.stats_service:get_timeline:123 - [timeline] group_by=week start=2026-07-02 end=2026-08-01 → 0 rows (s=2026-07-02 e=2026-08-01)
+2026-08-01 15:54:51 | INFO     | services.stats_service:get_timeline:123 - [timeline] group_by=month start=2026-07-02 end=2026-08-01 → 0 rows (s=2026-07-02 e=2026-08-01)
+2026-08-01 15:54:53 | INFO     | services.stats_service:get_timeline:126 - [timeline] group_by=month start=2026-07-02 end=2026-08-01 → 2 rows, first=2026-08-01 13:15:24.063536 last=2026-08-01 13:16:23.596379
+2026-08-01 15:54:53 | INFO     | services.stats_service:get_timeline:126 - [timeline] group_by=week start=2026-07-02 end=2026-08-01 → 2 rows, first=2026-08-01 13:15:24.063536 last=2026-08-01 13:16:23.596379
+2026-08-01 15:55:31 | INFO     | services.stats_service:get_timeline:126 - [timeline] group_by=month start=2026-07-02 end=2026-08-01 → 2 rows, first=2026-08-01 13:15:24.063536 last=2026-08-01 13:16:23.596379
+2026-08-01 15:55:31 | INFO     | services.stats_service:get_timeline:126 - [timeline] group_by=week start=2026-07-02 end=2026-08-01 → 2 rows, first=2026-08-01 13:15:24.063536 last=2026-08-01 13:16:23.596379
+2026-08-01 15:55:41 | INFO     | services.stats_service:get_timeline:126 - [timeline] group_by=month start=2026-07-02 end=2026-08-01 → 2 rows, first=2026-08-01 13:15:24.063536 last=2026-08-01 13:16:23.596379
+2026-08-01 15:55:41 | INFO     | services.stats_service:get_timeline:126 - [timeline] group_by=week start=2026-07-02 end=2026-08-01 → 2 rows, first=2026-08-01 13:15:24.063536 last=2026-08-01 13:16:23.596379
+2026-08-01 15:55:47 | INFO     | services.stats_service:get_timeline:126 - [timeline] group_by=week start=2026-07-02 end=2026-08-01 → 2 rows, first=2026-08-01 13:15:24.063536 last=2026-08-01 13:16:23.596379
+2026-08-01 15:55:47 | INFO     | services.stats_service:get_timeline:126 - [timeline] group_by=month start=2026-07-02 end=2026-08-01 → 2 rows, first=2026-08-01 13:15:24.063536 last=2026-08-01 13:16:23.596379
+2026-08-01 15:59:11 | INFO     | services.stats_service:get_timeline:126 - [timeline] group_by=week start=2026-07-02 end=2026-08-01 → 2 rows, first=2026-08-01 13:15:24.063536 last=2026-08-01 13:16:23.596379
+2026-08-01 15:59:11 | INFO     | services.stats_service:get_timeline:126 - [timeline] group_by=month start=2026-07-02 end=2026-08-01 → 2 rows, first=2026-08-01 13:15:24.063536 last=2026-08-01 13:16:23.596379
+2026-08-01 15:59:41 | INFO     | services.stats_service:get_timeline:126 - [timeline] group_by=month start=2026-07-02 end=2026-08-01 → 2 rows, first=2026-08-01 13:15:24.063536 last=2026-08-01 13:16:23.596379
+2026-08-01 15:59:41 | INFO     | services.stats_service:get_timeline:126 - [timeline] group_by=week start=2026-07-02 end=2026-08-01 → 2 rows, first=2026-08-01 13:15:24.063536 last=2026-08-01 13:16:23.596379
+2026-08-01 16:01:43 | INFO     | services.stats_service:get_timeline:126 - [timeline] group_by=week start=2026-07-02 end=2026-08-01 → 2 rows, first=2026-08-01 13:15:24.063536 last=2026-08-01 13:16:23.596379
+2026-08-01 16:01:43 | INFO     | services.stats_service:get_timeline:126 - [timeline] group_by=month start=2026-07-02 end=2026-08-01 → 2 rows, first=2026-08-01 13:15:24.063536 last=2026-08-01 13:16:23.596379
+2026-08-01 16:01:44 | INFO     | services.stats_service:get_timeline:126 - [timeline] group_by=week start=2026-07-02 end=2026-08-01 → 2 rows, first=2026-08-01 13:15:24.063536 last=2026-08-01 13:16:23.596379
+2026-08-01 16:01:44 | INFO     | services.stats_service:get_timeline:126 - [timeline] group_by=month start=2026-07-02 end=2026-08-01 → 2 rows, first=2026-08-01 13:15:24.063536 last=2026-08-01 13:16:23.596379
+2026-08-01 16:01:51 | INFO     | services.stats_service:get_timeline:126 - [timeline] group_by=week start=2026-07-02 end=2026-08-01 → 2 rows, first=2026-08-01 13:15:24.063536 last=2026-08-01 13:16:23.596379
+2026-08-01 16:01:51 | INFO     | services.stats_service:get_timeline:126 - [timeline] group_by=month start=2026-07-02 end=2026-08-01 → 2 rows, first=2026-08-01 13:15:24.063536 last=2026-08-01 13:16:23.596379
+2026-08-01 16:02:02 | INFO     | services.stats_service:get_timeline:126 - [timeline] group_by=week start=2026-07-02 end=2026-08-01 → 2 rows, first=2026-08-01 13:15:24.063536 last=2026-08-01 13:16:23.596379
+2026-08-01 16:02:02 | INFO     | services.stats_service:get_timeline:126 - [timeline] group_by=month start=2026-07-02 end=2026-08-01 → 2 rows, first=2026-08-01 13:15:24.063536 last=2026-08-01 13:16:23.596379
+2026-08-01 16:02:08 | INFO     | services.stats_service:get_timeline:126 - [timeline] group_by=month start=2026-07-02 end=2026-08-01 → 2 rows, first=2026-08-01 13:15:24.063536 last=2026-08-01 13:16:23.596379
+2026-08-01 16:02:08 | INFO     | services.stats_service:get_timeline:126 - [timeline] group_by=week start=2026-07-02 end=2026-08-01 → 2 rows, first=2026-08-01 13:15:24.063536 last=2026-08-01 13:16:23.596379
+2026-08-01 16:02:08 | INFO     | services.stats_service:get_timeline:126 - [timeline] group_by=week start=2026-07-02 end=2026-08-01 → 2 rows, first=2026-08-01 13:15:24.063536 last=2026-08-01 13:16:23.596379
+2026-08-01 16:02:08 | INFO     | services.stats_service:get_timeline:126 - [timeline] group_by=month start=2026-07-02 end=2026-08-01 → 2 rows, first=2026-08-01 13:15:24.063536 last=2026-08-01 13:16:23.596379
+2026-08-01 16:03:33 | INFO     | services.stats_service:get_timeline:126 - [timeline] group_by=week start=2026-07-02 end=2026-08-01 → 2 rows, first=2026-08-01 13:15:24.063536 last=2026-08-01 13:16:23.596379
+2026-08-01 16:03:33 | INFO     | services.stats_service:get_timeline:126 - [timeline] group_by=month start=2026-07-02 end=2026-08-01 → 2 rows, first=2026-08-01 13:15:24.063536 last=2026-08-01 13:16:23.596379
+2026-08-01 16:04:42 | INFO     | services.stats_service:get_timeline:126 - [timeline] group_by=week start=2026-07-02 end=2026-08-01 → 2 rows, first=2026-08-01 13:15:24.063536 last=2026-08-01 13:16:23.596379
+2026-08-01 16:04:42 | INFO     | services.stats_service:get_timeline:126 - [timeline] group_by=month start=2026-07-02 end=2026-08-01 → 2 rows, first=2026-08-01 13:15:24.063536 last=2026-08-01 13:16:23.596379
+2026-08-01 16:10:30 | INFO     | services.stats_service:get_timeline:126 - [timeline] group_by=month start=2026-07-02 end=2026-08-01 → 2 rows, first=2026-08-01 13:15:24.063536 last=2026-08-01 13:16:23.596379
+2026-08-01 16:10:30 | INFO     | services.stats_service:get_timeline:126 - [timeline] group_by=week start=2026-07-02 end=2026-08-01 → 2 rows, first=2026-08-01 13:15:24.063536 last=2026-08-01 13:16:23.596379
+2026-08-01 16:10:30 | INFO     | services.stats_service:get_timeline:126 - [timeline] group_by=week start=2026-07-02 end=2026-08-01 → 2 rows, first=2026-08-01 13:15:24.063536 last=2026-08-01 13:16:23.596379
+2026-08-01 16:10:30 | INFO     | services.stats_service:get_timeline:126 - [timeline] group_by=month start=2026-07-02 end=2026-08-01 → 2 rows, first=2026-08-01 13:15:24.063536 last=2026-08-01 13:16:23.596379
+2026-08-01 16:10:32 | INFO     | services.stats_service:get_timeline:126 - [timeline] group_by=month start=2025-08-01 end=2026-08-01 → 3 rows, first=2026-07-01 15:50:45.190725 last=2026-08-01 13:16:23.596379
+2026-08-01 16:10:32 | INFO     | services.stats_service:get_timeline:126 - [timeline] group_by=month start=2025-08-01 end=2026-08-01 → 3 rows, first=2026-07-01 15:50:45.190725 last=2026-08-01 13:16:23.596379
+2026-08-01 16:10:38 | INFO     | services.stats_service:get_timeline:126 - [timeline] group_by=week start=2026-07-02 end=2026-08-01 → 2 rows, first=2026-08-01 13:15:24.063536 last=2026-08-01 13:16:23.596379
+2026-08-01 16:10:38 | INFO     | services.stats_service:get_timeline:126 - [timeline] group_by=month start=2026-07-02 end=2026-08-01 → 2 rows, first=2026-08-01 13:15:24.063536 last=2026-08-01 13:16:23.596379
+2026-08-01 16:10:39 | INFO     | services.stats_service:get_timeline:126 - [timeline] group_by=week start=2026-07-02 end=2026-08-01 → 2 rows, first=2026-08-01 13:15:24.063536 last=2026-08-01 13:16:23.596379
+2026-08-01 16:10:39 | INFO     | services.stats_service:get_timeline:126 - [timeline] group_by=month start=2026-07-02 end=2026-08-01 → 2 rows, first=2026-08-01 13:15:24.063536 last=2026-08-01 13:16:23.596379
+2026-08-01 16:17:34 | INFO     | services.stats_service:get_timeline:126 - [timeline] group_by=week start=2026-07-02 end=2026-08-01 → 2 rows, first=2026-08-01 13:15:24.063536 last=2026-08-01 13:16:23.596379
+2026-08-01 16:17:34 | INFO     | services.stats_service:get_timeline:126 - [timeline] group_by=month start=2026-07-02 end=2026-08-01 → 2 rows, first=2026-08-01 13:15:24.063536 last=2026-08-01 13:16:23.596379
+2026-08-01 16:17:37 | INFO     | services.stats_service:get_timeline:126 - [timeline] group_by=month start=2026-07-02 end=2026-08-01 → 2 rows, first=2026-08-01 13:15:24.063536 last=2026-08-01 13:16:23.596379
+2026-08-01 16:17:37 | INFO     | services.stats_service:get_timeline:126 - [timeline] group_by=week start=2026-07-02 end=2026-08-01 → 2 rows, first=2026-08-01 13:15:24.063536 last=2026-08-01 13:16:23.596379
+2026-08-01 16:17:37 | INFO     | services.stats_service:get_timeline:126 - [timeline] group_by=month start=2026-07-02 end=2026-08-01 → 2 rows, first=2026-08-01 13:15:24.063536 last=2026-08-01 13:16:23.596379
+2026-08-01 16:17:37 | INFO     | services.stats_service:get_timeline:126 - [timeline] group_by=week start=2026-07-02 end=2026-08-01 → 2 rows, first=2026-08-01 13:15:24.063536 last=2026-08-01 13:16:23.596379
+2026-08-01 16:17:40 | INFO     | services.stats_service:get_timeline:126 - [timeline] group_by=week start=2026-07-02 end=2026-08-01 → 2 rows, first=2026-08-01 13:15:24.063536 last=2026-08-01 13:16:23.596379
+2026-08-01 16:17:41 | INFO     | services.stats_service:get_timeline:126 - [timeline] group_by=month start=2026-07-02 end=2026-08-01 → 2 rows, first=2026-08-01 13:15:24.063536 last=2026-08-01 13:16:23.596379
+2026-08-01 16:55:10 | INFO     | services.stats_service:get_timeline:126 - [timeline] group_by=week start=2026-07-02 end=2026-08-01 → 2 rows, first=2026-08-01 13:15:24.063536 last=2026-08-01 13:16:23.596379
+2026-08-01 16:55:10 | INFO     | services.stats_service:get_timeline:126 - [timeline] group_by=month start=2026-07-02 end=2026-08-01 → 2 rows, first=2026-08-01 13:15:24.063536 last=2026-08-01 13:16:23.596379
+2026-08-01 16:55:10 | INFO     | services.stats_service:get_timeline:126 - [timeline] group_by=month start=2026-07-02 end=2026-08-01 → 2 rows, first=2026-08-01 13:15:24.063536 last=2026-08-01 13:16:23.596379
+2026-08-01 16:55:10 | INFO     | services.stats_service:get_timeline:126 - [timeline] group_by=week start=2026-07-02 end=2026-08-01 → 2 rows, first=2026-08-01 13:15:24.063536 last=2026-08-01 13:16:23.596379
+2026-08-01 17:40:24 | INFO     | services.stats_service:get_timeline:126 - [timeline] group_by=month start=2026-07-02 end=2026-08-01 → 2 rows, first=2026-08-01 13:15:24.063536 last=2026-08-01 13:16:23.596379
+2026-08-01 17:40:25 | INFO     | services.stats_service:get_timeline:126 - [timeline] group_by=week start=2026-07-02 end=2026-08-01 → 2 rows, first=2026-08-01 13:15:24.063536 last=2026-08-01 13:16:23.596379
+2026-08-01 17:49:06 | INFO     | services.stats_service:get_timeline:126 - [timeline] group_by=week start=2026-07-02 end=2026-08-01 → 2 rows, first=2026-08-01 13:15:24.063536 last=2026-08-01 13:16:23.596379
+2026-08-01 17:49:06 | INFO     | services.stats_service:get_timeline:126 - [timeline] group_by=month start=2026-07-02 end=2026-08-01 → 2 rows, first=2026-08-01 13:15:24.063536 last=2026-08-01 13:16:23.596379
+2026-08-01 17:50:03 | INFO     | services.stats_service:get_timeline:126 - [timeline] group_by=month start=2026-07-02 end=2026-08-01 → 2 rows, first=2026-08-01 13:15:24.063536 last=2026-08-01 13:16:23.596379
+2026-08-01 17:50:03 | INFO     | services.stats_service:get_timeline:126 - [timeline] group_by=week start=2026-07-02 end=2026-08-01 → 2 rows, first=2026-08-01 13:15:24.063536 last=2026-08-01 13:16:23.596379
+2026-08-01 17:52:22 | INFO     | services.stats_service:get_timeline:126 - [timeline] group_by=week start=2026-07-02 end=2026-08-01 → 2 rows, first=2026-08-01 13:15:24.063536 last=2026-08-01 13:16:23.596379
+2026-08-01 17:52:22 | INFO     | services.stats_service:get_timeline:126 - [timeline] group_by=month start=2026-07-02 end=2026-08-01 → 2 rows, first=2026-08-01 13:15:24.063536 last=2026-08-01 13:16:23.596379
+2026-08-01 17:52:22 | INFO     | services.stats_service:get_timeline:126 - [timeline] group_by=month start=2026-07-02 end=2026-08-01 → 2 rows, first=2026-08-01 13:15:24.063536 last=2026-08-01 13:16:23.596379
+2026-08-01 17:52:23 | INFO     | services.stats_service:get_timeline:126 - [timeline] group_by=week start=2026-07-02 end=2026-08-01 → 2 rows, first=2026-08-01 13:15:24.063536 last=2026-08-01 13:16:23.596379
+2026-08-01 17:52:24 | INFO     | services.stats_service:get_timeline:126 - [timeline] group_by=week start=2026-07-02 end=2026-08-01 → 2 rows, first=2026-08-01 13:15:24.063536 last=2026-08-01 13:16:23.596379
+2026-08-01 17:52:24 | INFO     | services.stats_service:get_timeline:126 - [timeline] group_by=month start=2026-07-02 end=2026-08-01 → 2 rows, first=2026-08-01 13:15:24.063536 last=2026-08-01 13:16:23.596379
+2026-08-01 18:39:25 | INFO     | services.stats_service:get_timeline:126 - [timeline] group_by=week start=2026-07-02 end=2026-08-01 → 2 rows, first=2026-08-01 13:15:24.063536 last=2026-08-01 13:16:23.596379
+2026-08-01 18:39:25 | INFO     | services.stats_service:get_timeline:126 - [timeline] group_by=month start=2026-07-02 end=2026-08-01 → 2 rows, first=2026-08-01 13:15:24.063536 last=2026-08-01 13:16:23.596379
+2026-08-01 18:39:26 | INFO     | services.stats_service:get_timeline:126 - [timeline] group_by=week start=2026-07-02 end=2026-08-01 → 2 rows, first=2026-08-01 13:15:24.063536 last=2026-08-01 13:16:23.596379
+2026-08-01 18:39:26 | INFO     | services.stats_service:get_timeline:126 - [timeline] group_by=month start=2026-07-02 end=2026-08-01 → 2 rows, first=2026-08-01 13:15:24.063536 last=2026-08-01 13:16:23.596379
+2026-08-01 18:43:12 | INFO     | services.stats_service:get_timeline:126 - [timeline] group_by=week start=2026-07-02 end=2026-08-01 → 2 rows, first=2026-08-01 13:15:24.063536 last=2026-08-01 13:16:23.596379
+2026-08-01 18:43:12 | INFO     | services.stats_service:get_timeline:126 - [timeline] group_by=month start=2026-07-02 end=2026-08-01 → 2 rows, first=2026-08-01 13:15:24.063536 last=2026-08-01 13:16:23.596379
+2026-08-01 18:43:12 | INFO     | services.stats_service:get_timeline:126 - [timeline] group_by=month start=2026-07-02 end=2026-08-01 → 2 rows, first=2026-08-01 13:15:24.063536 last=2026-08-01 13:16:23.596379
+2026-08-01 18:43:12 | INFO     | services.stats_service:get_timeline:126 - [timeline] group_by=week start=2026-07-02 end=2026-08-01 → 2 rows, first=2026-08-01 13:15:24.063536 last=2026-08-01 13:16:23.596379
+2026-08-01 19:24:53 | INFO     | services.stats_service:get_timeline:126 - [timeline] group_by=month start=2026-07-02 end=2026-08-01 → 2 rows, first=2026-08-01 13:15:24.063536 last=2026-08-01 13:16:23.596379
+2026-08-01 19:24:53 | INFO     | services.stats_service:get_timeline:126 - [timeline] group_by=week start=2026-07-02 end=2026-08-01 → 2 rows, first=2026-08-01 13:15:24.063536 last=2026-08-01 13:16:23.596379
+2026-08-01 19:25:06 | INFO     | services.stats_service:get_timeline:126 - [timeline] group_by=month start=2026-07-02 end=2026-08-01 → 2 rows, first=2026-08-01 13:15:24.063536 last=2026-08-01 13:16:23.596379
+2026-08-01 19:25:06 | INFO     | services.stats_service:get_timeline:126 - [timeline] group_by=week start=2026-07-02 end=2026-08-01 → 2 rows, first=2026-08-01 13:15:24.063536 last=2026-08-01 13:16:23.596379
+2026-08-01 19:28:39 | INFO     | services.stats_service:get_timeline:126 - [timeline] group_by=month start=2026-07-02 end=2026-08-01 → 2 rows, first=2026-08-01 13:15:24.063536 last=2026-08-01 13:16:23.596379
+2026-08-01 19:28:39 | INFO     | services.stats_service:get_timeline:126 - [timeline] group_by=week start=2026-07-02 end=2026-08-01 → 2 rows, first=2026-08-01 13:15:24.063536 last=2026-08-01 13:16:23.596379
+2026-08-01 19:28:40 | INFO     | services.stats_service:get_timeline:126 - [timeline] group_by=month start=2026-07-02 end=2026-08-01 → 2 rows, first=2026-08-01 13:15:24.063536 last=2026-08-01 13:16:23.596379
+2026-08-01 19:28:40 | INFO     | services.stats_service:get_timeline:126 - [timeline] group_by=week start=2026-07-02 end=2026-08-01 → 2 rows, first=2026-08-01 13:15:24.063536 last=2026-08-01 13:16:23.596379
+2026-08-01 19:44:07 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-08-01 19:44:15 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-08-01 19:44:31 | INFO     | services.stats_service:get_timeline:126 - [timeline] group_by=week start=2026-07-02 end=2026-08-01 → 2 rows, first=2026-08-01 13:15:24.063536 last=2026-08-01 13:16:23.596379
+2026-08-01 19:44:31 | INFO     | services.stats_service:get_timeline:126 - [timeline] group_by=month start=2026-07-02 end=2026-08-01 → 2 rows, first=2026-08-01 13:15:24.063536 last=2026-08-01 13:16:23.596379
+2026-08-01 19:44:33 | INFO     | services.stats_service:get_timeline:126 - [timeline] group_by=week start=2026-07-02 end=2026-08-01 → 2 rows, first=2026-08-01 13:15:24.063536 last=2026-08-01 13:16:23.596379
+2026-08-01 19:44:33 | INFO     | services.stats_service:get_timeline:126 - [timeline] group_by=month start=2026-07-02 end=2026-08-01 → 2 rows, first=2026-08-01 13:15:24.063536 last=2026-08-01 13:16:23.596379
+2026-08-01 19:44:36 | INFO     | services.stats_service:get_timeline:126 - [timeline] group_by=week start=2026-07-02 end=2026-08-01 → 2 rows, first=2026-08-01 13:15:24.063536 last=2026-08-01 13:16:23.596379
+2026-08-01 19:44:36 | INFO     | services.stats_service:get_timeline:126 - [timeline] group_by=month start=2026-07-02 end=2026-08-01 → 2 rows, first=2026-08-01 13:15:24.063536 last=2026-08-01 13:16:23.596379
+2026-08-01 19:44:40 | INFO     | services.stats_service:get_timeline:126 - [timeline] group_by=week start=2026-07-02 end=2026-08-01 → 2 rows, first=2026-08-01 13:15:24.063536 last=2026-08-01 13:16:23.596379
+2026-08-01 19:44:40 | INFO     | services.stats_service:get_timeline:126 - [timeline] group_by=month start=2026-07-02 end=2026-08-01 → 2 rows, first=2026-08-01 13:15:24.063536 last=2026-08-01 13:16:23.596379
+2026-08-01 19:44:41 | INFO     | services.stats_service:get_timeline:126 - [timeline] group_by=week start=2026-07-02 end=2026-08-01 → 2 rows, first=2026-08-01 13:15:24.063536 last=2026-08-01 13:16:23.596379
+2026-08-01 19:44:41 | INFO     | services.stats_service:get_timeline:126 - [timeline] group_by=month start=2026-07-02 end=2026-08-01 → 2 rows, first=2026-08-01 13:15:24.063536 last=2026-08-01 13:16:23.596379
+2026-08-01 19:44:44 | INFO     | services.stats_service:get_timeline:126 - [timeline] group_by=week start=2026-07-02 end=2026-08-01 → 2 rows, first=2026-08-01 13:15:24.063536 last=2026-08-01 13:16:23.596379
+2026-08-01 19:44:44 | INFO     | services.stats_service:get_timeline:126 - [timeline] group_by=month start=2026-07-02 end=2026-08-01 → 2 rows, first=2026-08-01 13:15:24.063536 last=2026-08-01 13:16:23.596379
+2026-08-01 19:44:45 | INFO     | services.stats_service:get_timeline:126 - [timeline] group_by=week start=2026-07-02 end=2026-08-01 → 2 rows, first=2026-08-01 13:15:24.063536 last=2026-08-01 13:16:23.596379
+2026-08-01 19:44:45 | INFO     | services.stats_service:get_timeline:126 - [timeline] group_by=month start=2026-07-02 end=2026-08-01 → 2 rows, first=2026-08-01 13:15:24.063536 last=2026-08-01 13:16:23.596379
+2026-08-01 19:44:49 | INFO     | services.stats_service:get_timeline:126 - [timeline] group_by=month start=2026-07-02 end=2026-08-01 → 2 rows, first=2026-08-01 13:15:24.063536 last=2026-08-01 13:16:23.596379
+2026-08-01 19:44:49 | INFO     | services.stats_service:get_timeline:126 - [timeline] group_by=week start=2026-07-02 end=2026-08-01 → 2 rows, first=2026-08-01 13:15:24.063536 last=2026-08-01 13:16:23.596379
+2026-08-01 19:44:49 | INFO     | services.stats_service:get_timeline:126 - [timeline] group_by=week start=2026-07-02 end=2026-08-01 → 2 rows, first=2026-08-01 13:15:24.063536 last=2026-08-01 13:16:23.596379
+2026-08-01 19:44:49 | INFO     | services.stats_service:get_timeline:126 - [timeline] group_by=month start=2026-07-02 end=2026-08-01 → 2 rows, first=2026-08-01 13:15:24.063536 last=2026-08-01 13:16:23.596379
+2026-08-01 19:44:55 | INFO     | services.stats_service:get_timeline:126 - [timeline] group_by=week start=2026-07-02 end=2026-08-01 → 2 rows, first=2026-08-01 13:15:24.063536 last=2026-08-01 13:16:23.596379
+2026-08-01 19:44:55 | INFO     | services.stats_service:get_timeline:126 - [timeline] group_by=month start=2026-07-02 end=2026-08-01 → 2 rows, first=2026-08-01 13:15:24.063536 last=2026-08-01 13:16:23.596379
+2026-08-01 19:44:56 | INFO     | services.stats_service:get_timeline:126 - [timeline] group_by=week start=2026-07-02 end=2026-08-01 → 2 rows, first=2026-08-01 13:15:24.063536 last=2026-08-01 13:16:23.596379
+2026-08-01 19:44:56 | INFO     | services.stats_service:get_timeline:126 - [timeline] group_by=month start=2026-07-02 end=2026-08-01 → 2 rows, first=2026-08-01 13:15:24.063536 last=2026-08-01 13:16:23.596379
+2026-08-01 19:52:40 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-08-01 19:52:40 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-08-01 19:52:40 | INFO     | main:lifespan:19 - 应用启动中...
+2026-08-01 19:52:42 | INFO     | database:init_db:80 - 数据库迁移已完成（Alembic upgrade head）
+2026-08-01 19:52:42 | INFO     | main:lifespan:21 - 应用启动完成
+2026-08-01 19:52:42 | INFO     | main:lifespan:23 - 应用关闭
+2026-08-01 19:52:47 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-08-01 19:52:47 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-08-01 19:52:47 | INFO     | main:lifespan:19 - 应用启动中...
+2026-08-01 19:52:49 | INFO     | database:init_db:80 - 数据库迁移已完成（Alembic upgrade head）
+2026-08-01 19:52:49 | INFO     | main:lifespan:21 - 应用启动完成
+2026-08-01 19:52:49 | INFO     | main:lifespan:23 - 应用关闭
+2026-08-01 19:54:23 | INFO     | main:lifespan:23 - 应用关闭
+2026-08-01 19:54:30 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-08-01 19:54:30 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-08-01 19:54:30 | INFO     | main:lifespan:19 - 应用启动中...
+2026-08-01 19:54:32 | INFO     | database:init_db:80 - 数据库迁移已完成（Alembic upgrade head）
+2026-08-01 19:54:32 | INFO     | main:lifespan:21 - 应用启动完成
+2026-08-01 20:27:02 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-08-01 20:27:02 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-08-01 20:27:03 | INFO     | main:lifespan:19 - 应用启动中...
+2026-08-01 20:27:05 | INFO     | database:init_db:80 - 数据库迁移已完成（Alembic upgrade head）
+2026-08-01 20:27:05 | INFO     | main:lifespan:21 - 应用启动完成

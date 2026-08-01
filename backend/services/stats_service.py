@@ -1,27 +1,46 @@
 """统计数据业务逻辑"""
 
-from decimal import Decimal
+from datetime import date, datetime, timedelta
+from typing import Optional
 
-from sqlalchemy import func, extract
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from models.fuel_record import FuelRecord
 
 
-def get_summary(db: Session, user_id: int, vehicle_id: int) -> dict:
-    """汇总统计：总里程、总加油量、总金额、平均油耗、平均单价
+def _parse_date(val: Optional[str]) -> Optional[date]:
+    if not val:
+        return None
+    try:
+        return datetime.strptime(val, "%Y-%m-%d").date()
+    except (ValueError, TypeError):
+        return None
 
-    参数：
-    - db: 数据库会话
-    - user_id: 当前用户 ID
-    - vehicle_id: 车辆 ID
-    """
+
+def get_summary(
+    db: Session,
+    user_id: int,
+    vehicle_id: int,
+    start_date: Optional[str] = None,
+    end_date: Optional[str] = None,
+) -> dict:
+    """汇总统计：总里程、总加油量、总金额、平均油耗、平均单价"""
+    filters = [
+        FuelRecord.user_id == user_id,
+        FuelRecord.vehicle_id == vehicle_id,
+    ]
+
+    s = _parse_date(start_date)
+    e = _parse_date(end_date)
+    if s:
+        filters.append(FuelRecord.record_date >= s)
+    if e:
+        filters.append(FuelRecord.record_date < e + timedelta(days=1))
+
     records = (
         db.query(FuelRecord)
-        .filter(
-            FuelRecord.user_id == user_id,
-            FuelRecord.vehicle_id == vehicle_id,
-        )
+        .filter(*filters)
         .order_by(FuelRecord.record_date)
         .all()
     )
@@ -36,10 +55,8 @@ def get_summary(db: Session, user_id: int, vehicle_id: int) -> dict:
             "avg_unit_price": None,
         }
 
-    # 总里程 = 最后一笔里程 - 第一笔里程
     total_mileage = float(records[-1].mileage - records[0].mileage)
 
-    # 聚合计算
     result = (
         db.query(
             func.count(FuelRecord.id).label("record_count"),
@@ -48,10 +65,7 @@ def get_summary(db: Session, user_id: int, vehicle_id: int) -> dict:
             func.avg(FuelRecord.fuel_consumption).label("avg_consumption"),
             func.avg(FuelRecord.unit_price).label("avg_unit_price"),
         )
-        .filter(
-            FuelRecord.user_id == user_id,
-            FuelRecord.vehicle_id == vehicle_id,
-        )
+        .filter(*filters)
         .first()
     )
 
@@ -65,40 +79,138 @@ def get_summary(db: Session, user_id: int, vehicle_id: int) -> dict:
     }
 
 
-def get_monthly(db: Session, user_id: int, vehicle_id: int, year: int) -> list[dict]:
-    """月度统计：每月加油次数、总油量、总金额、平均油耗
+def get_timeline(
+    db: Session,
+    user_id: int,
+    vehicle_id: int,
+    start_date: Optional[str] = None,
+    end_date: Optional[str] = None,
+    group_by: str = "month",
+) -> list[dict]:
+    """时间线统计：按 day / week / month 聚合
 
-    参数：
-    - db: 数据库会话
-    - user_id: 当前用户 ID
-    - vehicle_id: 车辆 ID
-    - year: 年份
+    - day:   按天聚合，返回 {period: "2026-08-01"}
+    - week:  从 start_date 起每 7 天一段，返回 {period: "08-01~08-07"}
+    - month: 按月聚合，返回 {period: "2026-08"}
     """
-    records = (
+    filters = [
+        FuelRecord.user_id == user_id,
+        FuelRecord.vehicle_id == vehicle_id,
+    ]
+
+    s = _parse_date(start_date)
+    e = _parse_date(end_date)
+    if s:
+        filters.append(FuelRecord.record_date >= s)
+    if e:
+        filters.append(FuelRecord.record_date < e + timedelta(days=1))
+
+    # 单条明细查询
+    rows = (
         db.query(
-            extract("month", FuelRecord.record_date).label("month"),
-            func.count(FuelRecord.id).label("count"),
-            func.sum(FuelRecord.fuel_volume).label("total_volume"),
-            func.sum(FuelRecord.fuel_cost).label("total_cost"),
-            func.avg(FuelRecord.fuel_consumption).label("avg_consumption"),
+            FuelRecord.record_date,
+            FuelRecord.fuel_volume,
+            FuelRecord.fuel_cost,
+            FuelRecord.fuel_consumption,
         )
-        .filter(
-            FuelRecord.user_id == user_id,
-            FuelRecord.vehicle_id == vehicle_id,
-            extract("year", FuelRecord.record_date) == year,
-        )
-        .group_by(extract("month", FuelRecord.record_date))
-        .order_by(extract("month", FuelRecord.record_date))
+        .filter(*filters)
+        .order_by(FuelRecord.record_date)
         .all()
     )
 
-    return [
-        {
-            "month": int(r.month),
-            "count": r.count,
-            "total_volume": round(float(r.total_volume or 0), 2),
-            "total_cost": round(float(r.total_cost or 0), 2),
-            "avg_consumption": round(float(r.avg_consumption), 2) if r.avg_consumption else None,
-        }
-        for r in records
-    ]
+    if not rows:
+        return []
+
+    if group_by == "day":
+        return _group_by_day(rows)
+    elif group_by == "week":
+        return _group_by_week(rows, s or rows[0].record_date.date())
+    else:
+        return _group_by_month(rows)
+
+
+def _group_by_day(rows) -> list[dict]:
+    """按天聚合"""
+    from collections import defaultdict
+
+    buckets: dict[str, dict] = defaultdict(lambda: {"count": 0, "total_volume": 0.0, "total_cost": 0.0, "consumptions": []})
+
+    for r in rows:
+        key = r.record_date.strftime("%Y-%m-%d") if hasattr(r.record_date, 'strftime') else str(r.record_date)[:10]
+        buckets[key]["count"] += 1
+        buckets[key]["total_volume"] += float(r.fuel_volume or 0)
+        buckets[key]["total_cost"] += float(r.fuel_cost or 0)
+        if r.fuel_consumption is not None:
+            buckets[key]["consumptions"].append(float(r.fuel_consumption))
+
+    result = []
+    for period in sorted(buckets.keys()):
+        b = buckets[period]
+        consumptions = b["consumptions"]
+        result.append({
+            "period": period,
+            "count": b["count"],
+            "total_volume": round(b["total_volume"], 2),
+            "total_cost": round(b["total_cost"], 2),
+            "avg_consumption": round(sum(consumptions) / len(consumptions), 2) if consumptions else None,
+        })
+    return result
+
+
+def _group_by_week(rows, base_date: date) -> list[dict]:
+    """按 7 天一段聚合（从 base_date 开始）"""
+    from collections import defaultdict
+
+    buckets: dict[int, dict] = defaultdict(lambda: {"count": 0, "total_volume": 0.0, "total_cost": 0.0, "consumptions": []})
+
+    for r in rows:
+        d = r.record_date.date() if hasattr(r.record_date, 'date') else r.record_date
+        week_num = (d - base_date).days // 7
+        buckets[week_num]["count"] += 1
+        buckets[week_num]["total_volume"] += float(r.fuel_volume or 0)
+        buckets[week_num]["total_cost"] += float(r.fuel_cost or 0)
+        if r.fuel_consumption is not None:
+            buckets[week_num]["consumptions"].append(float(r.fuel_consumption))
+
+    result = []
+    for wn in sorted(buckets.keys()):
+        b = buckets[wn]
+        w_start = base_date + timedelta(days=wn * 7)
+        w_end = w_start + timedelta(days=6)
+        consumptions = b["consumptions"]
+        result.append({
+            "period": f"{w_start.strftime('%m-%d')}~{w_end.strftime('%m-%d')}",
+            "count": b["count"],
+            "total_volume": round(b["total_volume"], 2),
+            "total_cost": round(b["total_cost"], 2),
+            "avg_consumption": round(sum(consumptions) / len(consumptions), 2) if consumptions else None,
+        })
+    return result
+
+
+def _group_by_month(rows) -> list[dict]:
+    """按月聚合"""
+    from collections import defaultdict
+
+    buckets: dict[str, dict] = defaultdict(lambda: {"count": 0, "total_volume": 0.0, "total_cost": 0.0, "consumptions": []})
+
+    for r in rows:
+        key = r.record_date.strftime("%Y-%m") if hasattr(r.record_date, 'strftime') else str(r.record_date)[:7]
+        buckets[key]["count"] += 1
+        buckets[key]["total_volume"] += float(r.fuel_volume or 0)
+        buckets[key]["total_cost"] += float(r.fuel_cost or 0)
+        if r.fuel_consumption is not None:
+            buckets[key]["consumptions"].append(float(r.fuel_consumption))
+
+    result = []
+    for period in sorted(buckets.keys()):
+        b = buckets[period]
+        consumptions = b["consumptions"]
+        result.append({
+            "period": period,
+            "count": b["count"],
+            "total_volume": round(b["total_volume"], 2),
+            "total_cost": round(b["total_cost"], 2),
+            "avg_consumption": round(sum(consumptions) / len(consumptions), 2) if consumptions else None,
+        })
+    return result

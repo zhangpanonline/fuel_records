@@ -1,27 +1,47 @@
-import { useState, useEffect, useCallback, type FormEvent } from 'react'
+import { useState, useCallback, useRef, type FormEvent } from 'react'
 import axios from 'axios'
 import {
-  fetchExpenses,
   createExpense,
   updateExpense,
   deleteExpense,
-  fetchCategories,
   createCategory,
   type Expense,
   type ExpenseCategory,
   type CreateExpensePayload,
 } from '../services/api'
-import BottomPanel from '../components/BottomPanel'
+import { useExpenseData } from '../context/ExpenseDataContext'
+import CategoryPicker, {
+  recordCategorySelected,
+  incrementCategoryCount,
+  decrementCategoryCount,
+} from '../components/CategoryPicker'
+import ExpenseSummaryCards from '../components/ExpenseSummaryCards'
+import PullToRefresh from '../components/PullToRefresh'
+import ExpensePageSkeleton from '../components/ExpensePageSkeleton'
 import './ExpensePage.css'
 
-const PAGE_SIZE = 20
-
 export default function ExpensePage() {
+  const {
+    categories,
+    expenses,
+    total,
+    page,
+    loading,
+    multiSummary,
+    refreshCategories,
+    refreshExpenses,
+    refreshMultiSummary,
+    loadMoreExpenses,
+  } = useExpenseData()
+
   // ── 表单状态 ──
   const [amount, setAmount] = useState('')
   const [selectedL1, setSelectedL1] = useState('')
   const [selectedL2, setSelectedL2] = useState('')
   const [selectedL3, setSelectedL3] = useState('')
+  const [selectedL1Id, setSelectedL1Id] = useState(0)
+  const [selectedL2Id, setSelectedL2Id] = useState(0)
+  const [selectedL3Id, setSelectedL3Id] = useState(0)
   const [expenseDate, setExpenseDate] = useState(
     new Date().toISOString().slice(0, 10),
   )
@@ -29,111 +49,57 @@ export default function ExpensePage() {
   const [submitting, setSubmitting] = useState(false)
   const [editingId, setEditingId] = useState<number | null>(null)
 
-  // ── 分类数据 ──
-  const [categories, setCategories] = useState<ExpenseCategory[]>([])
-
-  // ── 列表数据 ──
-  const [expenses, setExpenses] = useState<Expense[]>([])
-  const [loading, setLoading] = useState(true)
-  const [page, setPage] = useState(1)
-  const [total, setTotal] = useState(0)
-
   // ── 快速创建分类弹窗 ──
   const [quickCreateOpen, setQuickCreateOpen] = useState(false)
+
+  // ── 首次加载追踪 ──
+  const firstLoadDone = useRef(false)
+  if (!loading && !firstLoadDone.current) {
+    firstLoadDone.current = true
+  }
+
+  const showSkeleton = loading && !firstLoadDone.current
+
+  const handlePullRefresh = useCallback(async () => {
+    await refreshExpenses(1)
+    refreshMultiSummary()
+  }, [refreshExpenses, refreshMultiSummary])
   const [quickCreateName, setQuickCreateName] = useState('')
   const [quickCreateParentId, setQuickCreateParentId] = useState<number | null>(null)
   const [quickCreateLabel, setQuickCreateLabel] = useState('')
-
-  // ── 底部面板 ──
-  const [showPanel, setShowPanel] = useState(false)
 
   // ── 左滑状态 ──
   const [swipedId, setSwipedId] = useState<number | null>(null)
   const [touchStartX, setTouchStartX] = useState(0)
   const [touchTranslateX, setTouchTranslateX] = useState(0)
 
-  // 加载分类
-  const loadCategories = useCallback(async () => {
-    try {
-      const cats = await fetchCategories()
-      setCategories(cats)
-    } catch {
-      // 静默失败
-    }
-  }, [])
+  // CategoryPicker 回调
+  function handleCategorySelect(l1: string, l2: string, l3: string) {
+    setSelectedL1(l1)
+    setSelectedL2(l2)
+    setSelectedL3(l3)
+  }
 
-  // 加载列表
-  const loadExpenses = useCallback(
-    async (pageNum = 1) => {
-      setLoading(true)
-      try {
-        const data = await fetchExpenses(pageNum, PAGE_SIZE)
-        setTotal(data.total)
-        if (pageNum === 1) {
-          setExpenses(data.items)
-        } else {
-          setExpenses((prev) => [...prev, ...data.items])
-        }
-        setPage(pageNum)
-      } catch {
-        // 静默
-      } finally {
-        setLoading(false)
-      }
+  function handleCategorySelected(sel: { l1: string; l2: string; l3: string; l1Id: number; l2Id: number; l3Id: number }) {
+    setSelectedL1Id(sel.l1Id)
+    setSelectedL2Id(sel.l2Id)
+    setSelectedL3Id(sel.l3Id)
+    recordCategorySelected(sel)
+  }
+
+  // 根据分类名称查找 ID（用于删除时 -1 计数）
+  const findCategoryIds = useCallback(
+    (l1: string, l2: string, l3: string): { l1Id: number; l2Id: number; l3Id: number } | null => {
+      const c1 = categories.find((c) => c.name === l1)
+      if (!c1) return null
+      const c2 = c1.children?.find((c) => c.name === l2)
+      if (!c2) return null
+      const c3 = c2.children?.find((c) => c.name === l3)
+      if (!c3) return null
+      return { l1Id: c1.id, l2Id: c2.id, l3Id: c3.id }
     },
-    [],
+    [categories],
   )
-
-  useEffect(() => {
-    loadCategories()
-    loadExpenses()
-  }, [loadCategories, loadExpenses])
-
-  // 派生选项
-  const l1Options = categories
-
-  const l2Options =
-    selectedL1
-      ? categories.find((c) => c.name === selectedL1)?.children || []
-      : []
-
-  const l3Options =
-    selectedL1 && selectedL2
-      ? categories
-          .find((c) => c.name === selectedL1)
-          ?.children.find((c) => c.name === selectedL2)?.children || []
-      : []
-
-  // 选择分类时重置下级
-  function handleL1Change(val: string) {
-    if (val === '__new__') {
-      openQuickCreate(null, '一级分类')
-      return
-    }
-    setSelectedL1(val)
-    setSelectedL2('')
-    setSelectedL3('')
-  }
-
-  function handleL2Change(val: string) {
-    if (val === '__new__') {
-      const parent = categories.find((c) => c.name === selectedL1)
-      if (parent) openQuickCreate(parent.id, '二级分类')
-      return
-    }
-    setSelectedL2(val)
-    setSelectedL3('')
-  }
-
-  function handleL3Change(val: string) {
-    if (val === '__new__') {
-      const parent = categories.find((c) => c.name === selectedL1)
-      const l2 = parent?.children.find((c) => c.name === selectedL2)
-      if (l2) openQuickCreate(l2.id, '三级分类')
-      return
-    }
-    setSelectedL3(val)
-  }
 
   function openQuickCreate(parentId: number | null, label: string) {
     setQuickCreateParentId(parentId)
@@ -150,7 +116,7 @@ export default function ExpensePage() {
         parent_id: quickCreateParentId ?? undefined,
       })
       setQuickCreateOpen(false)
-      await loadCategories()
+      await refreshCategories()
     } catch (err: unknown) {
       let msg = '创建失败'
       if (axios.isAxiosError(err) && err.response?.data?.detail) {
@@ -178,6 +144,9 @@ export default function ExpensePage() {
     setSelectedL1('')
     setSelectedL2('')
     setSelectedL3('')
+    setSelectedL1Id(0)
+    setSelectedL2Id(0)
+    setSelectedL3Id(0)
     setNote('')
     setExpenseDate(new Date().toISOString().slice(0, 10))
   }
@@ -209,9 +178,12 @@ export default function ExpensePage() {
         await updateExpense(editingId, payload)
       } else {
         await createExpense(payload)
+        // 仅新建时 +1 计数
+        incrementCategoryCount(selectedL1Id, selectedL2Id, selectedL3Id)
       }
       handleCancelEdit()
-      await loadExpenses()
+      await refreshExpenses()
+      refreshMultiSummary()
     } catch (err: unknown) {
       let msg = '操作失败'
       if (axios.isAxiosError(err) && err.response?.data?.detail) {
@@ -224,11 +196,17 @@ export default function ExpensePage() {
   }
 
   // 删除
-  async function handleDelete(id: number) {
+  async function handleDelete(id: number, exp: Expense) {
     if (!window.confirm('确定要删除这条记录吗？')) return
     try {
+      // 先查找分类 ID（删除成功后再 -1）
+      const ids = findCategoryIds(exp.category_l1, exp.category_l2, exp.category_l3)
       await deleteExpense(id)
-      await loadExpenses()
+      if (ids) {
+        decrementCategoryCount(ids.l1Id, ids.l2Id, ids.l3Id)
+      }
+      await refreshExpenses()
+      refreshMultiSummary()
     } catch (err: unknown) {
       let msg = '删除失败'
       if (axios.isAxiosError(err) && err.response?.data?.detail) {
@@ -240,8 +218,7 @@ export default function ExpensePage() {
 
   // 加载更多
   function handleLoadMore() {
-    if (loading) return
-    loadExpenses(page + 1)
+    loadMoreExpenses()
   }
 
   // 左滑手势
@@ -274,10 +251,13 @@ export default function ExpensePage() {
     return `${d.getMonth() + 1}月${d.getDate()}日`
   }
 
-  const hasCategories = categories.length > 0
+  if (showSkeleton) {
+    return <ExpensePageSkeleton />
+  }
 
   return (
-    <div className="expense-page">
+    <PullToRefresh onRefresh={handlePullRefresh} skeleton={<ExpensePageSkeleton />}>
+      <div className="expense-page">
       {/* 金额 */}
       <div className="amount-section">
         <div className="amount-input-wrapper">
@@ -293,77 +273,17 @@ export default function ExpensePage() {
         </div>
       </div>
 
-      {/* 分类级联 */}
+      {/* 分类选择 */}
       <div className="category-section">
-        {!hasCategories ? (
-          <div style={{ textAlign: 'center', padding: '20px 0' }}>
-            <p style={{ color: 'var(--text-dim)', fontSize: 14, marginBottom: 12 }}>
-              还没有分类，先创建你的第一个分类吧
-            </p>
-            <button
-              className="submit-btn-expense"
-              style={{ width: 'auto', padding: '10px 24px' }}
-              onClick={() => openQuickCreate(null, '一级分类')}
-            >
-              创建分类
-            </button>
-          </div>
-        ) : (
-          <>
-            <div className="category-row">
-              <select
-                className="category-select"
-                value={selectedL1}
-                onChange={(e) => handleL1Change(e.target.value)}
-              >
-                <option value="">一级分类</option>
-                {l1Options.map((c) => (
-                  <option key={c.id} value={c.name}>
-                    {c.name}
-                  </option>
-                ))}
-                <option value="__new__">+ 新建</option>
-              </select>
-            </div>
-            <div className="category-row">
-              <select
-                className="category-select"
-                value={selectedL2}
-                onChange={(e) => handleL2Change(e.target.value)}
-                disabled={!selectedL1}
-              >
-                <option value="">二级分类</option>
-                {l2Options.map((c) => (
-                  <option key={c.id} value={c.name}>
-                    {c.name}
-                  </option>
-                ))}
-                {selectedL1 && <option value="__new__">+ 新建</option>}
-              </select>
-              <select
-                className="category-select"
-                value={selectedL3}
-                onChange={(e) => handleL3Change(e.target.value)}
-                disabled={!selectedL2}
-              >
-                <option value="">三级分类</option>
-                {l3Options.map((c) => (
-                  <option key={c.id} value={c.name}>
-                    {c.name}
-                  </option>
-                ))}
-                {selectedL2 && <option value="__new__">+ 新建</option>}
-              </select>
-            </div>
-            {selectedL1 && (
-              <div className="category-path">
-                {selectedL1}
-                {selectedL2 ? ` / ${selectedL2}` : ''}
-                {selectedL3 ? ` / ${selectedL3}` : ''}
-              </div>
-            )}
-          </>
-        )}
+        <CategoryPicker
+          categories={categories}
+          selectedL1={selectedL1}
+          selectedL2={selectedL2}
+          selectedL3={selectedL3}
+          onSelect={handleCategorySelect}
+          onCategorySelected={handleCategorySelected}
+          onCreateNew={openQuickCreate}
+        />
       </div>
 
       {/* 日期 + 备注 */}
@@ -399,6 +319,9 @@ export default function ExpensePage() {
         )}
       </div>
 
+      {/* 统计卡片 */}
+      <ExpenseSummaryCards data={multiSummary} />
+
       {/* 记录列表 */}
       <section className="expense-list-section">
         {!loading && expenses.length === 0 && (
@@ -413,9 +336,16 @@ export default function ExpensePage() {
             onTouchMove={handleTouchMove}
             onTouchEnd={() => handleTouchEnd()}
           >
-            {swipedId === exp.id && touchTranslateX < 0 && (
-              <div className="expense-swipe-bg">删除</div>
-            )}
+            <div
+              className="expense-swipe-bg"
+              style={{
+                transform:
+                  swipedId === exp.id
+                    ? `translateX(${80 + touchTranslateX}px)`
+                    : 'translateX(80px)',
+              }}
+              onClick={() => handleDelete(exp.id, exp)}
+            >删除</div>
             <div
               className="expense-item-inner"
               style={{
@@ -425,35 +355,32 @@ export default function ExpensePage() {
                     : 'translateX(0)',
               }}
             >
-              <div className="expense-item-left">
-                <div className="expense-item-category">
-                  <span className="cat-l1">{exp.category_l1}</span>
-                  <span className="cat-sep"> / </span>
-                  <span className="cat-l2">{exp.category_l2}</span>
-                  <span className="cat-sep"> / </span>
-                  <span className="cat-l3">{exp.category_l3}</span>
-                </div>
-                <div className="expense-item-bottom">
-                  <span>{formatDate(exp.expense_date)}</span>
-                  {exp.note && <span>{exp.note}</span>}
-                </div>
+              {/* 第一行：分类 */}
+              <div className="expense-item-category">
+                <span className="cat-l1">{exp.category_l1}</span>
+                <span className="cat-sep"> / </span>
+                <span className="cat-l2">{exp.category_l2}</span>
+                <span className="cat-sep"> / </span>
+                <span className="cat-l3">{exp.category_l3}</span>
               </div>
-              <span className="expense-item-amount">
-                -¥{Number(exp.amount).toFixed(2)}
-              </span>
-              <div className="expense-item-actions">
+
+              {/* 第二行：金额 + 编辑 */}
+              <div className="expense-item-row2">
+                <span className="expense-item-amount">
+                  -¥{Number(exp.amount).toFixed(2)}
+                </span>
                 <button
                   className="expense-edit-btn"
                   onClick={() => handleEdit(exp)}
                 >
                   编辑
                 </button>
-                <button
-                  className="expense-delete-btn"
-                  onClick={() => handleDelete(exp.id)}
-                >
-                  删除
-                </button>
+              </div>
+
+              {/* 第三行：日期 + 备注 */}
+              <div className="expense-item-row3">
+                <span>{formatDate(exp.expense_date)}</span>
+                {exp.note && <span>{exp.note}</span>}
               </div>
             </div>
           </div>
@@ -506,22 +433,7 @@ export default function ExpensePage() {
           </div>
         </div>
       )}
-
-      {/* 底部浮动按钮 */}
-      {!showPanel && (
-        <button className="fab" onClick={() => setShowPanel(true)}>
-          📊
-        </button>
-      )}
-
-      {/* 底部面板 */}
-      {showPanel && (
-        <BottomPanel
-          categories={categories}
-          onCategoriesChange={loadCategories}
-          onClose={() => setShowPanel(false)}
-        />
-      )}
     </div>
+    </PullToRefresh>
   )
 }

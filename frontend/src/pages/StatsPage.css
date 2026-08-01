@@ -96,43 +96,83 @@
   font-weight: 500;
 }
 
-/* === 年份选择器 === */
-.year-selector {
+/* ============================================================
+   日期范围选择
+   ui-taste 注射：呼吸间距 + 微渐变输入框 + 圆角按钮
+   ============================================================ */
+
+.stats-date-row {
   display: flex;
   align-items: center;
   gap: 10px;
-  margin-bottom: 16px;
-  padding: 10px 16px;
-  background: var(--card-bg);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid var(--card-border);
-  border-radius: 14px;
-  box-shadow: var(--shadow-sm);
+  margin-bottom: 12px;
 }
 
-.year-selector label {
+.stats-date-field {
+  flex: 1;
+  min-width: 0;
+}
+
+.stats-date-field input[type='date'] {
+  width: 100%;
+  padding: 11px 14px;
   font-size: 14px;
-  font-weight: 600;
-  color: var(--text-secondary);
-}
-
-.year-selector select {
-  padding: 8px 14px;
-  font-size: 15px;
-  font-weight: 600;
+  font-weight: 500;
   border: 1px solid var(--border);
-  border-radius: 10px;
+  border-radius: 14px;
   background: var(--input-bg);
   color: var(--text-body);
   outline: none;
-  cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all 0.25s ease;
 }
 
-.year-selector select:focus {
+.stats-date-field input[type='date']:focus {
   border-color: var(--accent);
   box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.08);
+}
+
+.stats-date-sep {
+  font-size: 13px;
+  color: var(--text-dim);
+  font-weight: 500;
+  flex-shrink: 0;
+}
+
+/* 快捷时段按钮 */
+.stats-period-row {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.stats-period-btn {
+  flex: 1;
+  padding: 10px 0;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  cursor: pointer;
+  letter-spacing: 0.01em;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.stats-period-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.stats-period-btn.active {
+  background: rgba(99, 102, 241, 0.08);
+  border-color: var(--accent);
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.stats-period-btn:active {
+  transform: scale(0.96);
 }
 
 /* === 图表容器 === */
@@ -146,6 +186,43 @@
   margin-bottom: 16px;
   color: var(--text-primary);
   letter-spacing: -0.01em;
+}
+
+/* 图表卡片（带背景/边框/投影） */
+.chart-card {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 18px;
+  padding: 20px 16px 16px 16px;
+  margin-bottom: 20px;
+  box-shadow: var(--card-glow);
+}
+
+.chart-card h3 {
+  font-size: 16px;
+  font-weight: 700;
+  margin: 0 0 4px 0;
+  color: var(--text-primary);
+  letter-spacing: -0.01em;
+}
+
+/* Y 轴标签行：油耗居左、花费居右 */
+.chart-axis-labels {
+  display: flex;
+  justify-content: space-between;
+  margin: 0 0 4px 0;
+}
+
+.axis-label-left {
+  font-size: 11px;
+  color: #4a90d9;
+  font-weight: 500;
+}
+
+.axis-label-right {
+  font-size: 11px;
+  color: #e74c3c;
+  font-weight: 500;
 }
 
 /* === 图表颜色覆盖（通过 SVG/CSS 不太容易，这里用容器增强） === */

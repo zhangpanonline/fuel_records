@@ -1,14 +1,14 @@
-import { useState, useEffect } from 'react'
-import html2canvas from 'html2canvas'
+import { useState, useEffect, useMemo, useRef } from 'react'
 import {
-  fetchVehicles,
   fetchSummary,
+  fetchTimeline,
   fetchMonthly,
-  clearToken,
-  type Vehicle,
   type SummaryStats,
+  type TimelineStats,
   type MonthlyStats,
+  type TimelineItem,
 } from '../services/api'
+import { useFuelData } from '../context/FuelDataContext'
 import {
   LineChart,
   Line,
@@ -21,171 +21,178 @@ import {
 } from 'recharts'
 import './StatsPage.css'
 
-const VEHICLE_KEY = 'fuel_records_vehicle_id'
-const THEME_KEY = 'fuel_records_theme'
-
-function getTheme(): string {
-  return localStorage.getItem(THEME_KEY) || 'auto'
+function fmtDate(d: Date): string {
+  const y = d.getFullYear()
+  const m = String(d.getMonth() + 1).padStart(2, '0')
+  const day = String(d.getDate()).padStart(2, '0')
+  return `${y}-${m}-${day}`
 }
 
-function applyTheme(theme: string) {
-  if (theme === 'auto') {
-    document.documentElement.removeAttribute('data-theme')
+function daysAgo(n: number): string {
+  const d = new Date()
+  d.setDate(d.getDate() - n)
+  return fmtDate(d)
+}
+
+function daysBetween(a: string, b: string): number {
+  return Math.ceil(Math.abs(new Date(b).getTime() - new Date(a).getTime()) / 86400000)
+}
+
+function fmtMonth(period: string): string {
+  const parts = period.split('-')
+  return `${parseInt(parts[1])}月`
+}
+
+/** 补齐日期范围内缺失的 periodo，确保曲线连续 */
+function fillGaps(
+  items: TimelineItem[],
+  groupBy: string,
+  start: string,
+  end: string,
+): TimelineItem[] {
+  const map = new Map(items.map((i) => [i.period, i]))
+  const result: TimelineItem[] = []
+  const emptyItem = (period: string): TimelineItem => ({
+    period,
+    count: 0,
+    total_volume: 0,
+    total_cost: 0,
+    avg_consumption: null,
+  })
+
+  const cur = new Date(start + 'T00:00:00')
+  const endDate = new Date(end + 'T00:00:00')
+
+  if (groupBy === 'day') {
+    while (cur <= endDate) {
+      const period = fmtDate(cur)
+      result.push(map.get(period) ?? emptyItem(period))
+      cur.setDate(cur.getDate() + 1)
+    }
+  } else if (groupBy === 'week') {
+    while (cur <= endDate) {
+      const weekEnd = new Date(cur)
+      weekEnd.setDate(weekEnd.getDate() + 6)
+      // 不截断，与后端 _group_by_week 的 period 格式完全一致
+      const period = `${fmtDate(cur).slice(5)}~${fmtDate(weekEnd).slice(5)}`
+      result.push(map.get(period) ?? emptyItem(period))
+      cur.setDate(cur.getDate() + 7)
+    }
   } else {
-    document.documentElement.setAttribute('data-theme', theme)
+    let y = cur.getFullYear()
+    let m = cur.getMonth() + 1
+    const ey = endDate.getFullYear()
+    const em = endDate.getMonth() + 1
+    while (y < ey || (y === ey && m <= em)) {
+      const period = `${y}-${String(m).padStart(2, '0')}`
+      result.push(map.get(period) ?? emptyItem(period))
+      m++
+      if (m > 12) { m = 1; y++ }
+    }
   }
+
+  return result
 }
 
-const MONTH_NAMES = [
-  '', '1月', '2月', '3月', '4月', '5月', '6月',
-  '7月', '8月', '9月', '10月', '11月', '12月',
-]
+const PERIODS = [
+  { key: 'year', label: '近一年', days: 365 },
+  { key: 'month', label: '近一月', days: 30 },
+  { key: 'week', label: '近一周', days: 7 },
+] as const
+
+const GROUP_LABELS: Record<string, string> = {
+  day: '每日油耗趋势',
+  week: '每周油耗趋势',
+  month: '月度油耗趋势',
+}
 
 function StatsPage() {
-  const [vehicles, setVehicles] = useState<Vehicle[]>([])
-  const [selectedVehicleId, setSelectedVehicleId] = useState<number | null>(null)
+  const { vehicles, selectedVehicleId, setSelectedVehicleId } = useFuelData()
   const [summary, setSummary] = useState<SummaryStats | null>(null)
+  const [timeline, setTimeline] = useState<TimelineStats | null>(null)
   const [monthly, setMonthly] = useState<MonthlyStats | null>(null)
-  const [year, setYear] = useState(new Date().getFullYear())
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
-  const [theme, setTheme] = useState(getTheme)
+  const firstLoad = useRef(true)
 
-  useEffect(() => {
-    applyTheme(theme)
-  }, [theme])
+  const today = fmtDate(new Date())
+  const [startDate, setStartDate] = useState(daysAgo(30))
+  const [endDate, setEndDate] = useState(today)
+  const [activePeriod, setActivePeriod] = useState<string>('month')
 
-  useEffect(() => {
-    loadVehicles()
-  }, [])
+  // 根据日期跨度自动选择聚合粒度
+  const groupBy = useMemo(() => {
+    const span = daysBetween(startDate, endDate)
+    if (span <= 14) return 'day'
+    if (span <= 90) return 'week'
+    return 'month'
+  }, [startDate, endDate])
 
+  const chartTitle = GROUP_LABELS[groupBy] || '油耗趋势'
+
+  // 当车辆或日期范围变化时，自动查询
   useEffect(() => {
-    if (selectedVehicleId !== null) {
-      loadStats(selectedVehicleId, year)
+    if (selectedVehicleId !== null && startDate && endDate) {
+      loadStats(selectedVehicleId, startDate, endDate)
     }
-  }, [selectedVehicleId, year])
+  }, [selectedVehicleId, startDate, endDate])
 
-  async function loadVehicles() {
-    try {
-      const list = await fetchVehicles()
-      setVehicles(list)
-      const savedId = localStorage.getItem(VEHICLE_KEY)
-      const saved = savedId ? Number(savedId) : null
-      const exists = list.find((v) => v.id === saved)
-      setSelectedVehicleId(exists ? saved! : list.length > 0 ? list[0].id : null)
-      setLoading(false)
-    } catch {
-      setError('加载车辆列表失败')
-      setLoading(false)
-    }
+  function selectPeriod(days: number, key: string) {
+    const end = fmtDate(new Date())
+    const start = daysAgo(days)
+    setStartDate(start)
+    setEndDate(end)
+    setActivePeriod(key)
   }
 
-  async function loadStats(vehicleId: number, y: number) {
-    setLoading(true)
+  async function loadStats(vehicleId: number, start: string, end: string) {
+    // 首次加载显示 loading，后续切换只更新数据不隐藏卡片
+    if (firstLoad.current) {
+      setLoading(true)
+    }
     setError('')
     try {
-      const [s, m] = await Promise.all([
-        fetchSummary(vehicleId),
-        fetchMonthly(vehicleId, y),
+      const gb = daysBetween(start, end) <= 14 ? 'day' : daysBetween(start, end) <= 90 ? 'week' : 'month'
+      const [s, t, m] = await Promise.all([
+        fetchSummary(vehicleId, start, end),
+        fetchTimeline(vehicleId, gb, start, end),
+        fetchMonthly(vehicleId, start, end),
       ])
       setSummary(s)
+      setTimeline(t)
       setMonthly(m)
-    } catch {
-      setError('加载统计数据失败')
+      firstLoad.current = false
+    } catch (err: unknown) {
+      console.error('Stats load failed:', err)
+      let msg = '加载统计数据失败'
+      if (err instanceof Error) msg = err.message
+      setError(msg)
     } finally {
       setLoading(false)
     }
   }
 
-  function handleLogout() {
-    clearToken()
-    window.location.href = '/login'
-  }
-
-  function handleBack() {
-    window.location.href = '/'
-  }
-
-  function handleToggleTheme() {
-    const next: Record<string, string> = { auto: 'light', light: 'dark', dark: 'auto' }
-    const newTheme = next[theme] || 'auto'
-    setTheme(newTheme)
-    localStorage.setItem(THEME_KEY, newTheme)
-    applyTheme(newTheme)
-  }
-
-  async function handleScreenshot() {
-    const el = document.getElementById('stats-content')
-    if (!el) return
-    try {
-      const canvas = await html2canvas(el, {
-        backgroundColor: null,
-        scale: 2,
-      })
-      const blob = await new Promise<Blob>((resolve, reject) => {
-        canvas.toBlob((b) => {
-          if (b) resolve(b)
-          else reject(new Error('截图失败'))
-        }, 'image/png')
-      })
-
-      // 尝试分享
-      if (navigator.share && navigator.canShare) {
-        const file = new File([blob], 'fuel_stats.png', { type: 'image/png' })
-        if (navigator.canShare({ files: [file] })) {
-          await navigator.share({ files: [file], title: '油耗统计' })
-          return
-        }
-      }
-
-      // 回退：下载
-      const url = URL.createObjectURL(blob)
-      const a = document.createElement('a')
-      a.href = url
-      a.download = 'fuel_stats.png'
-      document.body.appendChild(a)
-      a.click()
-      document.body.removeChild(a)
-      URL.revokeObjectURL(url)
-    } catch (err: unknown) {
-      if (err instanceof DOMException && err.name === 'AbortError') return
-      alert('截图失败，请重试')
-    }
-  }
-
-  const chartData = monthly?.months.map((m) => ({
-    name: MONTH_NAMES[m.month],
-    month: m.month,
-    平均油耗: m.avg_consumption ?? undefined,
-    总花费: m.total_cost,
-    加油次数: m.count,
-  })) ?? []
+  const chartData = useMemo(
+    () => {
+      if (!timeline) return []
+      const filled = fillGaps(timeline.items, groupBy, startDate, endDate)
+      return filled.map((item) => ({
+        period: item.period,
+        平均油耗: item.avg_consumption ?? undefined,
+        总花费: item.total_cost,
+        加油次数: item.count,
+      }))
+    },
+    [timeline, groupBy, startDate, endDate],
+  )
 
   const currentVehicle = vehicles.find((v) => v.id === selectedVehicleId)
 
   return (
-    <div className="app">
-      <div className="header">
-        <button className="logout-btn" onClick={handleBack}>
-          ← 返回
-        </button>
-        <h1 className="title">数据统计</h1>
-        <div className="header-actions">
-          <button className="export-btn" onClick={handleScreenshot}>
-            分享截图
-          </button>
-          <button className="theme-btn" onClick={handleToggleTheme}>
-            {theme === 'auto' ? '🌓' : theme === 'dark' ? '🌙' : '☀️'}
-          </button>
-          <button className="logout-btn" onClick={handleLogout}>
-            退出
-          </button>
-        </div>
-      </div>
-
+    <div className="stats-page">
       {/* 车辆选择器 */}
       {vehicles.length > 0 && (
-        <div className="vehicle-bar">
+        <div className="vehicle-bar animate-in">
           <select
             className="vehicle-select"
             value={selectedVehicleId ?? ''}
@@ -200,6 +207,41 @@ function StatsPage() {
           </select>
         </div>
       )}
+
+      {/* 日期范围选择 */}
+      <div className="stats-date-row animate-in stagger-1">
+        <div className="stats-date-field">
+          <input
+            type="date"
+            value={startDate}
+            max={endDate}
+            onChange={(e) => { setStartDate(e.target.value); setActivePeriod('') }}
+          />
+        </div>
+        <span className="stats-date-sep">至</span>
+        <div className="stats-date-field">
+          <input
+            type="date"
+            value={endDate}
+            min={startDate}
+            max={today}
+            onChange={(e) => { setEndDate(e.target.value); setActivePeriod('') }}
+          />
+        </div>
+      </div>
+
+      {/* 快捷时段按钮 */}
+      <div className="stats-period-row animate-in stagger-1">
+        {PERIODS.map((p) => (
+          <button
+            key={p.key}
+            className={`stats-period-btn ${activePeriod === p.key ? 'active' : ''}`}
+            onClick={() => selectPeriod(p.days, p.key)}
+          >
+            {p.label}
+          </button>
+        ))}
+      </div>
 
       {loading && <p className="status-text">加载中...</p>}
       {error && <p className="status-text error">{error}</p>}
@@ -230,50 +272,25 @@ function StatsPage() {
             </div>
           </div>
 
-          {/* 年份选择器 */}
-          <div className="year-selector animate-in">
-            <label>年份：</label>
-            <select
-              value={year}
-              onChange={(e) => setYear(Number(e.target.value))}
-            >
-              {Array.from({ length: 5 }, (_, i) => new Date().getFullYear() - i).map(
-                (y) => (
-                  <option key={y} value={y}>
-                    {y}
-                  </option>
-                ),
-              )}
-            </select>
-          </div>
-
-          {/* 月度油耗趋势图 */}
+          {/* 趋势图 */}
           {chartData.length > 0 ? (
-            <div className="chart-container animate-in stagger-1">
-              <h3>月度油耗趋势</h3>
+            <div className="chart-card animate-in stagger-1">
+              <h3>{chartTitle}</h3>
+              {/* Y 轴标签行：水平排列在图表上方 */}
+              <div className="chart-axis-labels">
+                <span className="axis-label-left">油耗 (L/100km)</span>
+                <span className="axis-label-right">花费 (元)</span>
+              </div>
               <ResponsiveContainer width="100%" height={250}>
-                <LineChart data={chartData}>
+                <LineChart data={chartData} margin={{ top: 5, right: 0, bottom: 5, left: 0 }}>
                   <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="name" />
-                  <YAxis
-                    yAxisId="left"
-                    label={{
-                      value: '油耗 (L/100km)',
-                      angle: -90,
-                      position: 'insideLeft',
-                      style: { fontSize: 12 },
-                    }}
+                  <XAxis
+                    dataKey="period"
+                    tick={{ fontSize: 11 }}
+                    interval="preserveStartEnd"
                   />
-                  <YAxis
-                    yAxisId="right"
-                    orientation="right"
-                    label={{
-                      value: '花费 (元)',
-                      angle: 90,
-                      position: 'insideRight',
-                      style: { fontSize: 12 },
-                    }}
-                  />
+                  <YAxis yAxisId="left" width={35} />
+                  <YAxis yAxisId="right" orientation="right" width={50} />
                   <Tooltip />
                   <Legend />
                   <Line
@@ -282,8 +299,11 @@ function StatsPage() {
                     dataKey="平均油耗"
                     stroke="#4a90d9"
                     strokeWidth={2}
-                    dot={{ r: 4 }}
-                    connectNulls={false}
+                    dot={(props: { value?: number | null; cx?: number; cy?: number; stroke?: string }) => {
+                      if (props.value == null) return null
+                      return <circle cx={props.cx} cy={props.cy} r={4} fill="#4a90d9" stroke="none" />
+                    }}
+                    connectNulls={true}
                   />
                   <Line
                     yAxisId="right"
@@ -291,20 +311,23 @@ function StatsPage() {
                     dataKey="总花费"
                     stroke="#e74c3c"
                     strokeWidth={2}
-                    dot={{ r: 4 }}
+                    dot={(props: { value?: number; cx?: number; cy?: number; stroke?: string }) => {
+                      if (props.value == null || props.value === 0) return null
+                      return <circle cx={props.cx} cy={props.cy} r={4} fill="#e74c3c" stroke="none" />
+                    }}
                   />
                 </LineChart>
               </ResponsiveContainer>
             </div>
           ) : (
-            <div className="chart-container animate-in stagger-1">
-              <p className="status-text">{year} 年暂无数据</p>
+            <div className="chart-card animate-in stagger-1">
+              <p className="status-text">所选时间段暂无数据</p>
             </div>
           )}
 
-          {/* 月度明细表 */}
-          {chartData.length > 0 && (
-            <div className="chart-container animate-in stagger-2">
+          {/* 明细表 */}
+          {monthly && monthly.months.length > 0 && (
+            <div className="chart-card animate-in stagger-2">
               <h3>月度明细</h3>
               <table className="monthly-table">
                 <thead>
@@ -317,17 +340,16 @@ function StatsPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {chartData.map((m) => (
-                    <tr key={m.month}>
-                      <td>{m.name}</td>
-                      <td>{m.加油次数}</td>
+                  {monthly.months.map((item) => (
+                    <tr key={item.period}>
+                      <td>{fmtMonth(item.period)}</td>
+                      <td>{item.count}</td>
+                      <td>{item.total_volume.toFixed(2)}</td>
+                      <td>{item.total_cost.toFixed(2)}</td>
                       <td>
-                        {monthly!.months.find((x) => x.month === m.month)
-                          ?.total_volume.toFixed(2) ?? '-'}
-                      </td>
-                      <td>{m.总花费.toFixed(2)}</td>
-                      <td>
-                        {m.平均油耗 != null ? m.平均油耗.toFixed(2) : '-'}
+                        {item.avg_consumption != null
+                          ? item.avg_consumption.toFixed(2)
+                          : '-'}
                       </td>
                     </tr>
                   ))}

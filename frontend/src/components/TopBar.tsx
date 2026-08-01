@@ -1,18 +1,26 @@
+import { useLocation, useNavigate } from 'react-router-dom'
 import { clearToken } from '../services/api'
 import './TopBar.css'
 
 const THEME_KEY = 'fuel_records_theme'
 
-function getTheme(): string {
+export function getTheme(): string {
   return localStorage.getItem(THEME_KEY) || 'auto'
 }
 
-function applyTheme(theme: string) {
+export function applyTheme(theme: string) {
   if (theme === 'auto') {
     document.documentElement.removeAttribute('data-theme')
   } else {
     document.documentElement.setAttribute('data-theme', theme)
   }
+}
+
+const pageTitles: Record<string, string> = {
+  '/fuel': '油耗',
+  '/fuel/stats': '油耗统计',
+  '/expense': '记账',
+  '/expense/stats': '记账统计',
 }
 
 interface TopBarProps {
@@ -21,6 +29,16 @@ interface TopBarProps {
 }
 
 function TopBar({ theme, onToggleTheme }: TopBarProps) {
+  const location = useLocation()
+  const navigate = useNavigate()
+
+  const title = pageTitles[location.pathname] || '油耗'
+  const isSubPage = location.pathname.split('/').filter(Boolean).length > 1
+
+  function handleBack() {
+    navigate(-1)
+  }
+
   function handleLogout() {
     clearToken()
     window.location.href = '/login'
@@ -28,7 +46,14 @@ function TopBar({ theme, onToggleTheme }: TopBarProps) {
 
   return (
     <header className="topbar">
-      <span className="topbar-title">Fuel Records</span>
+      <div className="topbar-left">
+        {isSubPage && (
+          <button className="topbar-btn back-btn" onClick={handleBack} title="返回">
+            ← 返回
+          </button>
+        )}
+        <span className="topbar-title">{title}</span>
+      </div>
       <div className="topbar-actions">
         <button className="topbar-btn theme-btn" onClick={onToggleTheme} title="切换主题">
           {theme === 'auto' ? '🌓' : theme === 'dark' ? '🌙' : '☀️'}
@@ -41,5 +66,4 @@ function TopBar({ theme, onToggleTheme }: TopBarProps) {
   )
 }
 
-export { getTheme, applyTheme }
 export default TopBar

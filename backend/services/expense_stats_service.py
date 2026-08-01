@@ -14,6 +14,7 @@ from schemas.expense_stats import (
     ExpenseStatsResponse,
     BreakdownItem,
     PeriodItem,
+    MultiSummaryResponse,
 )
 
 
@@ -215,4 +216,54 @@ def get_stats(
     return ExpenseStatsResponse(
         group_by=group_by,
         items=items,
+    )
+
+
+def get_multi_summary(db: Session, user_id: int, today: Optional[date] = None) -> MultiSummaryResponse:
+    """一次返回 6 个时间区间的累计金额，用于记账页统计卡片。"""
+    from datetime import date, timedelta
+    from sqlalchemy import func
+
+    if today is None:
+        today = date.today()
+
+    def _sum_between(start: date, end: date) -> Decimal:
+        total = (
+            db.query(func.sum(Expense.amount))
+            .filter(
+                Expense.user_id == user_id,
+                Expense.expense_date >= start,
+                Expense.expense_date <= end,
+            )
+            .scalar()
+        )
+        return Decimal(str(total)) if total else Decimal("0")
+
+    # current_year: 1 月 1 日 ~ 今天
+    current_year = _sum_between(date(today.year, 1, 1), today)
+
+    # current_month: 本月 1 日 ~ 今天
+    current_month = _sum_between(date(today.year, today.month, 1), today)
+
+    # current_week: 本周一 ~ 今天
+    monday = today - timedelta(days=today.weekday())
+    current_week = _sum_between(monday, today)
+
+    # recent_year: 12 个月前（不含） ~ 今天
+    year_ago = date(today.year - 1, today.month, today.day) + timedelta(days=1)
+    recent_year = _sum_between(year_ago, today)
+
+    # recent_month: 30 天前 ~ 今天
+    recent_month = _sum_between(today - timedelta(days=30), today)
+
+    # recent_week: 7 天前 ~ 今天
+    recent_week = _sum_between(today - timedelta(days=7), today)
+
+    return MultiSummaryResponse(
+        current_year=current_year,
+        current_month=current_month,
+        current_week=current_week,
+        recent_year=recent_year,
+        recent_month=recent_month,
+        recent_week=recent_week,
     )

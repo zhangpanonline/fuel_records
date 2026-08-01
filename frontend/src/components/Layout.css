@@ -1,5 +1,6 @@
 .layout-content {
   flex: 1;
   overflow-y: auto;
+  padding-top: 28px;
   padding-bottom: 56px; /* space for BottomNav */
 }

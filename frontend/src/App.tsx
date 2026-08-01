@@ -1,60 +1,185 @@
-import { useState, useEffect, type FormEvent } from 'react'
+import { useState, useEffect, useMemo, useCallback, useRef, type FormEvent } from 'react'
 import axios from 'axios'
-import { useNavigate } from 'react-router-dom'
 import {
-  fetchRecords,
   createRecord,
   updateRecord,
   deleteRecord,
-  fetchVehicles,
   createVehicle,
-  exportCSV,
+  fetchSummary,
   type FuelRecord,
-  type Vehicle,
+  type SummaryStats,
 } from './services/api'
 import { checkUpdate, downloadApk, installApk, type UpdateInfo } from './services/upgrade'
+import { useFuelData } from './context/FuelDataContext'
+import PullToRefresh from './components/PullToRefresh'
+import FuelPageSkeleton from './components/FuelPageSkeleton'
 import './App.css'
 
-const VEHICLE_KEY = 'fuel_records_vehicle_id'
-const REMINDER_KEY = 'fuel_records_reminder'
-const REMINDER_INTERVAL = 7 * 24 * 60 * 60 * 1000 // 7 天
-
 function App() {
-  const navigate = useNavigate()
-
-  // ---- 车辆状态 ----
-  const [vehicles, setVehicles] = useState<Vehicle[]>([])
-  const [selectedVehicleId, setSelectedVehicleId] = useState<number | null>(null)
-  const [showAddVehicle, setShowAddVehicle] = useState(false)
-  const [newVehicleName, setNewVehicleName] = useState('')
-  const [newVehiclePlate, setNewVehiclePlate] = useState('')
-  const [newVehicleMileage, setNewVehicleMileage] = useState('')
+  const {
+    vehicles,
+    selectedVehicleId,
+    setSelectedVehicleId,
+    records,
+    total,
+    page,
+    loading,
+    error,
+    filters,
+    setFilterStartDate,
+    setFilterEndDate,
+    setFilterFullTank,
+    setFilterNote,
+    showFilter,
+    setShowFilter,
+    showAddVehicle,
+    setShowAddVehicle,
+    loadRecords,
+    refreshRecords,
+    addVehicle,
+  } = useFuelData()
 
   // ---- 表单状态 ----
   const [mileage, setMileage] = useState('')
   const [fuelVolume, setFuelVolume] = useState('')
   const [fuelCost, setFuelCost] = useState('')
+  const [isFullTank, setIsFullTank] = useState(true)
+  const [note, setNote] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [editingId, setEditingId] = useState<number | null>(null)
 
-  // ---- 列表状态 ----
-  const [records, setRecords] = useState<FuelRecord[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState('')
-  const [page, setPage] = useState(1)
-  const [total, setTotal] = useState(0)
-  const PAGE_SIZE = 20
+  // ---- 添加车辆表单 ----
+  const [newVehicleName, setNewVehicleName] = useState('')
+  const [newVehiclePlate, setNewVehiclePlate] = useState('')
+  const [newVehicleMileage, setNewVehicleMileage] = useState('')
 
-  // ---- 筛选状态 ----
-  const [showFilter, setShowFilter] = useState(false)
-  const [filterStartDate, setFilterStartDate] = useState('')
-  const [filterEndDate, setFilterEndDate] = useState('')
-  const [filterFullTank, setFilterFullTank] = useState<boolean | undefined>(undefined)
-  const [filterNote, setFilterNote] = useState('')
+  // ---- 累计统计下拉 ----
+  type SummaryMode = 'since_last_month' | 'year' | 'month'
+  const SUMMARY_MODE_KEY = 'fuel_summary_mode'
+  const [summaryMode, setSummaryMode] = useState<SummaryMode>(() => {
+    const saved = localStorage.getItem(SUMMARY_MODE_KEY)
+    if (saved === 'year' || saved === 'month' || saved === 'since_last_month') return saved
+    return 'since_last_month'
+  })
+  const [allSummaries, setAllSummaries] = useState<Record<SummaryMode, SummaryStats | null>>({
+    year: null,
+    month: null,
+    since_last_month: null,
+  })
+  const [summaryDropdownOpen, setSummaryDropdownOpen] = useState(false)
+  const summaryRef = useRef<HTMLDivElement>(null)
 
-  // ---- 加油提醒 ----
-  const reminderEnabled = localStorage.getItem(REMINDER_KEY) === 'true'
-  const [reminder, setReminder] = useState(reminderEnabled)
+  // 点击外部关闭下拉
+  useEffect(() => {
+    if (!summaryDropdownOpen) return
+    function handleClick(e: MouseEvent) {
+      if (summaryRef.current && !summaryRef.current.contains(e.target as Node)) {
+        setSummaryDropdownOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClick)
+    return () => document.removeEventListener('mousedown', handleClick)
+  }, [summaryDropdownOpen])
+
+  function getDateRange(mode: SummaryMode): { startDate: string; endDate: string } {
+    const today = new Date()
+    const todayStr = fmtDateStr(today)
+    if (mode === 'year') {
+      return { startDate: `${today.getFullYear()}-01-01`, endDate: todayStr }
+    }
+    if (mode === 'month') {
+      const m = String(today.getMonth() + 1).padStart(2, '0')
+      return { startDate: `${today.getFullYear()}-${m}-01`, endDate: todayStr }
+    }
+    // since_last_month: (上月今天, 今天]
+    const y = today.getMonth() === 0 ? today.getFullYear() - 1 : today.getFullYear()
+    const lm = today.getMonth() === 0 ? 11 : today.getMonth() - 1
+    const lastDay = new Date(y, lm + 1, 0).getDate()
+    const targetDay = Math.min(today.getDate(), lastDay)
+    const lastMonthToday = new Date(y, lm, targetDay)
+    lastMonthToday.setDate(lastMonthToday.getDate() + 1) // +1 for exclusive
+    return { startDate: fmtDateStr(lastMonthToday), endDate: todayStr }
+  }
+
+  function fmtDateStr(d: Date): string {
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+  }
+
+  const fetchAllSummaries = useCallback(async (vehicleId: number) => {
+    const modes: SummaryMode[] = ['year', 'month', 'since_last_month']
+    const results = await Promise.all(
+      modes.map(async (mode) => {
+        try {
+          const { startDate, endDate } = getDateRange(mode)
+          const data = await fetchSummary(vehicleId, startDate, endDate)
+          return { mode, data }
+        } catch {
+          return { mode, data: null }
+        }
+      })
+    )
+    const map = {} as Record<SummaryMode, SummaryStats | null>
+    results.forEach(({ mode, data }) => { map[mode] = data })
+    setAllSummaries(map)
+  }, [])
+
+  useEffect(() => {
+    if (selectedVehicleId !== null) {
+      fetchAllSummaries(selectedVehicleId)
+    } else {
+      setAllSummaries({ year: null, month: null, since_last_month: null })
+    }
+  }, [selectedVehicleId, fetchAllSummaries])
+
+  // ── 首次加载追踪 ──
+  const firstLoadDone = useRef(false)
+  if (!loading && !firstLoadDone.current) {
+    firstLoadDone.current = true
+  }
+  const showSkeleton = loading && !firstLoadDone.current
+
+  const handlePullRefresh = useCallback(async () => {
+    if (selectedVehicleId !== null) {
+      await loadRecords(selectedVehicleId, 1)
+      fetchAllSummaries(selectedVehicleId)
+    }
+  }, [selectedVehicleId, loadRecords, fetchAllSummaries])
+
+  function formatSummaryLabel(mode: SummaryMode): string {
+    const d = allSummaries[mode]
+    if (!d) {
+      const labels: Record<SummaryMode, string> = {
+        year: '当年累计油耗/当年累计金额',
+        month: '当月累计油耗/当月累计金额',
+        since_last_month: '自上月累计油耗/自上月累计金额',
+      }
+      return labels[mode]
+    }
+    return `${d.total_fuel_volume.toFixed(2)}L / ${d.total_fuel_cost.toFixed(2)}¥`
+  }
+
+  function formatSummaryOptionLabel(mode: SummaryMode): string {
+    const d = allSummaries[mode]
+    const prefix: Record<SummaryMode, string> = {
+      year: '当年',
+      month: '当月',
+      since_last_month: '自上月',
+    }
+    if (!d) return `${prefix[mode]}累计油耗/累计金额`
+    return `${prefix[mode]}油耗${d.total_fuel_volume.toFixed(2)}L / ${prefix[mode]}金额${d.total_fuel_cost.toFixed(2)}¥`
+  }
+
+  function handleSummarySelect(mode: SummaryMode) {
+    setSummaryMode(mode)
+    localStorage.setItem(SUMMARY_MODE_KEY, mode)
+    setSummaryDropdownOpen(false)
+  }
+
+  function refreshSummaries() {
+    if (selectedVehicleId !== null) {
+      fetchAllSummaries(selectedVehicleId)
+    }
+  }
 
   // ---- 版本更新 ----
   const [updateInfo, setUpdateInfo] = useState<UpdateInfo | null>(null)
@@ -62,53 +187,22 @@ function App() {
   const [downloadError, setDownloadError] = useState<string | null>(null)
   const [installing, setInstalling] = useState(false)
 
-  function handleToggleReminder() {
-    const next = !reminder
-    setReminder(next)
-    localStorage.setItem(REMINDER_KEY, String(next))
-    if (next) {
-      requestNotificationPermission()
-    }
-  }
-
-  function requestNotificationPermission() {
-    if ('Notification' in window && Notification.permission === 'default') {
-      Notification.requestPermission()
-    }
-  }
-
-  // 加油提醒定时器
-  useEffect(() => {
-    if (!reminder) return
-    const timer = setInterval(() => {
-      if ('Notification' in window && Notification.permission === 'granted') {
-        new Notification('⛽ 油耗记录', {
-          body: '该加油了！别忘了记录这次的加油数据哦',
-          icon: '/favicon.ico',
-        })
+  // 历史备注联想
+  const noteSuggestions = useMemo(() => {
+    const seen = new Set<string>()
+    const result: string[] = []
+    for (const r of records) {
+      if (r.note && !seen.has(r.note)) {
+        seen.add(r.note)
+        result.push(r.note)
       }
-    }, REMINDER_INTERVAL)
-    return () => clearInterval(timer)
-  }, [reminder])
-
-  // 加载车辆列表
-  useEffect(() => {
-    loadVehicles()
-  }, [])
-
-  // 车辆变化时加载对应记录
-  useEffect(() => {
-    if (selectedVehicleId !== null) {
-      loadRecords(selectedVehicleId)
-      localStorage.setItem(VEHICLE_KEY, String(selectedVehicleId))
     }
-  }, [selectedVehicleId])
+    return result
+  }, [records])
 
-  // 筛选条件变化时重新加载
   function handleApplyFilter() {
-    if (selectedVehicleId !== null) {
-      loadRecords(selectedVehicleId)
-    }
+    refreshRecords()
+    setShowFilter(false)
   }
 
   function handleClearFilter() {
@@ -116,56 +210,8 @@ function App() {
     setFilterEndDate('')
     setFilterFullTank(undefined)
     setFilterNote('')
-    if (selectedVehicleId !== null) {
-      loadRecords(selectedVehicleId, 1)
-    }
-  }
-
-  async function loadVehicles() {
-    try {
-      const list = await fetchVehicles()
-      if (list.length === 0) {
-        // 没有车辆，显示添加界面
-        setShowAddVehicle(true)
-        setRecords([])
-        setLoading(false)
-        return
-      }
-      setVehicles(list)
-      // 恢复上次选中的车辆，或默认选第一个
-      const savedId = localStorage.getItem(VEHICLE_KEY)
-      const saved = savedId ? Number(savedId) : null
-      const exists = list.find((v) => v.id === saved)
-      setSelectedVehicleId(exists ? saved! : list[0].id)
-    } catch {
-      setError('加载车辆列表失败')
-      setLoading(false)
-    }
-  }
-
-  async function loadRecords(vehicleId: number, pageNum = 1) {
-    setLoading(true)
-    setError('')
-    try {
-      const data = await fetchRecords(
-        pageNum, PAGE_SIZE, vehicleId,
-        filterStartDate || undefined,
-        filterEndDate || undefined,
-        filterFullTank,
-        filterNote || undefined,
-      )
-      setTotal(data.total)
-      if (pageNum === 1) {
-        setRecords(data.records)
-      } else {
-        setRecords((prev) => [...prev, ...data.records])
-      }
-      setPage(pageNum)
-    } catch {
-      setError('加载记录失败，请检查网络连接')
-    } finally {
-      setLoading(false)
-    }
+    refreshRecords()
+    setShowFilter(false)
   }
 
   function handleLoadMore() {
@@ -186,7 +232,7 @@ function App() {
         plate: newVehiclePlate.trim() || undefined,
         initial_mileage: Number(newVehicleMileage),
       })
-      setVehicles([...vehicles, v])
+      addVehicle(v)
       setNewVehicleName('')
       setNewVehiclePlate('')
       setNewVehicleMileage('')
@@ -224,6 +270,8 @@ function App() {
           mileage: km,
           fuel_volume: vol,
           fuel_cost: cost,
+          is_full_tank: isFullTank,
+          note: note || undefined,
         })
       } else {
         await createRecord({
@@ -231,13 +279,18 @@ function App() {
           mileage: km,
           fuel_volume: vol,
           fuel_cost: cost,
+          is_full_tank: isFullTank,
+          note: note || undefined,
         })
       }
       setMileage('')
       setFuelVolume('')
       setFuelCost('')
+      setIsFullTank(true)
+      setNote('')
       setEditingId(null)
-      await loadRecords(selectedVehicleId)
+      await refreshRecords()
+      refreshSummaries()
     } catch (err: unknown) {
       let msg = '操作失败，请重试'
       if (axios.isAxiosError(err) && err.response?.data?.detail) {
@@ -255,9 +308,8 @@ function App() {
     if (!window.confirm('确定要删除这条加油记录吗？')) return
     try {
       await deleteRecord(id)
-      if (selectedVehicleId !== null) {
-        await loadRecords(selectedVehicleId)
-      }
+      await refreshRecords()
+      refreshSummaries()
     } catch (err: unknown) {
       let msg = '删除失败，请重试'
       if (axios.isAxiosError(err) && err.response?.data?.detail) {
@@ -274,6 +326,8 @@ function App() {
     setMileage(record.mileage.toString())
     setFuelVolume(record.fuel_volume.toString())
     setFuelCost(record.fuel_cost.toString())
+    setIsFullTank(record.is_full_tank)
+    setNote(record.note || '')
   }
 
   function handleCancelEdit() {
@@ -281,10 +335,8 @@ function App() {
     setMileage('')
     setFuelVolume('')
     setFuelCost('')
-  }
-
-  function handleGoStats() {
-    navigate('/fuel/stats')
+    setIsFullTank(true)
+    setNote('')
   }
 
   // 版本检测（启动时执行一次）
@@ -305,7 +357,6 @@ function App() {
       setDownloadProgress(null)
       setInstalling(true)
       await installApk(localUri)
-      // 安装器成功唤起后才关闭弹窗
       setUpdateInfo(null)
       setInstalling(false)
     } catch (err) {
@@ -322,40 +373,6 @@ function App() {
     await handleStartDownload()
   }
 
-  async function handleExport() {
-    if (selectedVehicleId === null) return
-    try {
-      const blob = await exportCSV(selectedVehicleId)
-      const url = URL.createObjectURL(blob)
-      const vehicleName = currentVehicle?.name || 'vehicle'
-
-      // 尝试使用分享 API（移动端支持更好）
-      if (navigator.share && navigator.canShare) {
-        const file = new File([blob], `fuel_records_${vehicleName}.csv`, {
-          type: 'text/csv',
-        })
-        if (navigator.canShare({ files: [file] })) {
-          await navigator.share({ files: [file], title: '油耗记录导出' })
-          URL.revokeObjectURL(url)
-          return
-        }
-      }
-
-      // 回退：浏览器下载
-      const a = document.createElement('a')
-      a.href = url
-      a.download = `fuel_records_${vehicleName}.csv`
-      document.body.appendChild(a)
-      a.click()
-      document.body.removeChild(a)
-      URL.revokeObjectURL(url)
-    } catch (err: unknown) {
-      // 用户取消分享不算错误
-      if (err instanceof DOMException && err.name === 'AbortError') return
-      alert('导出失败，请重试')
-    }
-  }
-
   function formatDate(iso: string) {
     const d = new Date(iso)
     return `${d.getMonth() + 1}月${d.getDate()}日 ${d.getHours().toString().padStart(2, '0')}:${d.getMinutes().toString().padStart(2, '0')}`
@@ -363,8 +380,13 @@ function App() {
 
   const currentVehicle = vehicles.find((v) => v.id === selectedVehicleId)
 
+  if (showSkeleton) {
+    return <FuelPageSkeleton />
+  }
+
   return (
-    <div className="app">
+    <PullToRefresh onRefresh={handlePullRefresh} skeleton={<FuelPageSkeleton />}>
+      <div className="app">
       {/* 版本更新弹窗 */}
       {updateInfo && (
         <div className="upgrade-overlay">
@@ -422,18 +444,7 @@ function App() {
         </div>
       )}
 
-      <div className="header">
-        <div className="header-actions" style={{ justifyContent: 'flex-end', width: '100%' }}>
-          <button className="nav-btn" onClick={handleGoStats}>
-            统计
-          </button>
-          <button className="export-btn" onClick={handleExport}>
-            导出
-          </button>
-        </div>
-      </div>
-
-      {/* 车辆选择器 — 按钮始终可见，select 仅在有车辆时显示 */}
+      {/* 车辆选择器 */}
       <div className="vehicle-bar animate-in">
         {vehicles.length > 0 && (
           <select
@@ -455,18 +466,6 @@ function App() {
         >
           {showAddVehicle ? '收起' : vehicles.length === 0 ? '+ 添加第一辆车' : '+ 添加车辆'}
         </button>
-      </div>
-
-      {/* 加油提醒开关 */}
-      <div className="reminder-bar animate-in stagger-2">
-        <label className="reminder-label">
-          <input
-            type="checkbox"
-            checked={reminder}
-            onChange={handleToggleReminder}
-          />
-          {' '}每周加油提醒
-        </label>
       </div>
 
       {/* 添加车辆表单 */}
@@ -502,124 +501,101 @@ function App() {
       {/* 录入表单 */}
       {currentVehicle && (
         <>
-          {/* 筛选栏 */}
-          <div className="filter-bar animate-in stagger-1">
-            <button
-              className="filter-toggle-btn"
-              onClick={() => setShowFilter(!showFilter)}
-            >
-              {showFilter ? '收起筛选' : '筛选'}
-              {(filterStartDate || filterEndDate || filterFullTank !== undefined || filterNote) && (
-                <span className="filter-dot" />
-              )}
-            </button>
-          </div>
-
-          {showFilter && (
-            <div className="filter-panel">
-              <div className="filter-row">
-                <label>
-                  开始日期
-                  <input
-                    type="date"
-                    value={filterStartDate}
-                    onChange={(e) => setFilterStartDate(e.target.value)}
-                  />
-                </label>
-                <label>
-                  结束日期
-                  <input
-                    type="date"
-                    value={filterEndDate}
-                    onChange={(e) => setFilterEndDate(e.target.value)}
-                  />
-                </label>
+          <form className="record-form animate-in stagger-1" onSubmit={handleSubmit} key={editingId ?? 'new'}>
+            <div className="form-section form-section--primary">
+              <div className="form-section-header">
+                <span className="form-section-icon">🚗</span>
+                <span className="form-section-title">
+                  {currentVehicle.name}
+                </span>
               </div>
-              <div className="filter-row">
-                <label>
-                  <input
-                    type="checkbox"
-                    checked={filterFullTank === true}
-                    onChange={(e) =>
-                      setFilterFullTank(e.target.checked ? true : undefined)
-                    }
-                  />
-                  {' '}仅加满
+              <div className="form-field-grid">
+                <label className="form-field">
+                  <span className="form-field-label">里程</span>
+                  <div className="form-field-input-wrapper">
+                    <input
+                      type="number"
+                      step="0.1"
+                      min="0"
+                      placeholder="8888.8"
+                      value={mileage}
+                      onChange={(e) => setMileage(e.target.value)}
+                      required
+                    />
+                    <span className="form-field-unit">km</span>
+                  </div>
                 </label>
-                <label>
-                  <input
-                    type="checkbox"
-                    checked={filterFullTank === false}
-                    onChange={(e) =>
-                      setFilterFullTank(e.target.checked ? false : undefined)
-                    }
-                  />
-                  {' '}仅未加满
+                <label className="form-field">
+                  <span className="form-field-label">油量</span>
+                  <div className="form-field-input-wrapper">
+                    <input
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      placeholder="88.88"
+                      value={fuelVolume}
+                      onChange={(e) => setFuelVolume(e.target.value)}
+                      required
+                    />
+                    <span className="form-field-unit">L</span>
+                  </div>
                 </label>
-              </div>
-              <div className="filter-row">
-                <input
-                  type="text"
-                  placeholder="搜索备注 (如加油站名)"
-                  value={filterNote}
-                  onChange={(e) => setFilterNote(e.target.value)}
-                />
-              </div>
-              <div className="filter-actions">
-                <button className="submit-btn" onClick={handleApplyFilter}>
-                  应用筛选
-                </button>
-                <button className="cancel-btn" onClick={handleClearFilter}>
-                  清除筛选
-                </button>
+                <label className="form-field">
+                  <span className="form-field-label">金额</span>
+                  <div className="form-field-input-wrapper">
+                    <input
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      placeholder="88.88"
+                      value={fuelCost}
+                      onChange={(e) => setFuelCost(e.target.value)}
+                      required
+                    />
+                    <span className="form-field-unit">¥</span>
+                  </div>
+                </label>
               </div>
             </div>
-          )}
 
-          <form className="record-form animate-in stagger-2" onSubmit={handleSubmit} key={editingId ?? 'new'}>
-            <p className="form-hint">
-              当前车辆：<strong>{currentVehicle.name}</strong>
-            </p>
-            <div className="form-row">
-              <label>
-                里程 (km)
-                <input
-                  type="number"
-                  step="0.1"
-                  min="0"
-                  placeholder="8888.8"
-                  value={mileage}
-                  onChange={(e) => setMileage(e.target.value)}
-                  required
-                />
+            <div className="form-divider" />
+
+            <div className="form-section form-section--secondary">
+              <label className="toggle-row">
+                <span className="toggle-label">加满油箱</span>
+                <div className="toggle-switch">
+                  <input
+                    type="checkbox"
+                    checked={isFullTank}
+                    onChange={(e) => setIsFullTank(e.target.checked)}
+                  />
+                  <span className="toggle-track" />
+                </div>
               </label>
-              <label>
-                油量 (L)
-                <input
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  placeholder="88.88"
-                  value={fuelVolume}
-                  onChange={(e) => setFuelVolume(e.target.value)}
-                  required
-                />
-              </label>
-              <label>
-                金额 (元)
-                <input
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  placeholder="88.88"
-                  value={fuelCost}
-                  onChange={(e) => setFuelCost(e.target.value)}
-                  required
-                />
+              <label className="form-field">
+                <span className="form-field-label">备注</span>
+                <div className="form-field-input-wrapper">
+                  <input
+                    type="text"
+                    placeholder="加油站名、油品标号..."
+                    value={note}
+                    onChange={(e) => setNote(e.target.value)}
+                    list="note-datalist"
+                    autoComplete="off"
+                  />
+                </div>
+                <datalist id="note-datalist">
+                  {noteSuggestions.map((s) => (
+                    <option key={s} value={s} />
+                  ))}
+                </datalist>
               </label>
             </div>
+
             <button type="submit" className="submit-btn" disabled={submitting}>
-              {submitting ? '提交中...' : editingId !== null ? '更新记录' : '提交记录'}
+              <span className="submit-btn-text">
+                {submitting ? '提交中...' : editingId !== null ? '更新记录' : '记录本次加油'}
+              </span>
             </button>
             {editingId !== null && (
               <button type="button" className="cancel-btn" onClick={handleCancelEdit}>
@@ -628,6 +604,118 @@ function App() {
             )}
           </form>
         </>
+      )}
+
+      {/* 累计统计 + 筛选 */}
+      {currentVehicle && (
+        <div className="filter-section animate-in stagger-2">
+          <div className="filter-row">
+            <div className="fuel-summary-select" ref={summaryRef}>
+              <button
+                className="fuel-summary-trigger"
+                onClick={() => setSummaryDropdownOpen(!summaryDropdownOpen)}
+              >
+                <span className="fuel-summary-text">{formatSummaryLabel(summaryMode)}</span>
+                <svg
+                  className={`fuel-summary-arrow ${summaryDropdownOpen ? 'open' : ''}`}
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="12"
+                  height="12"
+                  viewBox="0 0 12 12"
+                >
+                  <path fill="#888" d="M6 8L1 3h10z" />
+                </svg>
+              </button>
+              {summaryDropdownOpen && (
+                <div className="fuel-summary-dropdown">
+                  {(['since_last_month', 'month', 'year'] as SummaryMode[]).map((mode) => (
+                    <div
+                      key={mode}
+                      className={`fuel-summary-option ${mode === summaryMode ? 'active' : ''}`}
+                      onClick={() => handleSummarySelect(mode)}
+                    >
+                      {formatSummaryOptionLabel(mode)}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+            <button
+              className="filter-toggle-btn"
+              onClick={() => setShowFilter(!showFilter)}
+            >
+            <svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
+              <path d="M1.5 3.5h13M3.5 8h9M6 12.5h4" />
+            </svg>
+            {showFilter ? '收起筛选' : '筛选'}
+            {(filters.startDate || filters.endDate || filters.fullTank !== undefined || filters.note) && (
+              <span className="filter-dot" />
+            )}
+          </button>
+          </div>
+
+          {showFilter && (
+            <div className="filter-panel animate-slide-down">
+              <div className="filter-panel-grid">
+                <label className="filter-field">
+                  <span className="filter-field-label">开始日期</span>
+                  <input
+                    type="date"
+                    value={filters.startDate}
+                    onChange={(e) => setFilterStartDate(e.target.value)}
+                  />
+                </label>
+                <label className="filter-field">
+                  <span className="filter-field-label">结束日期</span>
+                  <input
+                    type="date"
+                    value={filters.endDate}
+                    onChange={(e) => setFilterEndDate(e.target.value)}
+                  />
+                </label>
+                <div className="filter-field filter-field--checks">
+                  <label className="filter-check">
+                    <input
+                      type="checkbox"
+                      checked={filters.fullTank === true}
+                      onChange={(e) =>
+                        setFilterFullTank(e.target.checked ? true : undefined)
+                      }
+                    />
+                    仅加满
+                  </label>
+                  <label className="filter-check">
+                    <input
+                      type="checkbox"
+                      checked={filters.fullTank === false}
+                      onChange={(e) =>
+                        setFilterFullTank(e.target.checked ? false : undefined)
+                      }
+                    />
+                    仅未加满
+                  </label>
+                </div>
+                <label className="filter-field filter-field--span">
+                  <span className="filter-field-label">备注搜索</span>
+                  <input
+                    type="text"
+                    placeholder="输入加油站名..."
+                    value={filters.note}
+                    onChange={(e) => setFilterNote(e.target.value)}
+                  />
+                </label>
+              </div>
+              <div className="filter-actions">
+                <button className="filter-action-btn filter-action-btn--apply" onClick={handleApplyFilter}>
+                  应用筛选
+                </button>
+                <button className="filter-action-btn filter-action-btn--clear" onClick={handleClearFilter}>
+                  清除筛选
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
       )}
 
       {/* 记录列表 */}
@@ -641,7 +729,7 @@ function App() {
               <p>{error}</p>
               <button
                 className="retry-btn"
-                onClick={() => selectedVehicleId !== null && loadRecords(selectedVehicleId)}
+                onClick={refreshRecords}
               >
                 重新加载
               </button>
@@ -688,7 +776,6 @@ function App() {
             </ul>
           )}
 
-          {/* 加载更多 */}
           {records.length < total && !loading && (
             <button className="load-more-btn" onClick={handleLoadMore}>
               加载更多 ({records.length}/{total})
@@ -701,7 +788,7 @@ function App() {
         </section>
       )}
 
-      {/* 没有车辆时的引导 — 仅当添加车辆表单未展示时 */}
+      {/* 没有车辆时的引导 */}
       {!currentVehicle && !loading && !showAddVehicle && (
         <section className="records-section animate-in">
           <p className="status-text empty">
@@ -710,6 +797,7 @@ function App() {
         </section>
       )}
     </div>
+    </PullToRefresh>
   )
 }
 

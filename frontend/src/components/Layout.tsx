@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { Outlet } from 'react-router-dom'
 import TopBar, { getTheme, applyTheme } from './TopBar'
 import BottomNav from './BottomNav'
+import SmartFAB from './SmartFAB'
 import './Layout.css'
 
 function Layout() {
@@ -25,6 +26,7 @@ function Layout() {
         <Outlet />
       </main>
       <BottomNav />
+      <SmartFAB />
     </div>
   )
 }

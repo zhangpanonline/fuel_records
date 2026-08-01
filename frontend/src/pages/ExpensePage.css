@@ -99,38 +99,55 @@
 /* ── 日期 + 备注 ── */
 .meta-row {
   display: flex;
-  gap: 8px;
+  gap: 10px;
   margin-bottom: 16px;
 }
 
 .date-input {
   flex: 1;
-  padding: 10px 12px;
-  border-radius: 12px;
+  min-width: 0;
+  padding: 12px 16px;
+  font-size: 15px;
+  border-radius: 14px;
   border: 1px solid var(--border);
-  background: var(--input-bg);
-  color: var(--text-primary);
-  font-size: 14px;
+  background: var(--card-bg);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  color: var(--text-body);
   outline: none;
+  box-sizing: border-box;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .date-input:focus {
   border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.08);
 }
 
 .note-input {
-  flex: 2;
-  padding: 10px 12px;
-  border-radius: 12px;
+  flex: 1;
+  min-width: 0;
+  padding: 12px 16px;
+  font-size: 15px;
+  border-radius: 14px;
   border: 1px solid var(--border);
-  background: var(--input-bg);
-  color: var(--text-primary);
-  font-size: 14px;
+  background: var(--card-bg);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  color: var(--text-body);
   outline: none;
+  box-sizing: border-box;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.note-input::placeholder {
+  color: var(--text-dim);
+  font-size: 14px;
 }
 
 .note-input:focus {
   border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.08);
 }
 
 /* ── 提交按钮 ── */
@@ -184,7 +201,7 @@
 .expense-item {
   display: flex;
   align-items: center;
-  padding: 14px 12px;
+  min-height: 80px;
   background: var(--card-bg);
   border-radius: 14px;
   margin-bottom: 8px;
@@ -194,14 +211,10 @@
   user-select: none;
 }
 
-.expense-item-left {
-  flex: 1;
-  min-width: 0;
-}
-
 .expense-item-category {
-  font-size: 12px;
-  margin-bottom: 2px;
+  font-size: 13px;
+  margin-bottom: 0;
+  white-space: nowrap;
 }
 
 .expense-item-category .cat-l1 { color: var(--text-secondary); }
@@ -209,7 +222,23 @@
 .expense-item-category .cat-l3 { color: var(--text-dim); }
 .expense-item-category .cat-sep { color: var(--text-dim); margin: 0 2px; }
 
-.expense-item-bottom {
+/* ── 第二行：金额 + 编辑 ── */
+.expense-item-row2 {
+  display: flex;
+  align-items: baseline;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.expense-item-amount {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text-primary);
+  white-space: nowrap;
+}
+
+/* ── 第三行：日期 + 备注 ── */
+.expense-item-row3 {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -217,40 +246,18 @@
   color: var(--text-dim);
 }
 
-.expense-item-amount {
-  font-size: 18px;
-  font-weight: 700;
-  color: var(--text-primary);
-  margin-left: 12px;
-  white-space: nowrap;
-}
-
-.expense-item-actions {
-  display: flex;
-  gap: 4px;
-  margin-left: 8px;
-}
-
-.expense-edit-btn, .expense-delete-btn {
+.expense-edit-btn {
   padding: 6px 10px;
   border: none;
   border-radius: 8px;
   font-size: 12px;
   cursor: pointer;
+  background: var(--border-light);
+  color: var(--text-secondary);
   transition: opacity 0.2s;
 }
 
-.expense-edit-btn {
-  background: var(--border-light);
-  color: var(--text-secondary);
-}
-
-.expense-delete-btn {
-  background: rgba(239, 68, 68, 0.08);
-  color: #ef4444;
-}
-
-.expense-edit-btn:active, .expense-delete-btn:active {
+.expense-edit-btn:active {
   opacity: 0.6;
 }
 
@@ -261,21 +268,31 @@
   top: 0;
   bottom: 0;
   width: 80px;
-  background: #ef4444;
+  background: linear-gradient(135deg, #e74c4c 0%, #c0392b 100%);
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #fff;
+  color: rgba(255, 255, 255, 0.95);
   font-size: 14px;
   font-weight: 600;
+  letter-spacing: 0.5px;
   border-radius: 0 14px 14px 0;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 2px 8px rgba(231, 76, 76, 0.25);
+  transform: translateX(80px);
+  transition: transform 0.25s cubic-bezier(0.22, 0.61, 0.36, 1);
 }
 
 .expense-item-inner {
   display: flex;
-  align-items: center;
+  flex-direction: column;
+  gap: 0;
   width: 100%;
-  transition: transform 0.2s ease-out;
+  padding: 14px 12px;
+  background: var(--card-bg);
+  border-radius: 14px;
+  transition: transform 0.25s cubic-bezier(0.22, 0.61, 0.36, 1);
+  position: relative;
+  z-index: 1;
 }
 
 /* 加载更多 */
@@ -300,28 +317,6 @@
   padding: 40px 20px;
   color: var(--text-dim);
   font-size: 14px;
-}
-
-/* 底部浮动按钮 */
-.fab {
-  position: fixed;
-  bottom: 80px;
-  right: 20px;
-  width: 52px;
-  height: 52px;
-  border-radius: 26px;
-  border: none;
-  background: var(--accent);
-  color: #fff;
-  font-size: 24px;
-  cursor: pointer;
-  box-shadow: 0 4px 16px rgba(99, 102, 241, 0.4);
-  z-index: 50;
-  transition: transform 0.2s;
-}
-
-.fab:active {
-  transform: scale(0.9);
 }
 
 /* 快速创建分类弹窗 */

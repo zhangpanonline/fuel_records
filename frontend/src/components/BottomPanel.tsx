@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo, useCallback } from 'react'
 import axios from 'axios'
 import {
   createCategory,
@@ -7,7 +7,21 @@ import {
   fetchExpenseStats,
   type ExpenseCategory,
   type BreakdownItem,
+  type PeriodItem,
 } from '../services/api'
+import {
+  PieChart,
+  Pie,
+  Cell,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+} from 'recharts'
 import './BottomPanel.css'
 
 interface BottomPanelProps {
@@ -176,55 +190,102 @@ function CategoryManager({
 }
 
 /* ================================================================
-   StatsPanel — 统计面板
+   StatsPanel — 统计面板（饼图下钻 + 堆叠柱状图 + 旭日图）
    ================================================================ */
+type ChartType = 'pie' | 'bar' | 'sunburst'
+
+const CHART_COLORS = [
+  '#5470c6', '#91cc75', '#fac858', '#ee6666', '#73c0de',
+  '#3ba272', '#fc8452', '#9a60b4', '#ea7ccc', '#6e7074',
+]
+
 function StatsPanel() {
   const [period, setPeriod] = useState('month')
-  const [data, setData] = useState<{
-    total_amount?: number
-    record_count?: number
-    avg_daily?: number
-    category_breakdown?: BreakdownItem[]
-  } | null>(null)
+  const [chartType, setChartType] = useState<ChartType>('pie')
   const [loading, setLoading] = useState(true)
 
-  function getDateRange(p: string): [string, string] {
+  // summary 数据（饼图 / 旭日图用）
+  const [summaryData, setSummaryData] = useState<{
+    total_amount: number
+    record_count: number
+    avg_daily: number
+    category_breakdown: BreakdownItem[]
+  } | null>(null)
+
+  // monthly 数据（堆叠柱状图用）
+  const [monthlyData, setMonthlyData] = useState<PeriodItem[] | null>(null)
+
+  // 饼图下钻状态
+  const [drillL1, setDrillL1] = useState<string | null>(null)
+  const [drillL2, setDrillL2] = useState<string | null>(null)
+
+  const [summaryLoaded, setSummaryLoaded] = useState(false)
+  const [monthlyLoaded, setMonthlyLoaded] = useState(false)
+
+  const getDateRange = useCallback((p: string): [string, string] => {
     const now = new Date()
     const end = now.toISOString().slice(0, 10)
-    let start = end
+    let start: string
     if (p === 'month') {
       start = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-01`
     } else if (p === 'year') {
       start = `${now.getFullYear()}-01-01`
-    } else if (p === 'week') {
+    } else {
       const d = new Date(now)
       d.setDate(d.getDate() - 7)
       start = d.toISOString().slice(0, 10)
     }
     return [start, end]
-  }
+  }, [])
 
-  async function loadStats() {
-    setLoading(true)
+  // 加载汇总数据
+  const loadSummary = useCallback(async () => {
     try {
       const [start, end] = getDateRange(period)
       const stats = await fetchExpenseStats(start, end, 'none')
-      setData({
+      setSummaryData({
         total_amount: stats.total_amount ? Number(stats.total_amount) : 0,
         record_count: stats.record_count || 0,
         avg_daily: stats.avg_daily || 0,
         category_breakdown: stats.category_breakdown || [],
       })
+      setSummaryLoaded(true)
     } catch {
-      setData(null)
+      setSummaryData(null)
+      setSummaryLoaded(true)
     } finally {
-      setLoading(false)
+      // 汇总数据加载完毕可停止 loading
     }
-  }
+  }, [period, getDateRange])
+
+  // 加载月度数据
+  const loadMonthly = useCallback(async () => {
+    try {
+      const [start, end] = getDateRange(period)
+      const stats = await fetchExpenseStats(start, end, 'month')
+      setMonthlyData(stats.items || [])
+      setMonthlyLoaded(true)
+    } catch {
+      setMonthlyData(null)
+      setMonthlyLoaded(true)
+    }
+  }, [period, getDateRange])
 
   useEffect(() => {
-    loadStats()
-  }, [period])
+    setLoading(true)
+    setSummaryLoaded(false)
+    setMonthlyLoaded(false)
+    setDrillL1(null)
+    setDrillL2(null)
+    loadSummary()
+    loadMonthly()
+  }, [period, loadSummary, loadMonthly])
+
+  useEffect(() => {
+    if (summaryLoaded && monthlyLoaded) {
+      setLoading(false)
+    }
+  }, [summaryLoaded, monthlyLoaded])
 
   const periods = [
     { key: 'month', label: '本月' },
@@ -232,13 +293,196 @@ function StatsPanel() {
     { key: 'week', label: '近一周' },
   ]
 
-  // 构建树形数据用于饼图展示（仅 L1 汇总）
-  const l1Breakdown = (data?.category_breakdown || []).filter(
-    (b) => b.category_l2 === null && b.category_l3 === null,
-  )
+  const chartTypes: { key: ChartType; label: string }[] = [
+    { key: 'pie', label: '饼图' },
+    { key: 'bar', label: '柱状图' },
+    { key: 'sunburst', label: '旭日图' },
+  ]
+
+  // ── 饼图下钻数据 ──
+  const pieData = useMemo(() => {
+    const breakdown = summaryData?.category_breakdown || []
+    if (!drillL1 && !drillL2) {
+      // L1 汇总
+      return breakdown
+        .filter((b) => b.category_l2 === null && b.category_l3 === null)
+        .map((b) => ({ name: b.category_l1 || '未分类', value: Number(b.total) }))
+    }
+    if (drillL1 && !drillL2) {
+      // L2 汇总（指定 L1 下的）
+      return breakdown
+        .filter(
+          (b) =>
+            b.category_l1 === drillL1 &&
+            b.category_l2 !== null &&
+            b.category_l3 === null,
+        )
+        .map((b) => ({ name: b.category_l2 || '', value: Number(b.total) }))
+    }
+    if (drillL1 && drillL2) {
+      // L3 明细
+      return breakdown
+        .filter(
+          (b) =>
+            b.category_l1 === drillL1 &&
+            b.category_l2 === drillL2 &&
+            b.category_l3 !== null,
+        )
+        .map((b) => ({ name: b.category_l3 || '', value: Number(b.total) }))
+    }
+    return []
+  }, [summaryData, drillL1, drillL2])
+
+  const pieTitle = drillL1
+    ? drillL2
+      ? `${drillL1} / ${drillL2}`
+      : drillL1
+    : '一级分类'
+
+  // ── 堆叠柱状图数据 ──
+  const barData = useMemo(() => {
+    if (!monthlyData) return []
+    // 收集所有 L1 categories
+    const l1Set = new Set<string>()
+    monthlyData.forEach((p) => {
+      p.breakdown
+        .filter((b) => b.category_l2 === null && b.category_l3 === null && b.category_l1)
+        .forEach((b) => l1Set.add(b.category_l1!))
+    })
+    const l1List = Array.from(l1Set)
+
+    return monthlyData.map((p) => {
+      const row: Record<string, number | string> = { period: p.period }
+      const l1Totals: Record<string, number> = {}
+      p.breakdown
+        .filter((b) => b.category_l2 === null && b.category_l3 === null && b.category_l1)
+        .forEach((b) => {
+          l1Totals[b.category_l1!] = Number(b.total)
+        })
+      l1List.forEach((l1) => {
+        row[l1] = l1Totals[l1] || 0
+      })
+      return row
+    })
+  }, [monthlyData])
+
+  // ── 旭日图数据 ──
+  const sunburstData = useMemo(() => {
+    const breakdown = summaryData?.category_breakdown || []
+    if (!breakdown.length) return null
+
+    // Build tree: { name, children: { name, children: { name, value } } }
+    const tree: Record<
+      string,
+      {
+        name: string
+        children: Record<
+          string,
+          {
+            name: string
+            children: Record<string, { name: string; value: number }>
+          }
+        >
+      }
+    > = {}
+
+    breakdown.forEach((b) => {
+      if (!b.category_l1) return
+      const l1 = b.category_l1
+
+      if (!tree[l1]) {
+        tree[l1] = { name: l1, children: {} }
+      }
+
+      if (b.category_l2) {
+        const l2 = b.category_l2
+        if (!tree[l1].children[l2]) {
+          tree[l1].children[l2] = { name: l2, children: {} }
+        }
+
+        if (b.category_l3) {
+          const l3 = b.category_l3
+          tree[l1].children[l2].children[l3] = {
+            name: l3,
+            value: Number(b.total),
+          }
+        } else {
+          // L2 summary row — set value directly
+          if (!tree[l1].children[l2].children['__self__']) {
+            tree[l1].children[l2].children['__self__'] = {
+              name: l2,
+              value: 0,
+            }
+          }
+          tree[l1].children[l2].children['__self__'].value += Number(b.total)
+        }
+      } else {
+        // L1 summary row — add to self
+        if (!tree[l1].children['__self__']) {
+          tree[l1].children['__self__'] = { name: l1, children: {} }
+        }
+        if (!tree[l1].children['__self__'].children['__value__']) {
+          tree[l1].children['__self__'].children['__value__'] = {
+            name: l1,
+            value: 0,
+          }
+        }
+        tree[l1].children['__self__'].children['__value__'].value +=
+          Number(b.total)
+      }
+    })
+
+    // Convert to nivo sunburst format
+    function toSunburstNode(
+      nodes: Record<string, { name: string; value?: number; children?: Record<string, unknown> }>,
+      parentName: string,
+    ): Record<string, unknown>[] {
+      return Object.values(nodes)
+        .filter((n) => n.name !== parentName)
+        .map((n) => {
+          const node: Record<string, unknown> = { name: n.name }
+          if (n.children) {
+            node.children = toSunburstNode(
+              n.children as Record<string, { name: string; value?: number; children?: Record<string, unknown> }>,
+              n.name,
+            )
+          } else if (n.value !== undefined) {
+            node.value = n.value
+          }
+          return node
+        })
+    }
+
+    const topLevel: Record<string, unknown>[] = Object.values(tree).map((l1Node) => {
+      const children = toSunburstNode(
+        l1Node.children as Record<string, { name: string; value?: number; children?: Record<string, unknown> }>,
+        l1Node.name,
+      )
+      // Calculate total value for this L1
+      function sumValues(arr: readonly Record<string, unknown>[]): number {
+        let s = 0
+        for (const obj of arr) {
+          if (typeof obj.value === 'number') s += obj.value
+          if (Array.isArray(obj.children)) s += sumValues(obj.children as readonly Record<string, unknown>[])
+        }
+        return s
+      }
+      return {
+        name: l1Node.name,
+        children,
+        value: sumValues(children as readonly Record<string, unknown>[]),
+      }
+    })
+
+    return { name: '总支出', children: topLevel }
+  }, [summaryData])
+
+  // 简易旭日图 - 用 recharts Pie 叠加实现（无 @nivo 依赖的备选）
+  const hasPieData = pieData.length > 0
 
   return (
     <div>
+      {/* 时间快捷选择 */}
       <div className="stats-time-row">
         {periods.map((p) => (
           <button
@@ -253,67 +497,184 @@ function StatsPanel() {
 
       {loading && <div className="chart-placeholder">加载中...</div>}
 
-      {!loading && data && (
+      {!loading && !summaryData && (
+        <div className="chart-placeholder">加载失败，请重试</div>
+      )}
+
+      {!loading && summaryData && (
         <>
+          {/* 汇总卡片 */}
           <div className="stats-summary">
             <div className="stats-card">
-              <div className="stats-card-value">¥{data.total_amount?.toFixed(2)}</div>
+              <div className="stats-card-value">
+                ¥{summaryData.total_amount.toFixed(2)}
+              </div>
               <div className="stats-card-label">总支出</div>
             </div>
             <div className="stats-card">
-              <div className="stats-card-value">{data.record_count}</div>
+              <div className="stats-card-value">
+                {summaryData.record_count}
+              </div>
               <div className="stats-card-label">笔数</div>
             </div>
             <div className="stats-card">
-              <div className="stats-card-value">¥{data.avg_daily?.toFixed(2)}</div>
-              <div className="stats-card-label">日均</div>
-            </div>
-            <div className="stats-card">
               <div className="stats-card-value">
-                {data.category_breakdown && data.category_breakdown.length > 0
-                  ? data.category_breakdown.filter((b) => b.category_l1).length
-                  : 0}
+                ¥{summaryData.avg_daily.toFixed(2)}
               </div>
-              <div className="stats-card-label">分类项</div>
+              <div className="stats-card-label">日均</div>
             </div>
           </div>
 
-          {/* L1 分类饼图文本版（等后面安装 recharts 完善） */}
-          {l1Breakdown.length > 0 && (
-            <>
-              <h4 style={{ fontSize: 14, color: 'var(--text-secondary)', marginBottom: 12 }}>
-                一级分类占比
-              </h4>
-              {l1Breakdown.map((item) => (
-                <div
-                  key={item.category_l1}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    padding: '8px 0',
-                    borderBottom: '1px solid var(--border)',
-                  }}
-                >
-                  <span style={{ fontSize: 13, color: 'var(--text-primary)' }}>
-                    {item.category_l1}
-                  </span>
-                  <span style={{ fontSize: 13, color: 'var(--text-secondary)' }}>
-                    ¥{Number(item.total).toFixed(2)} ({item.percentage}%)
-                  </span>
-                </div>
-              ))}
-            </>
+          {/* 图表类型切换 */}
+          <div className="stats-time-row" style={{ marginTop: 8 }}>
+            {chartTypes.map((ct) => (
+              <button
+                key={ct.key}
+                className={`stats-time-btn ${chartType === ct.key ? 'active' : ''}`}
+                onClick={() => {
+                  setChartType(ct.key)
+                  if (ct.key !== 'bar') {
+                    setDrillL1(null)
+                    setDrillL2(null)
+                  }
+                }}
+              >
+                {ct.label}
+              </button>
+            ))}
+          </div>
+
+          {/* 饼图下钻 */}
+          {chartType === 'pie' && (
+            <div style={{ marginTop: 12 }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4, marginBottom: 4 }}>
+                {drillL1 && (
+                  <button
+                    className="stats-time-btn"
+                    onClick={() => {
+                      if (drillL2) {
+                        setDrillL2(null)
+                      } else {
+                        setDrillL1(null)
+                      }
+                    }}
+                  >
+                    ← 返回
+                  </button>
+                )}
+                <span style={{ fontSize: 12, color: 'var(--text-secondary)' }}>
+                  {pieTitle}
+                </span>
+              </div>
+              {hasPieData ? (
+                <ResponsiveContainer width="100%" height={240}>
+                  <PieChart>
+                    <Pie
+                      data={pieData}
+                      dataKey="value"
+                      nameKey="name"
+                      cx="50%"
+                      cy="50%"
+                      outerRadius={80}
+                      label={({ name, percent }) =>
+                        `${name} ${((percent ?? 0) * 100).toFixed(0)}%`
+                      }
+                      onClick={(_, index) => {
+                        const item = pieData[index]
+                        const name = item.name
+                        if (!drillL1) {
+                          setDrillL1(name)
+                        } else if (!drillL2) {
+                          setDrillL2(name)
+                        }
+                      }}
+                    >
+                      {pieData.map((_, i) => (
+                        <Cell
+                          key={i}
+                          fill={CHART_COLORS[i % CHART_COLORS.length]}
+                        />
+                      ))}
+                    </Pie>
+                    <Tooltip formatter={(v) => `¥${Number(v).toFixed(2)}`} />
+                  </PieChart>
+                </ResponsiveContainer>
+              ) : (
+                <div className="chart-placeholder">暂无分类数据</div>
+              )}
+            </div>
           )}
 
-          {l1Breakdown.length === 0 && (
-            <div className="chart-placeholder">暂无数据</div>
+          {/* 堆叠柱状图 */}
+          {chartType === 'bar' && (
+            <div style={{ marginTop: 12 }}>
+              {barData.length > 0 ? (
+                <ResponsiveContainer width="100%" height={240}>
+                  <BarChart data={barData}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="period" tick={{ fontSize: 11 }} />
+                    <YAxis tick={{ fontSize: 11 }} />
+                    <Tooltip formatter={(v) => `¥${Number(v).toFixed(2)}`} />
+                    <Legend wrapperStyle={{ fontSize: 11 }} />
+                    {Object.keys(barData[0] || {})
+                      .filter((k) => k !== 'period')
+                      .map((l1, i) => (
+                        <Bar
+                          key={l1}
+                          dataKey={l1}
+                          stackId="a"
+                          fill={CHART_COLORS[i % CHART_COLORS.length]}
+                        />
+                      ))}
+                  </BarChart>
+                </ResponsiveContainer>
+              ) : (
+                <div className="chart-placeholder">暂无月度数据</div>
+              )}
+            </div>
+          )}
+
+          {/* 旭日图 */}
+          {chartType === 'sunburst' && (
+            <div style={{ marginTop: 12 }}>
+              {sunburstData && Array.isArray(sunburstData.children) && sunburstData.children.length > 0 ? (
+                <ResponsiveContainer width="100%" height={240}>
+                  <PieChart>
+                    <Pie
+                      data={
+                        sunburstData.children.map((child: Record<string, unknown>) => ({
+                          name: child.name as string,
+                          value: child.value as number,
+                        })) as { name: string; value: number }[]
+                      }
+                      dataKey="value"
+                      nameKey="name"
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={30}
+                      outerRadius={80}
+                      label={({ name, percent }) =>
+                        `${name} ${((percent ?? 0) * 100).toFixed(0)}%`
+                      }
+                    >
+                      {(sunburstData.children as Array<Record<string, unknown>>).map(
+                        (_, i) => (
+                          <Cell
+                            key={i}
+                            fill={CHART_COLORS[i % CHART_COLORS.length]}
+                          />
+                        ),
+                      )}
+                    </Pie>
+                    <Tooltip formatter={(v) => `¥${Number(v).toFixed(2)}`} />
+                  </PieChart>
+                </ResponsiveContainer>
+              ) : (
+                <div className="chart-placeholder">暂无层级数据</div>
+              )}
+            </div>
           )}
         </>
-      )}
-
-      {!loading && !data && (
-        <div className="chart-placeholder">加载失败，请重试</div>
       )}
     </div>
   )

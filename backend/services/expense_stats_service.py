@@ -171,18 +171,24 @@ def get_stats(
     if group_by == "month":
         if db_type == "sqlite":
             period_expr = func.strftime("%Y-%m", Expense.expense_date)
-        else:
+        elif db_type == "mysql":
             period_expr = func.date_format(Expense.expense_date, "%Y-%m")
+        else:  # postgresql / postgresql_test
+            period_expr = func.to_char(Expense.expense_date, "YYYY-MM")
     elif group_by == "week":
         if db_type == "sqlite":
             period_expr = func.strftime("%Y-W%W", Expense.expense_date)
-        else:
+        elif db_type == "mysql":
             period_expr = func.date_format(Expense.expense_date, "%Y-W%u")
+        else:
+            period_expr = func.to_char(Expense.expense_date, 'IYYY-"W"IW')
     else:  # year
         if db_type == "sqlite":
             period_expr = func.strftime("%Y", Expense.expense_date)
-        else:
+        elif db_type == "mysql":
             period_expr = func.date_format(Expense.expense_date, "%Y")
+        else:
+            period_expr = func.to_char(Expense.expense_date, "YYYY")
 
     # 查询每个时间段的总金额和记录数
     period_rows = (

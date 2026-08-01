@@ -67,11 +67,9 @@ def _compute_breakdown_rollup(db: Session, q) -> list[BreakdownItem]:
         # SQLite：多次 GROUP BY + Python 合并
         rows = _breakdown_sqlite(q)
 
-    # 计算总额用于 percentage
-    grand_total = sum(
-        (Decimal(str(r[3])) for r in rows if r[0] is not None
-         and r[1] is None and r[2] is None),
-        Decimal("0"),
+    # 计算总额用于 percentage — 直接用独立 SUM 查询，不依赖 ROLLUP 行排列顺序
+    grand_total = Decimal(
+        str(q.with_entities(func.sum(Expense.amount)).scalar() or 0)
     )
 
     result: list[BreakdownItem] = []

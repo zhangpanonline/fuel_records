@@ -240,6 +240,7 @@ export default function ExpensePage() {
 
   // 加载更多
   function handleLoadMore() {
+    if (loading) return
     loadExpenses(page + 1)
   }
 

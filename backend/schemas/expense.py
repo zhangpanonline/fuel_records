@@ -4,7 +4,7 @@ from datetime import date, datetime
 from decimal import Decimal
 from typing import Optional
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 
 
 # ── 支出记录 ──
@@ -28,6 +28,8 @@ class ExpenseUpdate(BaseModel):
 
 
 class ExpenseResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     id: int
     amount: Decimal
     category_l1: str
@@ -37,9 +39,6 @@ class ExpenseResponse(BaseModel):
     expense_date: date
     created_at: datetime
     updated_at: Optional[datetime] = None
-
-    class Config:
-        from_attributes = True
 
 
 class ExpenseListResponse(BaseModel):
@@ -63,14 +62,13 @@ class CategoryUpdate(BaseModel):
 
 
 class CategoryResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     id: int
     name: str
     level: int
     sort_order: int
     children: list["CategoryResponse"] = []
-
-    class Config:
-        from_attributes = True
 
 
 class CategoryListResponse(BaseModel):

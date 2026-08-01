@@ -273,19 +273,23 @@ function StatsPanel() {
 
   useEffect(() => {
     setLoading(true)
-    setSummaryLoaded(false)
-    setMonthlyLoaded(false)
     setDrillL1(null)
     setDrillL2(null)
-    loadSummary()
-    loadMonthly()
-  }, [period, loadSummary, loadMonthly])
+    // 懒加载：只请求当前图表类型需要的数据
+    if (chartType === 'bar') {
+      setMonthlyLoaded(false)
+      loadMonthly()
+    } else {
+      setSummaryLoaded(false)
+      loadSummary()
+    }
+  }, [period, chartType, loadSummary, loadMonthly])
 
   useEffect(() => {
-    if (summaryLoaded && monthlyLoaded) {
+    if (chartType === 'bar' ? monthlyLoaded : summaryLoaded) {
       setLoading(false)
     }
-  }, [summaryLoaded, monthlyLoaded])
+  }, [summaryLoaded, monthlyLoaded, chartType])
 
   const periods = [
     { key: 'month', label: '本月' },
@@ -366,115 +370,12 @@ function StatsPanel() {
     })
   }, [monthlyData])
 
-  // ── 旭日图数据 ──
+  // ── 旭日图数据 — 直接用 L1 汇总行 ──
   const sunburstData = useMemo(() => {
     const breakdown = summaryData?.category_breakdown || []
-    if (!breakdown.length) return null
-
-    // Build tree: { name, children: { name, children: { name, value } } }
-    const tree: Record<
-      string,
-      {
-        name: string
-        children: Record<
-          string,
-          {
-            name: string
-            children: Record<string, { name: string; value: number }>
-          }
-        >
-      }
-    > = {}
-
-    breakdown.forEach((b) => {
-      if (!b.category_l1) return
-      const l1 = b.category_l1
-
-      if (!tree[l1]) {
-        tree[l1] = { name: l1, children: {} }
-      }
-
-      if (b.category_l2) {
-        const l2 = b.category_l2
-        if (!tree[l1].children[l2]) {
-          tree[l1].children[l2] = { name: l2, children: {} }
-        }
-
-        if (b.category_l3) {
-          const l3 = b.category_l3
-          tree[l1].children[l2].children[l3] = {
-            name: l3,
-            value: Number(b.total),
-          }
-        } else {
-          // L2 summary row — set value directly
-          if (!tree[l1].children[l2].children['__self__']) {
-            tree[l1].children[l2].children['__self__'] = {
-              name: l2,
-              value: 0,
-            }
-          }
-          tree[l1].children[l2].children['__self__'].value += Number(b.total)
-        }
-      } else {
-        // L1 summary row — add to self
-        if (!tree[l1].children['__self__']) {
-          tree[l1].children['__self__'] = { name: l1, children: {} }
-        }
-        if (!tree[l1].children['__self__'].children['__value__']) {
-          tree[l1].children['__self__'].children['__value__'] = {
-            name: l1,
-            value: 0,
-          }
-        }
-        tree[l1].children['__self__'].children['__value__'].value +=
-          Number(b.total)
-      }
-    })
-
-    // Convert to nivo sunburst format
-    function toSunburstNode(
-      nodes: Record<string, { name: string; value?: number; children?: Record<string, unknown> }>,
-      parentName: string,
-    ): Record<string, unknown>[] {
-      return Object.values(nodes)
-        .filter((n) => n.name !== parentName)
-        .map((n) => {
-          const node: Record<string, unknown> = { name: n.name }
-          if (n.children) {
-            node.children = toSunburstNode(
-              n.children as Record<string, { name: string; value?: number; children?: Record<string, unknown> }>,
-              n.name,
-            )
-          } else if (n.value !== undefined) {
-            node.value = n.value
-          }
-          return node
-        })
-    }
-
-    const topLevel: Record<string, unknown>[] = Object.values(tree).map((l1Node) => {
-      const children = toSunburstNode(
-        l1Node.children as Record<string, { name: string; value?: number; children?: Record<string, unknown> }>,
-        l1Node.name,
-      )
-      // Calculate total value for this L1
-      function sumValues(arr: readonly Record<string, unknown>[]): number {
-        let s = 0
-        for (const obj of arr) {
-          if (typeof obj.value === 'number') s += obj.value
-          if (Array.isArray(obj.children)) s += sumValues(obj.children as readonly Record<string, unknown>[])
-        }
-        return s
-      }
-      return {
-        name: l1Node.name,
-        children,
-        value: sumValues(children as readonly Record<string, unknown>[]),
-      }
-    })
-
-    return { name: '总支出', children: topLevel }
+    return breakdown
+      .filter((b) => b.category_l2 === null && b.category_l3 === null)
+      .map((b) => ({ name: b.category_l1 || '未分类', value: Number(b.total) }))
   }, [summaryData])
 
   // 简易旭日图 - 用 recharts Pie 叠加实现（无 @nivo 依赖的备选）
@@ -637,16 +538,11 @@ function StatsPanel() {
           {/* 旭日图 */}
           {chartType === 'sunburst' && (
             <div style={{ marginTop: 12 }}>
-              {sunburstData && Array.isArray(sunburstData.children) && sunburstData.children.length > 0 ? (
+              {sunburstData.length > 0 ? (
                 <ResponsiveContainer width="100%" height={240}>
                   <PieChart>
                     <Pie
-                      data={
-                        sunburstData.children.map((child: Record<string, unknown>) => ({
-                          name: child.name as string,
-                          value: child.value as number,
-                        })) as { name: string; value: number }[]
-                      }
+                      data={sunburstData}
                       dataKey="value"
                       nameKey="name"
                       cx="50%"
@@ -657,14 +553,12 @@ function StatsPanel() {
                         `${name} ${((percent ?? 0) * 100).toFixed(0)}%`
                       }
                     >
-                      {(sunburstData.children as Array<Record<string, unknown>>).map(
-                        (_, i) => (
-                          <Cell
-                            key={i}
-                            fill={CHART_COLORS[i % CHART_COLORS.length]}
-                          />
-                        ),
-                      )}
+                      {sunburstData.map((_, i) => (
+                        <Cell
+                          key={i}
+                          fill={CHART_COLORS[i % CHART_COLORS.length]}
+                        />
+                      ))}
                     </Pie>
                     <Tooltip formatter={(v) => `¥${Number(v).toFixed(2)}`} />
                   </PieChart>

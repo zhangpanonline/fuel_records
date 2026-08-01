@@ -12,7 +12,10 @@ fuel_records/
 │
 ├── README.md                     # 项目规格书：架构、数据库设计、API、迭代计划
 │
-├── README.tickets.md             # 任务拆解清单：8 个 Phase 的原子 Ticket，教学进度
+├── EXPENSE_SPEC.md               # 记账模块规格书（P10 新增）
+│                                 # └ 数据模型/API/前端/边界/依赖完整设计（经 13 轮审查、35 项修正）
+│
+├── README.tickets.md             # 任务拆解清单：10 个 Phase 的原子 Ticket，教学进度
 │
 ├── DIR.md                        # 本文件：目录结构说明
 │
@@ -26,8 +29,8 @@ fuel_records/
 │   │
 │   ├── main.py                   # 入口文件：创建 FastAPI 实例、挂载中间件/路由、启动服务
 │   │                             # 关键函数：lifespan（启动时 init_db）、health_check
-│   │                             # 路由：records, auth, vehicles, stats（P6 新增 stats）
-│   │                             # 已注册路由：GET /api/v1/health, /api/v1/records/*, /api/v1/auth/*, /api/v1/vehicles/*, /api/v1/stats/*
+│   │                             # 路由：records, auth, vehicles, stats, expenses, expense_categories（P10 新增后两者）
+│   │                             # 已注册路由：GET /api/v1/health, /api/v1/records/*, /api/v1/auth/*, /api/v1/vehicles/*, /api/v1/stats/*, /api/v1/expenses/*
 │   │
 │   ├── config.py                 # 配置管理：读取 .env，提供 Settings 单例
 │   │                             # 关键类：Settings(BaseSettings)
@@ -58,15 +61,24 @@ fuel_records/
 │   │   │                         # └ 字段：id, username(unique), email(unique),
 │   │   │                         #          hashed_password, is_active, created_at, updated_at
 │   │   │                         # └ 关系：records → FuelRecord（一对多）, vehicles → Vehicle（一对多，P5 新增）
+│   │   │                         #         expenses → Expense（一对多，P10 新增）, categories → ExpenseCategory（一对多，P10 新增）
 │   │   ├── fuel_record.py        # FuelRecord 模型：加油记录表
 │   │   │                         # └ 字段：id, user_id(FK), vehicle_id(FK, P5新增), mileage, fuel_volume, fuel_cost,
 │   │   │                         #          unit_price, is_full_tank, is_baseline,
 │   │   │                         #          fuel_consumption, note, record_date, created_at
 │   │   │                         # └ 关系：user → User（多对一）, vehicle → Vehicle（多对一，P5 新增）
-│   │   └── vehicle.py            # Vehicle 模型：车辆表（P5 新增）
-│   │                             # └ 字段：id, user_id(FK), name, plate(可选),
-│   │                             #          initial_mileage, is_active, created_at
-│   │                             # └ 关系：user → User（多对一）, records → FuelRecord（一对多）
+│   │   ├── vehicle.py            # Vehicle 模型：车辆表（P5 新增）
+│   │   │                         # └ 字段：id, user_id(FK), name, plate(可选),
+│   │   │                         #          initial_mileage, is_active, created_at
+│   │   │                         # └ 关系：user → User（多对一）, records → FuelRecord（一对多）
+│   │   ├── expense.py            # Expense 模型：支出记录表（P10 新增）
+│   │   │                         # └ 字段：id, user_id(FK), amount(>0), category_l1/l2/l3(冗余快照),
+│   │   │                         #          note, expense_date, created_at, updated_at
+│   │   │                         # └ 关系：user → User（多对一）
+│   │   └── expense_category.py   # ExpenseCategory 模型：分类表（P10 新增）
+│   │                             # └ 字段：id, user_id(FK), parent_id(FK→self), name, level(1/2/3),
+│   │                             #          sort_order, created_at, updated_at
+│   │                             # └ 关系：user → User（多对一）, parent/children → 自引用树形结构
 │   │
 │   ├── schemas/                  # Pydantic Schema 层：API 请求/响应数据格式
 │   │   │                         # └ P8.4 统一：X | None → Optional[X]（Python 3.9 兼容）
@@ -84,9 +96,20 @@ fuel_records/
 │   │   │                         # ├ VehicleCreate → 创建车辆（name + plate + initial_mileage）
 │   │   │                         # ├ VehicleUpdate → 修改车辆（name/plate/is_active 可选）
 │   │   │                         # └ VehicleResponse → 响应格式
-│   │   └── stats.py              # 统计 Schema（P6 新增）
-│   │                             # ├ SummaryResponse → 汇总统计响应
-│   │                             # └ MonthlyResponse → 月度统计响应
+│   │   ├── stats.py              # 统计 Schema（P6 新增）
+│   │   │                         # ├ SummaryResponse → 汇总统计响应
+│   │   │                         # └ MonthlyResponse → 月度统计响应
+│   │   ├── expense.py            # 支出 Schema（P10 新增）
+│   │   │                         # ├ ExpenseCreate → 创建支出（amount + category_l1/l2/l3 + expense_date）
+│   │   │                         # ├ ExpenseUpdate → 修改支出（所有字段可选）
+│   │   │                         # ├ ExpenseResponse → 响应格式
+│   │   │                         # ├ CategoryCreate → 创建分类（name + parent_id）
+│   │   │                         # ├ CategoryUpdate → 修改分类（name + sort_order，禁止改 parent_id）
+│   │   │                         # └ CategoryResponse → 分类响应（含 children 树形）
+│   │   └── expense_stats.py      # 支出统计 Schema（P10 新增）
+│   │                             # ├ BreakdownItem → 分类汇总行（category_l1/l2/l3 + total + percentage）
+│   │                             # ├ PeriodItem → 分时段汇总（period + total + count + breakdown）
+│   │                             # └ ExpenseStatsResponse → 统计响应（支持 group_by=none/month）
 │   │
 │   ├── routers/                  # API 路由层：定义 HTTP 端点
 │   │   ├── __init__.py           # Python 包标记
@@ -107,6 +130,17 @@ fuel_records/
 │   │   └── stats.py              # 统计路由（P6 新增）
 │   │                             # ├ GET /api/v1/stats/summary → 汇总统计（含 vehicle_id）
 │   │                             # └ GET /api/v1/stats/monthly → 月度统计（含 vehicle_id + year）
+│   │   ├── expenses.py           # 支出记录路由（P10 新增）
+│   │   │                         # ├ POST   /api/v1/expenses          → 创建支出记录（201）
+│   │   │                         # ├ GET    /api/v1/expenses          → 分页查询（按分类/日期筛选）
+│   │   │                         # ├ PUT    /api/v1/expenses/{id}     → 修改记录（校验归属+分类链）
+│   │   │                         # └ DELETE /api/v1/expenses/{id}     → 删除记录（204）
+│   │   └── expense_categories.py # 分类 & 统计路由（P10 新增）
+│   │                             # ├ POST   /api/v1/expenses/categories      → 创建分类（level 自动计算）
+│   │                             # ├ GET    /api/v1/expenses/categories      → 获取分类树（树形返回）
+│   │                             # ├ PUT    /api/v1/expenses/categories/{id} → 修改分类（仅 name/sort_order）
+│   │                             # ├ DELETE /api/v1/expenses/categories/{id} → 删除分类（校验子分类+记录）
+│   │                             # └ GET    /api/v1/expenses/stats           → 多维度统计（group_by + 分类过滤）
 │   │
 │   ├── services/                 # 业务逻辑层：核心算法
 │   │   ├── __init__.py           # Python 包标记
@@ -127,6 +161,16 @@ fuel_records/
 │   │   ├── stats_service.py      # 统计服务（P6 新增）
 │   │   │                         # ├ get_summary() → 汇总统计（总里程/总油量/总金额/平均油耗/平均单价）
 │   │   │                         # └ get_monthly() → 月度统计（按月分组：次数/油量/金额/油耗）
+│   │   ├── expense_service.py    # 支出记录服务（P10 新增）
+│   │   │                         # ├ _validate_category_chain() → 校验 L1→L2→L3 分类链（父子关系+用户归属）
+│   │   │                         # ├ create_expense() → 创建支出（含分类链校验）
+│   │   │                         # ├ get_expenses() → 分页查询（按分类/日期/归属过滤）
+│   │   │                         # ├ get_expense_by_id() → 获取单条记录
+│   │   │                         # ├ update_expense() → 修改（分类链重校验+归属校验）
+│   │   │                         # └ delete_expense() → 删除（归属校验）
+│   │   └── expense_stats_service.py # 支出统计服务（P10 新增）
+│   │                             # ├ get_stats() → 多维度聚合（支持 group_by=none/month/week/year）
+│   │                             # └ 跨数据库兼容：PostgreSQL 用 GROUP BY ROLLUP，SQLite 用多次 GROUP BY + UNION
 │   │
 │   └── core/                     # 基础设施层
 │       ├── __init__.py           # Python 包标记
@@ -147,13 +191,15 @@ fuel_records/
 │   │   ├── script.py.mako         # 迁移脚本模板
 │   │   └── versions/
 │   │       ├── ff245e876ff9_initial_schema.py      # 初始迁移：users + vehicles + fuel_records
-│   │       └── 24b921f41e3b_add_performance_indexes.py  # P8 新增：性能索引（复合索引 + 单列索引）
+│   │       ├── 24b921f41e3b_add_performance_indexes.py  # P8 新增：性能索引（复合索引 + 单列索引）
+│   │       └── 7b168dd2c3d1_add_expense_tables.py       # P10 新增：expenses + expense_categories 表 + 4 个索引
 │   │
 │   ├── tests/                     # pytest 单元测试（P7 新增）
 │   │   ├── __init__.py            # 包标记
 │   │   ├── conftest.py            # 测试基础设施：SQLite :memory: + StaticPool + 独立测试 App
 │   │   ├── test_services.py       # 服务层测试（26 个）：安全/认证/车辆/油耗计算/级联重算/筛选/统计
-│   │   └── test_api.py            # API 层测试（14 个）：鉴权/CRUD/数据隔离
+│   │   ├── test_api.py            # API 层测试（14 个）：鉴权/CRUD/数据隔离
+│   │   └── test_expense_api.py    # 支出模块测试（P10 新增）：17 个测试覆盖分类 CRUD + 支出 CRUD + 统计 + 数据隔离
 │   │
 │   ├── requirements.txt           # Python 依赖列表
 │   │                              # └ P7 新增：alembic, pytest, httpx
@@ -181,12 +227,14 @@ fuel_records/
 │   │
 │   └── src/                      # React 源码
 │       ├── main.tsx              # React 入口：BrowserRouter + Routes 路由配置（P4 新增路由守卫，P6 新增 /stats 路由）
-│       ├── App.tsx               # 主页面：加油表单 + 记录列表 + 车辆选择器（P5）+ 退出 + 筛选面板（P6）+ 统计入口
+│       │                         # └ P10 新增：Layout 包裹 TopBar/BottomNav/Outlet，/ → 重定向 /fuel，新增 /expense
+│       ├── App.tsx               # 加油主页面：加油表单 + 记录列表 + 车辆选择器（P5）+ 筛选面板（P6）+ 统计入口
 │       │                         # └ P4 新增：退出登录（clearToken + 跳转）
 │       │                         # └ P5 新增：车辆下拉选择器 + 添加车辆表单 + localStorage 记忆
 │       │                         # └ P6 新增：筛选面板（日期范围/加满/备注搜索）+ "统计"按钮跳转 /stats
 │       │                         # └ P8 新增：导出按钮（CSV）+ 主题切换 + 加油提醒 + 分页加载更多
-│       │                         # └ P9 新增：useEffect checkUpdate() 启动检测 + 升级弹窗 UI（发现新版本/下载进度/错误重试）
+│       │                         # └ P9 新增：useEffect checkUpdate() 启动检测 + 升级弹窗 UI
+│       │                         # └ P10 变更：主题切换+退出登录移到 TopBar，保留加油核心功能
 │       ├── App.css               # 主页面样式：CSS 变量主题系统（P8 暗色模式）+ 卡片布局 + 按钮
 │       │                         # └ P8.4 新增：8 个 @keyframes（fadeInUp/scaleIn/bgShift/shimmer/glowPulse/float）
 │       │                         #          玻璃态卡片（backdrop-filter）+ 对角渐变背景游走
@@ -198,15 +246,33 @@ fuel_records/
 │       │   ├── LoginPage.tsx     # 登录/注册页面（P4 新增）
 │       │   │                     # └ 两个 Tab 切换登录/注册，成功后存 token 并跳转首页
 │       │   │                     # └ P9 新增：底部显示 app-version（v0.0.1）
-│       │   └── StatsPage.tsx     # 统计页面（P6 新增）
-│       │                         # ├ 概览卡片（总里程/平均油耗/总花费/总加油量）
-│       │                         # ├ 年份选择器 + 月度油耗趋势折线图（Recharts 双Y轴）
-│       │                         # ├ 月度明细表
-│       │                         # └ P8 新增：截图分享（html2canvas）+ 主题切换
-│       │                         # └ P8.4 新增：入场动画 class + 4 色渐变装饰线 + 数值 hover 缩放
-│       │   ├── StatsPage.css      # 统计页面样式：CSS 变量主题 + 玻璃态卡片 + 4 色渐变装饰线
+│       │   ├── StatsPage.tsx     # 油耗统计页面（P6 新增）
+│       │   │                     # ├ 概览卡片（总里程/平均油耗/总花费/总加油量）
+│       │   │                     # ├ 年份选择器 + 月度油耗趋势折线图（Recharts 双Y轴）
+│       │   │                     # ├ 月度明细表
+│       │   │                     # └ P8 新增：截图分享（html2canvas）+ 主题切换
+│       │   │                     # └ P8.4 新增：入场动画 class + 4 色渐变装饰线 + 数值 hover 缩放
+│       │   ├── StatsPage.css      # 油耗统计页面样式：CSS 变量主题 + 玻璃态卡片 + 4 色渐变装饰线
 │       │   │                     # └ P8.4 新增：统计卡片 stagger 交错延迟 fadeInUp + 装饰线 hover 伸长
 │       │   ├── LoginPage.css      # 登录页面样式（P4 新增，P8.4 动画增强）
+│       │   ├── ExpensePage.tsx   # 记账主页面（P10 新增）：金额 → 三级分类级联 → 日期 → 备注 → 提交 → 列表 → 底部面板入口
+│       │   │                     # └ 状态：amount/l1/l2/l3/date/note/editingId/expenses[]/page
+│       │   │                     # └ 编辑回填、左滑删除（touchstart/touchend）、分页加载更多
+│       │   └── ExpensePage.css   # 记账页面样式（P10 新增）：大号金额 ¥ 输入、分类 select、提交按钮、列表项
+│       │
+│       ├── components/           # 通用组件（P10 新增）
+│       │   ├── TopBar.tsx        # 全局顶栏（40px）：左侧 App 名称，右侧主题切换 + 退出登录
+│       │   │                     # └ 主题：light/dark/auto 三态循环，通过 localStorage + data-theme 共享
+│       │   ├── TopBar.css         # 顶栏样式：固定顶部、左右布局、主题按钮
+│       │   ├── BottomNav.tsx      # 底部导航：双 Tab（⛽ 油耗 / 💰 记账），固定底部
+│       │   ├── BottomNav.css      # 底部导航样式：icon + label、active 高亮
+│       │   ├── Layout.tsx         # 全局布局：TopBar + Outlet + BottomNav（/login 除外）
+│       │   ├── BottomPanel.tsx    # 底部弹出面板：分类管理 Tab + 统计 Tab
+│       │   │                     # ├ CategoryNode：树形递归渲染 + 内联重命名/添加子分类/删除
+│       │   │                     # ├ CategoryManager：分类树 + 添加一级分类
+│       │   │                     # └ StatsPanel：汇总卡片 + 饼图下钻/堆叠柱状图/旭日环形图 + 时间选择
+│       │   └── BottomPanel.css    # 面板样式：slideUp 弹出动画 + body 滚动锁定 + Tab 栏
+│       │
 │       └── services/
 │           ├── api.ts            # API 服务层
 │           │                     # ├ FuelRecord / Vehicle 类型定义
@@ -218,6 +284,7 @@ fuel_records/
 │           │                     # ├ Records CRUD: create/fetch（支持筛选参数）/update/delete
 │           │                     # ├ Stats API: fetchSummary() / fetchMonthly()（P6 新增）
 │           │                     # ├ Export API: exportCSV()（P8 新增）
+│           │                     # ├ Expense API: fetch/create/update/delete + fetchCategories + Category CRUD + fetchExpenseStats（P10 新增）
 │           │                     # └ parseRecord() → Decimal 字符串转数字
 │           ├── upgrade.ts        # 版本更新检测服务（P9 新增）
 │           │                     # ├ getLatestVersion()    → fetch Supabase app_versions 表

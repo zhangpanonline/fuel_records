@@ -631,7 +631,7 @@ export default function ExpenseStatsPage() {
                         cx="50%"
                         cy="50%"
                         outerRadius={90}
-                        label={({ cx, cy, midAngle, outerRadius, name, percent }) => {
+                        label={({ cx, cy, midAngle = 0, outerRadius, name, percent }) => {
                           const RADIAN = Math.PI / 180
                           const radius = outerRadius * 1.25
                           const x = cx + radius * Math.cos(-midAngle * RADIAN)
@@ -773,7 +773,7 @@ export default function ExpenseStatsPage() {
                           cx="50%"
                           cy="50%"
                           outerRadius={130}
-                          label={({ cx, cy, midAngle, outerRadius, name, percent }) => {
+                          label={({ cx, cy, midAngle = 0, outerRadius, name, percent }) => {
                             const RADIAN = Math.PI / 180
                             const radius = outerRadius * 1.2
                             const x = cx + radius * Math.cos(-midAngle * RADIAN)

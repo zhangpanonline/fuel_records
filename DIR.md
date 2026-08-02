@@ -38,10 +38,10 @@ fuel_records/
 │   │                             #        DB_PG_URL → Supabase/PostgreSQL 连接串（部署用）
 │   │
 │   ├── database.py               # 数据库连接管理
-│   │                             # 关键对象：engine（连接池）、SessionLocal（会话工厂）
+│   │                             # 关键对象：prod_engine / test_engine（P11 双引擎）、SessionLocal（会话工厂）
 │   │                             #          Base（ORM 基类）
-│   │                             # 关键函数：init_db()（P7 改用 Alembic upgrade head）
-│   │                             #          get_db()（依赖注入）
+│   │                             # 关键函数：init_db()（P7 改用 Alembic upgrade head，P11 对双库同时迁移）
+│   │                             #          get_db()（依赖注入，P11 按 X-Database-Env 头选择 Session）
 │   │
 │   ├── logger.py                 # 日志配置：loguru
 │   │                             # 关键函数：setup_logger()
@@ -132,6 +132,9 @@ fuel_records/
 │   │                             # ├ GET /api/v1/stats/summary → 汇总统计（含 vehicle_id + start_date/end_date 日期筛选）
 │   │                             # ├ GET /api/v1/stats/monthly → 月度统计（含 vehicle_id + start_date/end_date 日期筛选）
 │   │                             # └ GET /api/v1/stats/timeline → 时间线统计（P10 新增：group_by=day/week/month 智能粒度）
+│   │   └── health.py               # 健康检查路由（P11 新增）
+│   │                             # ├ GET /api/v1/health → 基础健康检查
+│   │                             # └ GET /api/v1/health/db → 数据库连接验证（按 X-Database-Env 头选择引擎）
 │   │   ├── expenses.py           # 支出记录路由（P10 新增）
 │   │   │                         # ├ POST   /api/v1/expenses          → 创建支出记录（201）
 │   │   │                         # ├ GET    /api/v1/expenses          → 分页查询（按分类/日期筛选）
@@ -259,6 +262,7 @@ fuel_records/
 │       │   ├── LoginPage.tsx     # 登录/注册页面（P4 新增）
 │       │   │                     # └ 两个 Tab 切换登录/注册，成功后存 token 并跳转首页
 │       │   │                     # └ P9 新增：底部显示 app-version（v0.0.1）
+│       │   │                     # └ P11 新增：标题栏右侧 ⚙ 设置齿轮按钮
 │       │   ├── StatsPage.tsx     # 油耗统计页面（全屏，P6 新增，P10 重构）
 │       │   │                     # ├ 概览卡片（总里程/平均油耗/总花费/总加油量），筛选后仅更新数字不重新渲染
 │       │   │                     # ├ 日期选择器（开始日期 ↔ 结束日期）+ 快捷按钮（近一年/近一月/近一周）
@@ -273,29 +277,42 @@ fuel_records/
 │       │   ├── LoginPage.css      # 登录页面样式（P4 新增，P8.4 动画增强）
 │       │   ├── ExpensePage.tsx   # 记账主页面（P10 新增）：金额 → CategoryPicker 合并选择器 → 日期 → 备注 → 提交 → 列表
 │       │   │                     # └ 状态：amount/l1/l2/l3/date/note/editingId
-│       │   │                     # └ 编辑回填、左滑删除（touchstart/touchend + swipe-bg 可点击）、分页加载更多
+│       │   │                     # └ 编辑回填、左滑删除（500ms 长按 + 震动反馈，防误触）、分页加载更多
+│       │   │                     # └ 编辑态选中项 accent 边框高亮、同日期记录虚线分组
 │       │   │                     # └ 提交/删除时自动更新 CategoryPicker 频次计数（+1/–1）
 │       │   │                     # └ P10.5 重构：状态迁移到 useExpenseData()，三级 select → CategoryPicker
 │       │   │                     # └ P10.6 新增：ExpenseSummaryCards 六卡片（当年/当月/当周/近一年/近一月/近一周累计金额）
 │       │   │                     # └ P10.6 新增：PullToRefresh 下拉刷新 + ExpensePageSkeleton 骨架屏
-│       │   ├── ExpenseStatsPage.tsx  # 记账统计全屏页（P10 重构）：汇总卡片 + 饼图下钻/堆叠柱状图/旭日图 + 折叠式分类管理
-│       │   │                         # └ 分类管理：树形展示 + 内联编辑/添加/删除，点击"管理分类"展开/折叠
-│       │   │                         # └ 统计图表：时间快捷选择 + 饼图下钻（recharts）+ 堆叠柱状图 + 旭日环形图 + 明细表
-│       │   │                         # └ P10.5 重构：categories 迁移到 useExpenseData()，移除本地加载
+│       │   ├── ExpenseStatsPage.tsx  # 记账统计全屏页（P10 重构）：汇总卡片 + 饼图下钻/堆叠柱状图（图例下钻 L1→L2→L3）+ 折叠式分类管理
+│       │   │                         # └ 分类管理：树形展示 + `├──`/`└──` 线段可视化（tree 命令风格）+ CategoryModal 统一弹框（重命名/添加）
+│       │   │                         # └ 分类添加按钮始终可见，CSS 虚线延伸至按钮，一级靠左/二级居中/三级靠右对齐
+│       │   │                         # └ 日期选择：自由日期范围 + 近一年/近一月/近一周快捷按钮
+│       │   │                         # └ 汇总卡片：总支出/笔数/日均，带彩色顶部装饰线（与油耗统计对齐）
+│       │   │                         # └ 饼图下钻："其他"归并（<5% 聚合）+ 递归下钻 + 引导线标签 + 下方 2 列图例（名称/占比/金额）
+│       │   │                         # └ 柱状图下钻：默认 L1 分色堆叠 → 点击图例 → L2 → L3 逐级下钻 + ← 返回按钮
+│       │   │                         # └ P11 变更：旭日图已移除（仅保留饼图和柱状图 ChartType 'pie'|'bar'）
+│       │   │                         # └ 图表全屏：右上角 ⛶ 按钮。柱状图全屏用 layout="vertical"（水平条形图）适配横屏
+│       │   │                         # └ 修改日期不清空页面，仅刷新数据（firstLoad ref 控制）
 │       │   ├── ExpenseStatsPage.css  # 记账统计页样式
 │       │   └── ExpensePage.css   # 记账页面样式（P10 新增）：大号金额 ¥ 输入，CategoryPicker / 日期 / 备注毛玻璃对齐
 │       │                         # └ 记录列表三行堆叠布局（分类 / 金额+编辑 / 日期+备注），gap:0 紧凑，min-height:80px
+│       │                         # └ P11 变更：expense-day-group 移除边框/背景/圆角/阴影，仅 28px 留白 + 日期标签自然区分
 │       │
 │       ├── components/           # 通用组件
-│       │   ├── TopBar.tsx        # 全局顶栏（40px）：左侧 App 名称/子页←返回按钮，右侧主题切换 + 退出登录
+│       │   ├── TopBar.tsx        # 全局顶栏（40px）：左侧 App 名称/子页←返回按钮，右侧主题切换 + ⚙ 设置齿轮（P11：退出登录移入 SettingsModal）
 │       │   │                     # └ 子页面自动显示"← 返回"按钮，页面标题按路由精确匹配
 │       │   │                     # └ 主题：light/dark/auto 三态循环，通过 localStorage + data-theme 共享
 │       │   ├── TopBar.css         # 顶栏样式：固定顶部、左右布局、主题按钮、.back-btn 返回按钮
+│       │   ├── SettingsModal.tsx   # 设置弹窗（P11 新增）：账户信息（用户名+DB标识）+ 版本检查 + 数据库切换（正式/测试 radio）
+│       │   ├── SettingsModal.css   # 设置弹窗样式
+│       │   ├── CategoryModal.tsx   # 分类操作统一弹框（P11 新增）：支持 rename / addChild / addSibling 三种模式
+│       │   ├── CategoryModal.css   # 分类弹框样式
 │       │   ├── BottomNav.tsx      # 底部导航：双 Tab（⛽ 油耗 / 💰 记账），固定底部，全局可见（含子页面）
 │       │   ├── BottomNav.css      # 底部导航样式：icon + label、active 高亮
 │       │   ├── Layout.tsx         # 全局布局：TopBar + Outlet + BottomNav + SmartFAB（/login 除外）
-│       │   ├── SmartFAB.tsx       # 智能浮动按钮（P10 重构）：路由感知，主页→统计/统计→返回，可拖拽，位置持久化
+│       │   ├── SmartFAB.tsx       # 智能浮动按钮（P10 重构）：路由感知，主页→统计/统计→返回，可全屏拖拽，位置持久化
 │       │   │                     # └ routeActions 映射表可扩展，后续可改为弹出菜单
+│       │   │                     # └ P11 优化：z-index:10001 覆盖全屏遮罩，全屏模式下仅关闭全屏不跳转路由
 │       │   ├── SmartFAB.css       # FAB 样式：胶囊形 + 对角渐变 + 玻璃态 + 呼吸光晕 + 拖拽反馈
 │       │   ├── CategoryPicker.tsx  # 记账分类合并选择器（P10.5 新增）：搜索 + Top5 常用 + 级联树 + 上次记忆
 │       │   │                       # └ 面板打开时 div 避免移动端键盘，二次点击变 input 可搜索
@@ -309,6 +326,7 @@ fuel_records/
 │       │   ├── FuelPageSkeleton.tsx     # 油耗页骨架屏（P10.6 新增）：车辆栏→表单→统计行→4记录，布局与真实页面一致
 │       │   ├── FuelPageSkeleton.css     # 骨架屏 shift 动画 + 渐变底色
 │       │   ├── PullToRefresh.tsx        # 下拉刷新通用组件（P10.6 新增）：触摸手势 + 方向阈值（避免与左滑删除冲突）+ 旋转 spinner
+│       │   │                              # └ 优化：window.scrollY 检测真实滚动位置，仅页面在顶部时触发
 │       │   └── PullToRefresh.css        # 下拉刷新样式：indicator + spin 动画
 │       │
 │       ├── context/               # React Context 状态管理（P10.5 新增）
@@ -325,7 +343,8 @@ fuel_records/
 │           │                     # ├ Stats 类型：SummaryStats / MonthlyStats / MonthlyItem / TimelineStats / TimelineItem（P6/P10）
 │           │                     # ├ Auth API: register(), login()
 │           │                     # ├ Token 管理: getToken(), setToken(), clearToken()
-│           │                     # ├ 请求拦截器：自动附加 Authorization: Bearer <token>
+│           │                     # ├ DB 环境管理（P11 新增）: getDatabaseEnv(), setDatabaseEnv()
+│           │                     # ├ 请求拦截器：自动附加 Authorization: Bearer <token> + X-Database-Env: prod|test（P11）
 │           │                     # ├ 响应拦截器：401 自动清除 token 并跳转登录页
 │           │                     # ├ Records CRUD: create/fetch（支持筛选参数）/update/delete
 │           │                     # ├ Stats API: fetchSummary() / fetchMonthly() / fetchTimeline()（均支持 start_date/end_date）

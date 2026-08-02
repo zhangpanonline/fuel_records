@@ -1,5 +1,6 @@
+import { useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
-import { clearToken } from '../services/api'
+import SettingsModal from './SettingsModal'
 import './TopBar.css'
 
 const THEME_KEY = 'fuel_records_theme'
@@ -31,6 +32,7 @@ interface TopBarProps {
 function TopBar({ theme, onToggleTheme }: TopBarProps) {
   const location = useLocation()
   const navigate = useNavigate()
+  const [showSettings, setShowSettings] = useState(false)
 
   const title = pageTitles[location.pathname] || '油耗'
   const isSubPage = location.pathname.split('/').filter(Boolean).length > 1
@@ -39,12 +41,8 @@ function TopBar({ theme, onToggleTheme }: TopBarProps) {
     navigate(-1)
   }
 
-  function handleLogout() {
-    clearToken()
-    window.location.href = '/login'
-  }
-
   return (
+    <>
     <header className="topbar">
       <div className="topbar-left">
         {isSubPage && (
@@ -58,11 +56,13 @@ function TopBar({ theme, onToggleTheme }: TopBarProps) {
         <button className="topbar-btn theme-btn" onClick={onToggleTheme} title="切换主题">
           {theme === 'auto' ? '🌓' : theme === 'dark' ? '🌙' : '☀️'}
         </button>
-        <button className="topbar-btn logout-btn" onClick={handleLogout} title="退出登录">
-          退出
+        <button className="topbar-btn settings-btn" onClick={() => setShowSettings(true)} title="设置">
+          ⚙
         </button>
       </div>
     </header>
+    {showSettings && <SettingsModal onClose={() => setShowSettings(false)} />}
+  </>
   )
 }
 

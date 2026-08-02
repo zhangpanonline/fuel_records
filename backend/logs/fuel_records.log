@@ -772,3 +772,111 @@
 2026-08-01 20:27:05 | INFO     | database:init_db:80 - 数据库迁移已完成（Alembic upgrade head）
 2026-08-01 20:27:05 | INFO     | main:lifespan:21 - 应用启动完成
 2026-08-01 20:44:03 | INFO     | main:lifespan:23 - 应用关闭
+2026-08-02 08:55:03 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-08-02 08:55:03 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-08-02 08:55:03 | INFO     | main:lifespan:19 - 应用启动中...
+2026-08-02 08:55:06 | INFO     | database:init_db:80 - 数据库迁移已完成（Alembic upgrade head）
+2026-08-02 08:55:06 | INFO     | main:lifespan:21 - 应用启动完成
+2026-08-02 09:56:12 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-08-02 09:56:12 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-08-02 09:56:12 | INFO     | main:lifespan:19 - 应用启动中...
+2026-08-02 09:56:14 | INFO     | database:init_db:80 - 数据库迁移已完成（Alembic upgrade head）
+2026-08-02 09:56:14 | INFO     | main:lifespan:21 - 应用启动完成
+2026-08-02 09:56:18 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-08-02 09:56:35 | INFO     | main:lifespan:23 - 应用关闭
+2026-08-02 09:56:36 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-08-02 09:56:36 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-08-02 09:56:36 | INFO     | main:lifespan:19 - 应用启动中...
+2026-08-02 09:56:38 | INFO     | database:init_db:80 - 数据库迁移已完成（Alembic upgrade head）
+2026-08-02 09:56:38 | INFO     | main:lifespan:21 - 应用启动完成
+2026-08-02 09:56:38 | INFO     | main:lifespan:23 - 应用关闭
+2026-08-02 09:56:38 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-08-02 09:56:38 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-08-02 09:56:38 | INFO     | main:lifespan:19 - 应用启动中...
+2026-08-02 09:56:40 | INFO     | database:init_db:80 - 数据库迁移已完成（Alembic upgrade head）
+2026-08-02 09:56:40 | INFO     | main:lifespan:21 - 应用启动完成
+2026-08-02 09:56:44 | INFO     | main:lifespan:23 - 应用关闭
+2026-08-02 09:56:44 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-08-02 09:56:44 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-08-02 09:56:44 | INFO     | main:lifespan:19 - 应用启动中...
+2026-08-02 09:56:46 | INFO     | database:init_db:80 - 数据库迁移已完成（Alembic upgrade head）
+2026-08-02 09:56:46 | INFO     | main:lifespan:21 - 应用启动完成
+2026-08-02 09:56:52 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-08-02 10:41:47 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-08-02 10:41:47 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-08-02 10:41:47 | INFO     | main:lifespan:19 - 应用启动中...
+2026-08-02 10:41:51 | INFO     | database:init_db:80 - 数据库迁移已完成（Alembic upgrade head）
+2026-08-02 10:41:51 | INFO     | main:lifespan:21 - 应用启动完成
+2026-08-02 10:42:01 | INFO     | main:lifespan:23 - 应用关闭
+2026-08-02 10:42:01 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-08-02 10:42:01 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-08-02 10:42:01 | INFO     | main:lifespan:19 - 应用启动中...
+2026-08-02 10:42:03 | INFO     | database:init_db:80 - 数据库迁移已完成（Alembic upgrade head）
+2026-08-02 10:42:03 | INFO     | main:lifespan:21 - 应用启动完成
+2026-08-02 10:42:05 | INFO     | main:lifespan:23 - 应用关闭
+2026-08-02 10:42:06 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-08-02 10:42:06 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-08-02 10:42:06 | INFO     | main:lifespan:19 - 应用启动中...
+2026-08-02 10:42:09 | INFO     | database:init_db:80 - 数据库迁移已完成（Alembic upgrade head）
+2026-08-02 10:42:09 | INFO     | main:lifespan:21 - 应用启动完成
+2026-08-02 10:47:54 | INFO     | main:lifespan:23 - 应用关闭
+2026-08-02 10:47:54 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-08-02 10:47:54 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-08-02 10:47:54 | INFO     | main:lifespan:19 - 应用启动中...
+2026-08-02 10:47:57 | INFO     | database:init_db:80 - 数据库迁移已完成（Alembic upgrade head）
+2026-08-02 10:47:57 | INFO     | main:lifespan:21 - 应用启动完成
+2026-08-02 12:27:59 | INFO     | main:lifespan:23 - 应用关闭
+2026-08-02 12:33:11 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-08-02 12:33:11 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-08-02 12:33:11 | INFO     | main:lifespan:19 - 应用启动中...
+2026-08-02 12:33:17 | INFO     | database:init_db:80 - 数据库迁移已完成（Alembic upgrade head）
+2026-08-02 12:33:17 | INFO     | main:lifespan:21 - 应用启动完成
+2026-08-02 12:45:15 | INFO     | main:lifespan:23 - 应用关闭
+2026-08-02 12:45:15 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-08-02 12:45:15 | INFO     | database:<module>:79 - 双数据库模式：正式库 + 测试库均已就绪
+2026-08-02 12:45:15 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-08-02 12:45:15 | INFO     | main:lifespan:19 - 应用启动中...
+2026-08-02 12:45:15 | INFO     | database:init_db:133 - 正在运行数据库迁移（正式库）...
+2026-08-02 12:45:20 | INFO     | database:init_db:135 - 正式库迁移完成
+2026-08-02 12:45:20 | INFO     | database:init_db:138 - 正在运行数据库迁移（测试库）...
+2026-08-02 12:45:30 | INFO     | database:init_db:140 - 测试库迁移完成
+2026-08-02 12:45:30 | INFO     | main:lifespan:21 - 应用启动完成
+2026-08-02 12:46:38 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-08-02 12:46:38 | INFO     | database:<module>:79 - 双数据库模式：正式库 + 测试库均已就绪
+2026-08-02 12:46:47 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-08-02 12:46:47 | INFO     | database:<module>:79 - 双数据库模式：正式库 + 测试库均已就绪
+2026-08-02 12:46:47 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-08-02 12:46:47 | INFO     | main:lifespan:19 - 应用启动中...
+2026-08-02 12:46:47 | INFO     | database:init_db:133 - 正在运行数据库迁移（正式库）...
+2026-08-02 12:46:52 | INFO     | database:init_db:135 - 正式库迁移完成
+2026-08-02 12:46:52 | INFO     | database:init_db:138 - 正在运行数据库迁移（测试库）...
+2026-08-02 12:46:57 | INFO     | database:init_db:140 - 测试库迁移完成
+2026-08-02 12:46:57 | INFO     | main:lifespan:21 - 应用启动完成
+2026-08-02 12:53:11 | INFO     | main:lifespan:23 - 应用关闭
+2026-08-02 12:53:12 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-08-02 12:53:12 | INFO     | database:<module>:79 - 双数据库模式：正式库 + 测试库均已就绪
+2026-08-02 12:53:12 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-08-02 12:53:12 | INFO     | main:lifespan:19 - 应用启动中...
+2026-08-02 12:53:12 | INFO     | database:init_db:133 - 正在运行数据库迁移（正式库）...
+2026-08-02 12:53:24 | INFO     | database:init_db:135 - 正式库迁移完成
+2026-08-02 12:53:24 | INFO     | database:init_db:138 - 正在运行数据库迁移（测试库）...
+2026-08-02 12:53:32 | INFO     | database:init_db:140 - 测试库迁移完成
+2026-08-02 12:53:32 | INFO     | main:lifespan:21 - 应用启动完成
+2026-08-02 13:01:13 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-08-02 13:01:13 | INFO     | database:<module>:79 - 双数据库模式：正式库 + 测试库均已就绪
+2026-08-02 13:01:13 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-08-02 13:01:13 | INFO     | main:lifespan:19 - 应用启动中...
+2026-08-02 13:01:13 | INFO     | database:init_db:133 - 正在运行数据库迁移（正式库）...
+2026-08-02 13:01:18 | INFO     | database:init_db:135 - 正式库迁移完成
+2026-08-02 13:01:18 | INFO     | database:init_db:138 - 正在运行数据库迁移（测试库）...
+2026-08-02 13:01:24 | INFO     | database:init_db:140 - 测试库迁移完成
+2026-08-02 13:01:24 | INFO     | main:lifespan:21 - 应用启动完成
+2026-08-02 13:28:21 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-08-02 13:28:21 | INFO     | database:<module>:79 - 双数据库模式：正式库 + 测试库均已就绪
+2026-08-02 13:28:21 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-08-02 13:28:21 | INFO     | main:lifespan:19 - 应用启动中...
+2026-08-02 13:28:21 | INFO     | database:init_db:133 - 正在运行数据库迁移（正式库）...
+2026-08-02 13:28:25 | INFO     | database:init_db:135 - 正式库迁移完成
+2026-08-02 13:28:25 | INFO     | database:init_db:138 - 正在运行数据库迁移（测试库）...
+2026-08-02 13:28:32 | INFO     | database:init_db:140 - 测试库迁移完成
+2026-08-02 13:28:32 | INFO     | main:lifespan:21 - 应用启动完成

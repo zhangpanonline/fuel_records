@@ -207,6 +207,12 @@ subprojects {
 }
 ```
 
+### 6.5 APK 安装后打开空白页
+
+**原因**：`capacitor.config.ts` 中 `server.url` 指向了开发机 IP，手机上连不到。
+
+**修复**：打包 APK 前确保 `capacitor.config.ts` 中**没有 `server` 块**，这样 App 会从内置 `dist/` 加载资源。`build_apk.sh` 脚本已内置此检查。
+
 ---
 
 ## 7. APK 传到手机安装

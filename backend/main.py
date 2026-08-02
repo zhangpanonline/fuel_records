@@ -49,6 +49,16 @@ def health_check():
     }
 
 
+@app.get("/api/v1/health/db")
+def health_db():
+    """返回正式库和测试库的连接状态，供前端切换验证"""
+    from database import test_engine
+    return {
+        "prod": True,  # 正式库始终可用（未配置则启动崩掉）
+        "test": test_engine is not None,
+    }
+
+
 # ─── 路由注册 ────────────────────────────────────────────
 from routers.records import router as records_router
 from routers.auth import router as auth_router

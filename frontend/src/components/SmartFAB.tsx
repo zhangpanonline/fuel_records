@@ -67,8 +67,8 @@ export default function SmartFAB() {
 
   // 保存位置到 localStorage
   const savePosition = useCallback((bottom: number, right: number) => {
-    const clampedBottom = Math.max(60, Math.min(bottom, window.innerHeight - 120))
-    const clampedRight = Math.max(8, Math.min(right, window.innerWidth - 72))
+    const clampedBottom = Math.max(-20, Math.min(bottom, window.innerHeight + 60))
+    const clampedRight = Math.max(-20, Math.min(right, window.innerWidth + 60))
     setPosition({ bottom: clampedBottom, right: clampedRight })
     try {
       localStorage.setItem(POSITION_KEY, JSON.stringify({ bottom: clampedBottom, right: clampedRight }))
@@ -79,8 +79,8 @@ export default function SmartFAB() {
   useEffect(() => {
     function handleResize() {
       setPosition((prev) => {
-        const bottom = Math.max(60, Math.min(prev.bottom, window.innerHeight - 120))
-        const right = Math.max(8, Math.min(prev.right, window.innerWidth - 72))
+        const bottom = Math.max(-20, Math.min(prev.bottom, window.innerHeight + 60))
+        const right = Math.max(-20, Math.min(prev.right, window.innerWidth + 60))
         if (bottom !== prev.bottom || right !== prev.right) {
           return { bottom, right }
         }
@@ -99,18 +99,28 @@ export default function SmartFAB() {
     setDragging(true)
   }
 
-  function handleTouchMove(e: React.TouchEvent) {
+  useEffect(() => {
     if (!dragging) return
-    const t = e.touches[0]
-    const dy = dragStart.y - t.clientY
-    const dx = dragStart.x - t.clientX
-    totalMove.current = { y: dy, x: dx }
-    savePosition(dragStart.bottom + dy, dragStart.right + dx)
-  }
 
-  function handleTouchEnd() {
-    setDragging(false)
-  }
+    function handleTouchMove(e: TouchEvent) {
+      const t = e.touches[0]
+      const dy = dragStart.y - t.clientY
+      const dx = dragStart.x - t.clientX
+      totalMove.current = { y: dy, x: dx }
+      savePosition(dragStart.bottom + dy, dragStart.right + dx)
+    }
+
+    function handleTouchEnd() {
+      setDragging(false)
+    }
+
+    window.addEventListener('touchmove', handleTouchMove, { passive: true })
+    window.addEventListener('touchend', handleTouchEnd)
+    return () => {
+      window.removeEventListener('touchmove', handleTouchMove)
+      window.removeEventListener('touchend', handleTouchEnd)
+    }
+  }, [dragging, dragStart, savePosition])
 
   // ── 鼠标拖拽 ──
   function handleMouseDown(e: React.MouseEvent) {
@@ -150,6 +160,12 @@ export default function SmartFAB() {
       return
     }
 
+    // 关闭任何图表全屏
+    if ((window as any).__chartFullscreenActive) {
+      window.dispatchEvent(new CustomEvent('close-chart-fullscreen'))
+      return
+    }
+
     const action = routeActions[location.pathname]
     if (action?.behavior === 'navigate' && action.target) {
       navigate(action.target)
@@ -171,8 +187,6 @@ export default function SmartFAB() {
       }}
       onMouseDown={handleMouseDown}
       onTouchStart={handleTouchStart}
-      onTouchMove={handleTouchMove}
-      onTouchEnd={handleTouchEnd}
       onClick={handleClick}
       title={isOnStats ? '返回' : '统计'}
     >

@@ -11,7 +11,7 @@
 ### 学习目标
 - **树形数据模型**：自引用分类表（parent_id），掌握递归查询与扁平化技巧
 - **多维度聚合查询**：SQLAlchemy GROUP BY + 时间维度（年/月/周/自定义）
-- **D3-based 可视化**：`@nivo/sunburst` 旭日图 + `recharts` 堆叠柱状图/饼图下钻
+- **D3-based 可视化**：`recharts` 堆叠柱状图（支持下钻）+ 饼图下钻
 - **React 底部导航重构**：从单路由升级为底部 Tab 导航架构
 
 ---
@@ -259,8 +259,8 @@ GET /api/v1/expenses/multi_summary  六区间累计金额（P10.6 新增）
 > `category_breakdown` 返回 L1+L2+L3 全层级扁平列表（`null` 表示该行为父级汇总行）。  
 > 后端实现：SQL `GROUP BY ROLLUP(category_l1, category_l2, category_l3)`（PostgreSQL 语法）。  
 > **跨数据库兼容**：SQLite 不支持 ROLLUP，`expense_stats_service.py` 需检测 `DB_TYPE`——SQLite 时用多次 `GROUP BY` + Python 内存 UNION 聚合，PostgreSQL/MySQL 时用原生 ROLLUP。  
-> 前端收到后 `buildTree()` 转为嵌套结构喂给旭日图和饼图下钻。  
-> 堆叠柱状图只取 `category_l2 IS NULL AND category_l3 IS NULL` 的行（即一级分类汇总）。
+> 前端收到后 `buildTree()` 转为嵌套结构喂给三环旭日图和饼图下钻。  
+> 堆叠柱状图依照下钻层级渲染——L1 视图取 `category_l2 IS NULL AND category_l3 IS NULL` 的行，点击图例可逐级下钻至 L2 / L3。全屏模式下柱状图使用 `layout="vertical"`（水平条形图）适配手机横屏。
 
 **当 `group_by="month"` 时（分时段模式）响应**：
 
@@ -294,7 +294,7 @@ GET /api/v1/expenses/multi_summary  六区间累计金额（P10.6 新增）
 
 ```
 ┌─────────────────────────────────────┐
-│  App 名称          🌙主题   🚪退出   │  ← 全局顶栏（40px）
+│  App 名称          🌙主题  ⚙设置  │  ← 全局顶栏（40px）
 │  /  ←返回                          │  ← 子页面自动显示返回按钮
 ├─────────────────────────────────────┤
 │                                     │
@@ -310,7 +310,12 @@ GET /api/v1/expenses/multi_summary  六区间累计金额（P10.6 新增）
 - 现有油耗功能搬家到 `/fuel` 路由下，记账功能挂在 `/expense` 路由
 - `/login` 路由不变（不显示底部导航和顶栏，登录页保留独立的主题切换按钮，与全局顶栏通过 `localStorage` + `data-theme` 属性共享主题状态）
 - 油耗统计页变为油耗 Tab 内的二级页面
-- **全局顶栏**（40px）：位于页面最顶部（底部导航之上），左侧显示 App 名称，右侧放置主题切换和退出登录按钮。两个 Tab 共享同一顶栏，切换时顶栏保持不变
+- **全局顶栏**（40px）：位于页面最顶部（底部导航之上），左侧显示 App 名称，右侧放置主题切换（🌓 三态：自动/亮色/暗色）和设置齿轮按钮（⚙）。两个 Tab 共享同一顶栏，切换时顶栏保持不变
+- **设置弹窗**（SettingsModal）：点击顶栏或登录页 ⚙ 按钮打开。包含三个区域：
+  - **账户**：显示当前登录用户（用户名前缀单字圆圈 + 用户名 + 当前数据库标识），缓存优先 + 后台静默刷新；底部"退出登录"按钮
+  - **版本**：显示当前版本号（如 `v0.0.x`）+ "检查更新"按钮，版本更新始终走生产 Supabase，不受数据库切换影响
+  - **数据库**（P11）：正式库 / 测试库 radio 切换，切换时先 `/api/v1/health/db` 验证后端可用性，确认弹框后清空 token 跳转登录页
+- **双数据库架构**（P11）：后端 `database.py` 维护 `prod_engine` + `test_engine` 双引擎，前端 axios 拦截器自动添加 `X-Database-Env: prod|test` 头，后端 `get_db()` 按请求头选择 Session。`init_db()` 对两个库同时迁移。部署时 `DB_PG_URL_TEST` 环境变量控制
 - **智能 FAB**：路由感知浮动按钮，主页点击→跳转统计页，统计页点击→返回主页。支持自由拖拽，位置持久化 localStorage。可扩展 routeActions 映射表
 
 #### 统计与分类管理入口（Phase 10.5 重构）
@@ -326,12 +331,13 @@ GET /api/v1/expenses/multi_summary  六区间累计金额（P10.6 新增）
 | 拆出到 TopBar | 留在 App.tsx |
 |--------------|-------------|
 | 主题切换逻辑 (`theme`, `handleToggleTheme`) | 车辆选择器 + 添加车辆表单 |
-| 退出登录逻辑 (`handleLogout`) | 加油表单（里程/油量/金额/提交） |
+| | 加油表单（里程/油量/金额/提交） |
 | | 记录列表 + 编辑/删除 + 分页加载更多 |
 | | 筛选面板 |
 | | 导出 CSV 按钮 |
-| | 加油提醒开关 |
 | | 版本更新检测弹窗 |
+
+> **P11 变更**：退出登录从 TopBar 移入 SettingsModal，「设置」齿轮按钮已存在于 TopBar 和 LoginPage。
 
 #### 旧路由兼容迁移
 
@@ -369,11 +375,10 @@ GET /api/v1/expenses/multi_summary  六区间累计金额（P10.6 新增）
 
 - **汇总卡片**：总支出、记录数、日均支出
 - **时间快捷选择**：本月 / 本年 / 近一周 / 自定义日期范围
-- **旭日图**（`@nivo/sunburst`）：从中心向外依次是一级→二级→三层分类，面积=金额，支持点击放大
-- **堆叠柱状图**（`recharts BarChart`）：X 轴=时间段（月/周/年），每柱按一级分类分色堆叠
 - **饼图下钻**（`recharts PieChart`）：初始显示一级分类饼图 → 点击扇区 → 下钻到二级 → 再点 → 三级 + 明细列表
+- **堆叠柱状图**（`recharts BarChart`）：X 轴=时间段，默认按一级分类分色堆叠，点击图例可逐级下钻至 L2/L3。全屏模式使用 `layout="vertical"`（水平条形图）适配手机横屏。
 - **明细表**：纯 HTML table，列出所选时间段 + 分类下的所有支出明细
-- **分类管理**：通过"管理分类"按钮展开/折叠，树形展示 + 内联编辑/添加/删除，删除时校验关联记录
+- **分类管理**：通过"管理分类"按钮展开/折叠，树形展示含 `├──`/`└──` 线段（`tree` 命令风格），通用 CategoryModal 弹框处理重命名/添加分类，添加按钮始终可见并带 CSS 虚线延伸至按钮
 
 ### 4.3 组件树
 
@@ -381,7 +386,7 @@ GET /api/v1/expenses/multi_summary  六区间累计金额（P10.6 新增）
 main.tsx
 ├── FuelDataProvider（包裹 /fuel 和 /fuel/stats，跨路由共享 vehicles/records/filters 等）
 ├── ExpenseDataProvider（包裹 /expense 和 /expense/stats，跨路由共享 categories/expenses 等）
-├── TopBar（全局顶栏 — App名称/子页返回 + 主题切换 + 退出登录）
+├── TopBar（全局顶栏 — App名称/子页返回 + 主题切换 + ⚙ 设置）
 ├── BottomNav（底部双 Tab 导航）
 ├── /fuel → App.tsx（现有油耗主页，路由从 / 改为 /fuel，使用 useFuelData()）
 │   └── /fuel/stats → StatsPage.tsx（油耗统计全屏页，使用 useFuelData()）
@@ -394,12 +399,12 @@ main.tsx
 │   ├── ExpenseSummaryCards（P10.6：六区间累计金额卡片，两行三列）
 │   ├── ExpenseList（三行堆叠布局：分类 / 金额+编辑 / 日期+备注，左滑删除）
 │   └── /expense/stats → ExpenseStatsPage.tsx（记账统计全屏页，使用 useExpenseData()）
-│       ├── SunburstChart（@nivo/sunburst）
-│       ├── StackedBarChart（recharts）
-│       ├── PieDrilldown（recharts，饼图下钻）
+│       ├── 饼图下钻（recharts Pie，递归下钻 + "其他"归并）
+│       ├── 堆叠柱状图（recharts BarChart，图例下钻）
 │       ├── DetailTable（明细表）
-│       └── CategoryManager（折叠式分类管理）
+│       └── CategoryManager（折叠式分类管理，tree 线段可视化 + CategoryModal 弹框）
 ├── SmartFAB（智能浮动导航按钮，路由感知，可拖拽）
+├── SettingsModal（设置弹窗：账户信息 + 版本检查 + 数据库切换）
 └── /login → LoginPage.tsx（登录页，保持不变）
 ```
 
@@ -432,8 +437,9 @@ frontend/src/
 │   ├── FuelDataContext.tsx           # 加油数据 Context（P10.5）：vehicles/records/filters 跨路由共享
 │   └── ExpenseDataContext.tsx        # 记账数据 Context（P10.5）：categories/expenses 跨路由共享
 ├── components/
-│   ├── BottomNav.tsx                 # 底部双 Tab 导航（⛽ 油耗 / 💰 记账）
-│   ├── TopBar.tsx                    # 全局顶栏：App名称 + 返回按钮 + 主题切换 + 退出登录
+│   ├── BottomNav.tsx                 # 底部双 Tab 导航（💰 记账 / ⛽ 油耗）
+│   ├── TopBar.tsx                    # 全局顶栏：App名称 + 返回按钮 + 主题切换 + ⚙ 设置
+│   ├── SettingsModal.tsx             # 设置弹窗（P11）：账户信息 + 版本检查 + 数据库切换
 │   ├── Layout.tsx                    # 全局布局：TopBar + Outlet + BottomNav + SmartFAB
 │   ├── SmartFAB.tsx                  # 智能浮动按钮：路由感知 + 拖拽 + 位置持久化
 │   ├── CategoryPicker.tsx           # 合并三级分类选择器：搜索 + Top5 常用 + 级联树 + 记忆
@@ -442,9 +448,9 @@ frontend/src/
 │   ├── PullToRefresh.tsx             # 下拉刷新通用组件（P10.6）
 ├── pages/
 │   ├── ExpensePage.tsx              # 记账主页：金额 + CategoryPicker + 日期/备注 + 提交 + 统计卡片 + 三行堆叠列表 + 下拉刷新
-│   └── ExpenseStatsPage.tsx         # 记账统计全屏页：汇总卡片 + 饼图/柱状图/旭日图 + 分类管理
+│   └── ExpenseStatsPage.tsx         # 记账统计全屏页：汇总卡片 + 饼图下钻/柱状图 + 分类管理（tree线段+弹框）
 ├── services/
-│   └── api.ts                       # API 服务层：Expense/ExpenseCategory 类型 + 全部 API 函数
+│   └── api.ts                       # API 服务层：Expense/ExpenseCategory 类型 + 全部 API 函数（含 getDatabaseEnv/setDatabaseEnv）
 └── main.tsx                         # 路由入口：DataProviders 同时挂载两个 Context（P10.6），Tab 切换不重新 fetch
 ```
 
@@ -465,8 +471,7 @@ frontend/src/
 | 选择一级分类后，二级/三级无数据 | 显示"暂无子分类，点击添加" |
 | 重命名分类 | 不自动更新历史记录中的分类名（保留创建时快照） |
 | 记账列表为空 | 显示空状态"还没记过账" |
-| 统计时间范围内无数据 | 旭日图/饼图显示灰色空状态占位 |
-| 旭日图数据量过大（>200 节点） | 三级分类合并展示，只显示两层 |
+| 统计时间范围内无数据 | 饼图/柱状图显示灰色空状态占位 |
 | `start_date = end_date`（单日查询） | `avg_daily = total_amount`（天数视为 1，避免除零） |
 | 提交中重复点击 | 按钮 disabled |
 | 网络错误 | Toast 提示，不关闭面板 |
@@ -475,12 +480,7 @@ frontend/src/
 
 ## 7. 新增依赖
 
-| 包 | 用途 |
-|---|---|
-| `@nivo/sunburst` | 旭日图 |
-| `@nivo/core` | @nivo/sunburst 的 peer dependency |
-
-> 实际安装：`npm install @nivo/sunburst @nivo/core`。现有 `recharts` 继续用于堆叠柱状图和饼图下钻。
+> 所有图表统一使用 `recharts`，无需额外依赖。
 
 ---
 

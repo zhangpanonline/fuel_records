@@ -730,7 +730,7 @@
 ### Ticket 10.4: 前端 — 全局导航重构
 
 - [x] **10.4.1 TopBar + BottomNav 组件**
-  - `components/TopBar.tsx`：40px 顶栏，左侧 App 名称，右侧主题切换 + 退出登录
+  - `components/TopBar.tsx`：40px 顶栏，左侧 App 名称，右侧主题切换 + ⚙ 设置齿轮（P11 变更：退出登录移入 SettingsModal）
   - `components/BottomNav.tsx`：底部固定双 Tab 导航（⛽ 油耗 / 💰 记账）
   - 主题切换通过 `localStorage` + `data-theme` 属性共享
   - **依赖**：8.2.1（暗黑模式 CSS 变量）
@@ -745,7 +745,7 @@
 
 - [x] **10.4.3 App.tsx 拆分**
   - 主题切换 → 移到 TopBar
-  - 退出登录 → 移到 TopBar
+  - 退出登录 → 移到 SettingsModal（P11 变更）
   - 保留：车辆选择器、加油表单、记录列表、筛选、导出、加油提醒、版本更新检测、分页
   - **依赖**：10.4.2
   - **难度**：★★
@@ -810,8 +810,8 @@
 
 - [x] **10.6.3 StatsPanel 统计图表**
   - 时间快捷选择：本月/本年/近一周/自定义（默认"本月"）
-  - 安装依赖：`npm install @nivo/sunburst @nivo/core`
-  - 旭日图（`@nivo/sunburst`）+ 堆叠柱状图（`recharts`）+ 饼图下钻（`recharts`）+ 明细表
+  - 安装依赖：`npm install @nivo/sunburst @nivo/core`（已废弃 — 旭日图改用 recharts 三环 Pie 嵌套，P10.6 体验优化后移除 @nivo）
+  - 三环旭日图（recharts 嵌套 Pie）+ 堆叠柱状图（recharts BarChart，图例下钻 L1→L2→L3）+ 饼图下钻（recharts）+ 明细表
   - 数据流：`fetchExpenseStats()` → 扁平列表 → `buildTree()` → 图表
   - 空数据时灰色占位
   - **依赖**：10.6.1
@@ -854,8 +854,13 @@
   - **难度**：★
 
 - [x] **10.5.1.2 新建 ExpenseStatsPage 全屏统计页**
-  - `pages/ExpenseStatsPage.tsx`：汇总卡片 + 饼图下钻/堆叠柱状图/旭日图 + 折叠式分类管理
+  - `pages/ExpenseStatsPage.tsx`：汇总卡片（带彩色顶部装饰线） + 饼图下钻/堆叠柱状图（图例下钻）/三环旭日图 + 折叠式分类管理
+  - 饼图下钻：<5% 归并为"其他"扇区（灰色），可递归下钻至三级，带引导线标签 + 下方 2 列图例
+  - 堆叠柱状图下钻：默认 L1 分色堆叠，点击图例→L2→L3 逐级下钻，← 返回按钮
+  - 日期范围：自由选择 + 近一年/近一月/近一周快捷按钮
+  - 图表全屏：⛶ 按钮 → 全屏铺满。柱状图全屏使用 layout="vertical"（水平条形图）适配手机横屏，自定义横向图例
   - 分类管理：树形展示 + 内联编辑/添加/删除，点击"管理分类"展开/折叠（方案 A）
+  - 修改日期不清空页面，仅刷新数据（firstLoad ref 控制）
   - **依赖**：10.5.1.1
   - **难度**：★★★
 
@@ -871,8 +876,8 @@
   - `components/SmartFAB.tsx`：路由感知，`routeActions` 映射表
   - 主页 → 跳转统计页（带路由过渡动画）
   - 统计页 → 返回主页
-  - 可拖拽任意位置，位置持久化 localStorage
-  - 火花星标 SVG 图标 + 对角渐变 + 玻璃态 + 呼吸光晕
+  - 可全屏任意位置拖拽（window.addEventListener 全局监听），位置持久化 localStorage
+  - 火花星标 SVG 图标 + 对角渐变 + 玻璃态 + 呼吸光晕，z-index:110 覆盖 TopBar/BottomNav
   - **依赖**：10.5.1.3
   - **难度**：★★
 
@@ -1094,9 +1099,10 @@
 ### Ticket 10.6.3: 下拉刷新
 
 - [x] **10.6.3.1 PullToRefresh 通用组件**
-  - 新建 `PullToRefresh.tsx`：监听 `.layout-content` 的 `scrollTop`，仅顶部触发
+  - 新建 `PullToRefresh.tsx`：实时查询 `window.scrollY` + `.layout-content` scrollTop，仅页面在顶部时触发
   - 方向阈值：垂直偏移 > 水平偏移 × 1.6，避免与左滑删除冲突
   - `dy < 5` 过滤微动，阻尼系数 0.4
+  - pullDistance 使用 useRef 防止闭包陈旧值问题
   - 旋转 spinner 下拉指示器
   - 串行刷新：先记录后统计
   - **依赖**：无
@@ -1148,7 +1154,88 @@
   - **难度**：★
 
 ---
+## Phase 11 — "双数据库 + 设置中心"（2026-08-02）
 
+> **目标**：App 内切换生产/测试数据库，统一设置弹窗（账户信息 + 版本检查 + 数据库切换）。
+
+### Ticket 11.1: 后端 — 双数据库引擎
+
+- [x] **11.1.1 database.py 双引擎架构**
+  - 维护 `prod_engine` + `test_engine` 双 SQLAlchemy 引擎
+  - `get_db()` 按请求头 `X-Database-Env: prod|test` 选择 Session
+  - `init_db()` 同时对两个库执行 `Base.metadata.create_all()`
+  - 本地 SQLite 时忽略环境头，始终使用单一 SQLite 引擎
+  - **依赖**：1.1.5
+  - **难度**：★★
+
+- [x] **11.1.2 健康检查接口**
+  - 新增 `GET /api/v1/health/db` — 按 `X-Database-Env` 头验证数据库连接
+  - 返回 `{"status":"ok","env":"prod|test","database":"PostgreSQL"}`
+  - 连接失败返回 503
+  - **依赖**：11.1.1
+  - **难度**：★
+
+### Ticket 11.2: 前端 — 设置弹窗
+
+- [x] **11.2.1 SettingsModal 组件**
+  - `components/SettingsModal.tsx`：三个区域（账户/版本/数据库）
+  - 账户：用户名前缀单字圆圈 + 用户名 + 数据库 tag，缓存优先 + 后台 `/me` 刷新，底部"退出登录"
+  - 版本：版本号 + "检查更新"，始终走生产 Supabase
+  - 数据库：正式库/测试库 radio，切换时先确认 → 调 `/health/db` 验证 → toast 三态反馈 → 清空 token 跳登录
+  - **依赖**：11.1.2
+  - **难度**：★★
+
+- [x] **11.2.2 TopBar + LoginPage 入口**
+  - TopBar 右侧增加 ⚙ 设置齿轮（font-size 18px，与主题按钮等大）
+  - LoginPage 标题栏右侧增加 ⚙ 设置齿轮
+  - TopBar 移除"退出登录"按钮
+  - **依赖**：11.2.1
+  - **难度**：★
+
+- [x] **11.2.3 api.ts 数据库环境头**
+  - 新增 `getDatabaseEnv()` / `setDatabaseEnv()` 函数
+  - axios 拦截器自动添加 `X-Database-Env` 头
+  - `localStorage` key `db_env` 持久化，默认 `prod`
+  - **依赖**：11.1.1
+  - **难度**：★
+
+### Ticket 11.3: 记账统计页 UI 优化
+
+- [x] **11.3.1 旭日图移除**
+  - `ExpenseStatsPage.tsx`：删除 sunburst 相关代码（sunburstDrill / sunburstRings / mixColor / ChartType 'sunburst'）
+  - 组件树仅保留 `'pie' | 'bar'` 两种图表类型
+  - **依赖**：10.5.1.2
+  - **难度**：★
+
+- [x] **11.3.2 分类管理 tree 线段可视化**
+  - 分类树使用 Unicode box-drawing 字符（`├──` `└──` `│`）展示层级
+  - 每个节点下方添加分类按钮始终可见，CSS 虚线（`border-bottom: 1px dashed`）延伸至按钮
+  - 按钮层级对齐：一级靠左/二级居中/三级靠右
+  - 根级别不显示首个 `│` 竖线
+  - 竖线间距 1 空格，空位 2 空格
+  - **依赖**：10.5.1.2
+  - **难度**：★★
+
+- [x] **11.3.3 CategoryModal 统一弹框**
+  - 新建 `components/CategoryModal.tsx`：支持 rename / addChild / addSibling 三种模式
+  - 替换原有内联编辑和添加逻辑
+  - 复用现有 rename 对话框的 CSS 样式
+  - **依赖**：11.3.2
+  - **难度**：★★
+
+- [x] **11.3.4 SmartFAB 全屏交互优化**
+  - z-index 从 110 提升到 10001，覆盖全屏图表遮罩层
+  - 全屏模式下点击 FAB 仅关闭全屏（`window.dispatchEvent(new CustomEvent('close-chart-fullscreen'))`），不触发路由跳转
+  - **依赖**：10.5.2.1
+  - **难度**：★
+
+- [x] **11.3.5 记账日分组无边框**
+  - `ExpensePage.css`：`.expense-day-group` 移除 border/background/border-radius/box-shadow
+  - 通过 28px margin-bottom + 日期标签自然区分
+  - **依赖**：10.5.2
+  - **难度**：★
+
+---
 ## 依赖关系总图
 
 ```
@@ -1181,10 +1268,12 @@ Phase 1 ──→ Phase 2 ──→ Phase 3 ──→ Phase 4 ──→ Phase 5 
 ---
 
 > **更新记录**
+> - 2026-08-02: Phase 11 完成 — 双数据库 + 设置中心 + 记账统计页 UI 优化（双引擎架构 + SettingsModal + 旭日图移除 + 分类树 tree 线段 + CategoryModal 统一弹框 + SmartFAB 全屏交互 + 记账日分组无边框）共 8 个原子 Ticket
 > - 2026-08-01: Phase 10.6 完成 — 体验增强（记账六区间统计卡片 + 油耗累计统计下拉框 + PullToRefresh 下拉刷新 + 页面骨架屏 + BottomNav Tab 调换 + DataProviders 合并 + 左滑删除动画优化）
 > - 2026-08-01: Phase 10.5.7~10.5.9 完成 — 记账模块全面优化（ExpenseDataContext 跨路由数据保持 + CategoryPicker 合并三级选择器：搜索+Top5常用+上次记忆+频次计数+parent路径 + 日期/备注毛玻璃对齐 + 记录列表三行堆叠布局 + 左滑删除完善 + 移动端键盘控制）
 > - 2026-08-01: Phase 10.5 完成 — 导航与统计重构（抽屉→全屏页 + SmartFAB 拖拽导航 + 统计日期筛选/智能粒度/减震加载 + 移除加油提醒 + 筛选重排 + UTC 时区修复 + FuelDataContext 跨路由数据保持）
-> - 2026-07-31: Phase 10 新增 — 个人记账模块（Expense/ExpenseCategory 数据模型 + 分类 CRUD API + 统计聚合 ROLLUP + 底部双 Tab 导航重构 + CategoryPicker 三级级联 + @nivo 旭日图/饼图下钻 + 左滑删除手势）共 19 个原子 Ticket
+> - 2026-07-31: Phase 10 新增 — 个人记账模块（Expense/ExpenseCategory 数据模型 + 分类 CRUD API + 统计聚合 ROLLUP + 底部双 Tab 导航重构 + CategoryPicker 三级级联 + recharts 三环旭日图/饼图下钻 + 左滑删除手势）共 19 个原子 Ticket
+> - 2026-08-02: P10.6 体验优化 — 旭日图从 @nivo/sunburst 迁移为 recharts 三环 Pie 嵌套；柱状图新增图例下钻（L1→L2→L3）+ 全屏横屏布局（layout="vertical" 水平条形图）
 > - 2026-07-30: Ticket 8.4 完成 — UI 美学升级（8 个 @keyframes 动画 + 玻璃态卡片 + 对角渐变背景 + 装饰光斑 + 4 色统计卡片 + 暗色模式增强 + 大圆角系统 + Python 3.9 Optional[X] 兼容 + HTTPBearer 403→401 修复）
 > - 2026-07-30: Phase 8 完成 — 锦上添花（CSV 导出 + 下载/分享 + 暗黑模式 CSS 变量 + 加油提醒 Notification + 统计截图 html2canvas + 数据库索引优化 + 前端分页加载更多）
 > - 2026-07-29: Phase 5 完成 — 多车管理（Vehicle 模型 + CRUD API + 前端车辆选择器/添加表单 + 油耗按车辆分组独立计算 + database 自动迁移 vehicle_id 列）

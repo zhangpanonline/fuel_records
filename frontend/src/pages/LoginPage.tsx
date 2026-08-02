@@ -1,6 +1,7 @@
 import { useState, useEffect, type FormEvent } from 'react'
 import axios from 'axios'
-import { login, register, setToken } from '../services/api'
+import { login, register, setToken, getCurrentUser, setUserCache } from '../services/api'
+import SettingsModal from '../components/SettingsModal'
 
 const THEME_KEY = 'fuel_records_theme'
 
@@ -23,6 +24,7 @@ function LoginPage() {
   const [confirmPassword, setConfirmPassword] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [theme, setTheme] = useState(getTheme)
+  const [showSettings, setShowSettings] = useState(false)
 
   useEffect(() => {
     applyTheme(theme)
@@ -58,7 +60,13 @@ function LoginPage() {
         result = await login(username, password)
       }
       setToken(result.access_token)
-      // 跳转到主页
+      // 立即获取用户信息并缓存
+      try {
+        const user = await getCurrentUser()
+        setUserCache(user)
+      } catch {
+        // 获取用户信息失败不影响登录流程（后台静默失败）
+      }
       window.location.href = '/'
     } catch (err: unknown) {
       let msg = '操作失败，请重试'
@@ -78,9 +86,14 @@ function LoginPage() {
     <div className="app">
       <div className="header">
         <h1 className="title">油耗记录</h1>
-        <button className="theme-btn" onClick={handleToggleTheme}>
-          {theme === 'auto' ? '🌓' : theme === 'dark' ? '🌙' : '☀️'}
-        </button>
+        <div className="header-actions">
+          <button className="theme-btn" onClick={() => setShowSettings(true)} title="数据源设置" style={{ marginRight: 8 }}>
+            ⚙
+          </button>
+          <button className="theme-btn" onClick={handleToggleTheme}>
+            {theme === 'auto' ? '🌓' : theme === 'dark' ? '🌙' : '☀️'}
+          </button>
+        </div>
       </div>
 
       {/* Tab 切换 */}
@@ -155,6 +168,7 @@ function LoginPage() {
     </div>
 
     <p className="app-version">v{import.meta.env.VITE_APP_VERSION || '1.0.0'}</p>
+    {showSettings && <SettingsModal onClose={() => setShowSettings(false)} />}
   </>)
 }
 

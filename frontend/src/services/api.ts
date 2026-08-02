@@ -3,6 +3,9 @@
  *
  * 开发环境：Vite 代理将 /api 转发到 localhost:8000
  * 生产环境（Capacitor）：通过 VITE_API_BASE_URL 环境变量指向 Render 地址
+ *
+ * 数据库切换：前端通过 X-Database-Env 请求头告知后端使用正式库或测试库，
+ * 通过 setDatabaseEnv() 切换，默认正式库。切换后需重新登录。
  */
 import axios from 'axios'
 
@@ -151,15 +154,64 @@ export function isLoggedIn(): boolean {
   return !!getToken()
 }
 
-// ---- Axios 实例（带 token 拦截器） ----
+// ---- 数据库环境选择（运行时可切换） ----
+
+const DB_ENV_KEY = 'fuel_db_env'
+
+/** 获取当前数据库环境：'prod' | 'test'，默认 'prod' */
+export function getDatabaseEnv(): 'prod' | 'test' {
+  return (localStorage.getItem(DB_ENV_KEY) as 'prod' | 'test') || 'prod'
+}
+
+/** 设置数据库环境 */
+export function setDatabaseEnv(env: 'prod' | 'test'): void {
+  localStorage.setItem(DB_ENV_KEY, env)
+}
+
+// ---- 用户信息缓存（本地缓存 + 后台刷新） ----
+
+export interface UserInfo {
+  id: number
+  username: string
+  email: string | null
+  is_active: boolean
+}
+
+const USER_KEY = 'fuel_user_cache'
+
+export function getUserCache(): UserInfo | null {
+  try {
+    const raw = localStorage.getItem(USER_KEY)
+    return raw ? (JSON.parse(raw) as UserInfo) : null
+  } catch {
+    return null
+  }
+}
+
+export function setUserCache(user: UserInfo): void {
+  localStorage.setItem(USER_KEY, JSON.stringify(user))
+}
+
+export function clearUserCache(): void {
+  localStorage.removeItem(USER_KEY)
+}
+
+/** 从后端获取当前登录用户信息（需要 token） */
+export async function getCurrentUser(): Promise<UserInfo> {
+  const res = await apiClient.get<UserInfo>('/api/v1/auth/me')
+  return res.data
+}
+
+// ---- Axios 实例（带 token + 数据库环境拦截器） ----
 
 const apiClient = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL || '',
   timeout: 60000, // 60s，容纳 Render 免费层冷启动（休眠后唤醒需 30-60s）
 })
 
-// 请求拦截器：自动附加 Authorization 头
+// 请求拦截器：X-Database-Env 请求头 + Authorization
 apiClient.interceptors.request.use((config) => {
+  config.headers['X-Database-Env'] = getDatabaseEnv()
   const token = getToken()
   if (token) {
     config.headers.Authorization = `Bearer ${token}`
@@ -334,7 +386,10 @@ export async function exportCSV(vehicleId: number): Promise<Blob> {
   const url = `${baseURL}/api/v1/records/export/csv?vehicle_id=${vehicleId}`
 
   const res = await fetch(url, {
-    headers: token ? { Authorization: `Bearer ${token}` } : {},
+    headers: {
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      'X-Database-Env': getDatabaseEnv(),
+    },
   })
 
   if (!res.ok) {

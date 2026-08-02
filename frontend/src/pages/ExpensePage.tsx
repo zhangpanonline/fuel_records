@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef, type FormEvent } from 'react'
+import { useState, useCallback, useMemo, useRef, type FormEvent } from 'react'
 import axios from 'axios'
 import {
   createExpense,
@@ -70,6 +70,8 @@ export default function ExpensePage() {
   const [swipedId, setSwipedId] = useState<number | null>(null)
   const [touchStartX, setTouchStartX] = useState(0)
   const [touchTranslateX, setTouchTranslateX] = useState(0)
+  const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const swipeEnabled = useRef(false)
 
   // CategoryPicker 回调
   function handleCategorySelect(l1: string, l2: string, l3: string) {
@@ -219,14 +221,44 @@ export default function ExpensePage() {
     loadMoreExpenses()
   }
 
+  // 按日期分组
+  const groupedExpenses = useMemo(() => {
+    const groups: { date: string; items: Expense[] }[] = []
+    for (const exp of expenses) {
+      const last = groups[groups.length - 1]
+      if (last && last.date === exp.expense_date) {
+        last.items.push(exp)
+      } else {
+        groups.push({ date: exp.expense_date, items: [exp] })
+      }
+    }
+    return groups
+  }, [expenses])
+
   // 左滑手势
   function handleTouchStart(e: React.TouchEvent, id: number) {
+    // 取消上一次可能残留的计时器和状态
+    if (longPressTimer.current) {
+      clearTimeout(longPressTimer.current)
+      longPressTimer.current = null
+    }
+    setTouchTranslateX(0)
+    setSwipedId(null)
+    swipeEnabled.current = false
+
     setTouchStartX(e.touches[0].clientX)
     setSwipedId(id)
+
+    // 长按 500ms 后才激活左滑
+    longPressTimer.current = setTimeout(() => {
+      swipeEnabled.current = true
+      navigator.vibrate?.(15)
+    }, 500)
   }
 
   function handleTouchMove(e: React.TouchEvent) {
     if (swipedId === null) return
+    if (!swipeEnabled.current) return
     const dx = e.touches[0].clientX - touchStartX
     if (dx < 0) {
       setTouchTranslateX(Math.max(dx, -80))
@@ -236,6 +268,16 @@ export default function ExpensePage() {
   }
 
   function handleTouchEnd() {
+    if (longPressTimer.current) {
+      clearTimeout(longPressTimer.current)
+      longPressTimer.current = null
+    }
+    if (!swipeEnabled.current) {
+      setTouchTranslateX(0)
+      setSwipedId(null)
+      return
+    }
+    swipeEnabled.current = false
     if (touchTranslateX < -40) {
       setTouchTranslateX(-80)
     } else {
@@ -326,61 +368,65 @@ export default function ExpensePage() {
           <div className="empty-state">还没记过账</div>
         )}
 
-        {expenses.map((exp) => (
-          <div
-            key={exp.id}
-            className="expense-item"
-            onTouchStart={(e) => handleTouchStart(e, exp.id)}
-            onTouchMove={handleTouchMove}
-            onTouchEnd={() => handleTouchEnd()}
-          >
-            <div
-              className="expense-swipe-bg"
-              style={{
-                transform:
-                  swipedId === exp.id
-                    ? `translateX(${80 + touchTranslateX}px)`
-                    : 'translateX(80px)',
-              }}
-              onClick={() => handleDelete(exp.id, exp)}
-            >删除</div>
-            <div
-              className="expense-item-inner"
-              style={{
-                transform:
-                  swipedId === exp.id
-                    ? `translateX(${touchTranslateX}px)`
-                    : 'translateX(0)',
-              }}
-            >
-              {/* 第一行：分类 */}
-              <div className="expense-item-category">
-                <span className="cat-l1">{exp.category_l1}</span>
-                <span className="cat-sep"> / </span>
-                <span className="cat-l2">{exp.category_l2}</span>
-                <span className="cat-sep"> / </span>
-                <span className="cat-l3">{exp.category_l3}</span>
-              </div>
-
-              {/* 第二行：金额 + 编辑 */}
-              <div className="expense-item-row2">
-                <span className="expense-item-amount">
-                  -¥{Number(exp.amount).toFixed(2)}
-                </span>
-                <button
-                  className="expense-edit-btn"
-                  onClick={() => handleEdit(exp)}
+        {groupedExpenses.map((group) => (
+          <div key={group.date} className="expense-day-group">
+            <div className="expense-day-label">{formatDate(group.date)}</div>
+            {group.items.map((exp) => (
+              <div
+                key={exp.id}
+                className={`expense-item ${editingId === exp.id ? 'expense-item--editing' : ''}`}
+                onTouchStart={(e) => handleTouchStart(e, exp.id)}
+                onTouchMove={handleTouchMove}
+                onTouchEnd={() => handleTouchEnd()}
+              >
+                <div
+                  className="expense-swipe-bg"
+                  style={{
+                    transform:
+                      swipedId === exp.id
+                        ? `translateX(${80 + touchTranslateX}px)`
+                        : 'translateX(80px)',
+                  }}
+                  onClick={() => handleDelete(exp.id, exp)}
+                >删除</div>
+                <div
+                  className="expense-item-inner"
+                  style={{
+                    transform:
+                      swipedId === exp.id
+                        ? `translateX(${touchTranslateX}px)`
+                        : 'translateX(0)',
+                  }}
                 >
-                  编辑
-                </button>
-              </div>
+                  {/* 第一行：分类 */}
+                  <div className="expense-item-category">
+                    <span className="cat-l1">{exp.category_l1}</span>
+                    <span className="cat-sep"> / </span>
+                    <span className="cat-l2">{exp.category_l2}</span>
+                    <span className="cat-sep"> / </span>
+                    <span className="cat-l3">{exp.category_l3}</span>
+                  </div>
 
-              {/* 第三行：日期 + 备注 */}
-              <div className="expense-item-row3">
-                <span>{formatDate(exp.expense_date)}</span>
-                {exp.note && <span>{exp.note}</span>}
+                  {/* 第二行：金额 + 编辑 */}
+                  <div className="expense-item-row2">
+                    <span className="expense-item-amount">
+                      -¥{Number(exp.amount).toFixed(2)}
+                    </span>
+                    <button
+                      className="expense-edit-btn"
+                      onClick={() => handleEdit(exp)}
+                    >
+                      编辑
+                    </button>
+                  </div>
+
+                  {/* 第三行：日期 + 备注 */}
+                  <div className="expense-item-row3">
+                    {exp.note && <span>{exp.note}</span>}
+                  </div>
+                </div>
               </div>
-            </div>
+            ))}
           </div>
         ))}
 

@@ -1,0 +1,392 @@
+.settings-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  animation: settingsFadeIn 0.2s ease;
+}
+
+@keyframes settingsFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.settings-modal {
+  width: 100%;
+  max-width: 360px;
+  background: var(--card-bg-solid);
+  border-radius: 18px;
+  padding: 24px;
+  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.15);
+  animation: settingsSlideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes settingsSlideUp {
+  from { transform: translateY(24px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+.settings-modal h3 {
+  margin: 0 0 16px;
+  font-size: 18px;
+  color: var(--text-primary);
+}
+
+/* ── 分区 ── */
+
+.settings-section {
+  margin-bottom: 16px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--border);
+}
+
+.settings-section:last-of-type {
+  margin-bottom: 0;
+  padding-bottom: 0;
+  border-bottom: none;
+}
+
+.settings-label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-dim);
+  margin-bottom: 4px;
+}
+
+.settings-desc {
+  margin: 0 0 10px;
+  font-size: 12px;
+  color: var(--text-dim);
+}
+
+/* ── 用户信息 ── */
+
+.settings-user-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.settings-user-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.settings-user-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.settings-username {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.settings-user-db {
+  font-size: 12px;
+  color: var(--text-dim);
+  padding: 1px 6px;
+  border-radius: 4px;
+  background: rgba(99, 102, 241, 0.08);
+  color: var(--accent);
+  display: inline-block;
+  width: fit-content;
+}
+
+.settings-logout-btn {
+  width: 100%;
+  padding: 9px 0;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: 10px;
+  background: rgba(239, 68, 68, 0.04);
+  color: #ef4444;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.settings-logout-btn:hover {
+  background: rgba(239, 68, 68, 0.1);
+  border-color: rgba(239, 68, 68, 0.5);
+}
+
+/* ── 确认切换栏 ── */
+
+.settings-confirm-bar {
+  margin-top: 12px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: rgba(245, 158, 11, 0.08);
+  border: 1px solid rgba(245, 158, 11, 0.2);
+  animation: settingsFadeIn 0.2s ease;
+}
+
+.settings-confirm-text {
+  display: block;
+  font-size: 13px;
+  color: var(--text-primary);
+  margin-bottom: 10px;
+}
+
+.settings-confirm-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.settings-confirm-btn {
+  flex: 1;
+  padding: 8px 0;
+  border: none;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.settings-confirm-btn.cancel {
+  background: var(--cancel-bg);
+  color: var(--text-secondary);
+}
+
+.settings-confirm-btn.cancel:hover {
+  background: var(--cancel-hover);
+}
+
+.settings-confirm-btn.ok {
+  background: var(--accent);
+  color: #fff;
+}
+
+.settings-confirm-btn.ok:hover {
+  background: var(--accent-hover);
+}
+
+/* ── 版本信息 ── */
+
+.settings-version-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.settings-version-row .settings-label {
+  margin-bottom: 0;
+}
+
+.settings-version {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-primary);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── 检查结果 ── */
+
+.settings-check-result {
+  margin: 0 0 8px;
+  font-size: 13px;
+  padding: 8px 12px;
+  border-radius: 10px;
+}
+
+.settings-check-result.success {
+  background: rgba(16, 185, 129, 0.08);
+  color: #10b981;
+}
+
+.settings-check-result.available {
+  background: rgba(99, 102, 241, 0.08);
+  color: var(--accent);
+  font-weight: 500;
+}
+
+.settings-check-result.error {
+  background: rgba(239, 68, 68, 0.08);
+  color: #ef4444;
+}
+
+.settings-update-card {
+  margin-bottom: 8px;
+}
+
+.settings-update-card .settings-check-result {
+  margin-bottom: 0;
+}
+
+/* ── 检查更新按钮 ── */
+
+.settings-check-btn {
+  width: 100%;
+  padding: 9px 0;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--card-bg);
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.settings-check-btn:hover:not(:disabled) {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.settings-check-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ── 数据源选择 ── */
+
+.settings-switch-toast {
+  margin: 0 0 10px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: rgba(16, 185, 129, 0.1);
+  color: #10b981;
+  font-size: 13px;
+  font-weight: 500;
+  animation: settingsFadeIn 0.2s ease;
+}
+
+.settings-switch-toast.verifying {
+  background: rgba(99, 102, 241, 0.08);
+  color: var(--accent);
+}
+
+.settings-switch-toast.error {
+  background: rgba(239, 68, 68, 0.08);
+  color: #ef4444;
+}
+
+.settings-switch-env {
+  font-weight: 700;
+}
+
+.settings-env-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.settings-env-option {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--card-bg);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.settings-env-option.active {
+  border-color: var(--accent);
+  background: rgba(99, 102, 241, 0.04);
+}
+
+.settings-env-option:hover {
+  border-color: var(--accent);
+}
+
+/* Radio */
+.settings-env-radio {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 2px solid var(--border);
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: border-color 0.2s;
+}
+
+.settings-env-option.active .settings-env-radio {
+  border-color: var(--accent);
+}
+
+.settings-env-radio-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+
+.settings-env-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.settings-env-name {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.settings-env-url {
+  font-size: 11px;
+  color: var(--text-dim);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 未配置 */
+.settings-env-empty {
+  margin: 0;
+  font-size: 12px;
+  color: var(--text-dim);
+  line-height: 1.5;
+}
+
+/* ── 底部按钮 ── */
+
+.settings-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 4px;
+}
+
+.settings-btn-cancel {
+  padding: 8px 20px;
+  border: none;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  background: var(--cancel-bg);
+  color: var(--text-secondary);
+  transition: all 0.2s;
+}
+
+.settings-btn-cancel:hover {
+  background: var(--cancel-hover);
+}

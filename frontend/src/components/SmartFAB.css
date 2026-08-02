@@ -1,6 +1,6 @@
 .smart-fab {
   position: fixed;
-  z-index: 90;
+  z-index: 10001;
   display: flex;
   align-items: center;
   gap: 6px;

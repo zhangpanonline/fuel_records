@@ -1,45 +1,48 @@
 /* ============================================================
-   ExpensePage — 记账页面样式
+   ExpensePage — 记账页面样式（/ui-taste 美学注射版）
    ============================================================ */
 
 .expense-page {
-  padding: 16px;
-  padding-bottom: 80px;
+  padding: 28px 10px 96px;
   max-width: 480px;
   margin: 0 auto;
 }
 
 /* ── 金额输入 ── */
+
 .amount-section {
-  margin-bottom: 16px;
+  margin-bottom: 28px;
 }
 
 .amount-input-wrapper {
   display: flex;
   align-items: baseline;
   justify-content: center;
-  gap: 4px;
+  gap: 6px;
 }
 
 .amount-yuan {
-  font-size: 18px;
+  font-size: 20px;
   font-weight: 600;
-  color: var(--text-secondary);
+  color: var(--text-tertiary);
+  letter-spacing: -0.01em;
 }
 
 .amount-input {
-  font-size: 36px;
+  font-size: 40px;
   font-weight: 700;
-  width: 160px;
+  width: 180px;
   text-align: center;
   border: none;
   border-bottom: 2px solid var(--border);
   background: transparent;
   color: var(--text-primary);
   outline: none;
-  padding: 4px 0;
+  padding: 8px 0 6px;
   border-radius: 0;
+  letter-spacing: -0.02em;
   -moz-appearance: textfield;
+  transition: border-color 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .amount-input::-webkit-outer-spin-button,
@@ -52,61 +55,24 @@
   border-bottom-color: var(--accent);
 }
 
-/* ── 分类级联 ── */
+/* ── 分类选择 ── */
+
 .category-section {
-  margin-bottom: 12px;
-}
-
-.category-row {
-  display: flex;
-  gap: 8px;
-  margin-bottom: 8px;
-}
-
-.category-select {
-  flex: 1;
-  padding: 10px 12px;
-  border-radius: 12px;
-  border: 1px solid var(--border);
-  background: var(--input-bg);
-  color: var(--text-primary);
-  font-size: 14px;
-  outline: none;
-  cursor: pointer;
-  -webkit-appearance: none;
-  appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L5 5L9 1' stroke='%23888' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: right 10px center;
-  padding-right: 28px;
-}
-
-.category-select:focus {
-  border-color: var(--accent);
-}
-
-.category-select:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
-}
-
-.category-path {
-  font-size: 12px;
-  color: var(--text-dim);
-  margin-top: 2px;
+  margin-bottom: 16px;
 }
 
 /* ── 日期 + 备注 ── */
+
 .meta-row {
   display: flex;
-  gap: 10px;
-  margin-bottom: 16px;
+  gap: 12px;
+  margin-bottom: 24px;
 }
 
 .date-input {
   flex: 1;
   min-width: 0;
-  padding: 12px 16px;
+  padding: 14px 16px;
   font-size: 15px;
   border-radius: 14px;
   border: 1px solid var(--border);
@@ -117,17 +83,12 @@
   outline: none;
   box-sizing: border-box;
   transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.date-input:focus {
-  border-color: var(--accent);
-  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.08);
 }
 
 .note-input {
   flex: 1;
   min-width: 0;
-  padding: 12px 16px;
+  padding: 14px 16px;
   font-size: 15px;
   border-radius: 14px;
   border: 1px solid var(--border);
@@ -138,6 +99,12 @@
   outline: none;
   box-sizing: border-box;
   transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.date-input:focus,
+.note-input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.08);
 }
 
 .note-input::placeholder {
@@ -145,34 +112,44 @@
   font-size: 14px;
 }
 
-.note-input:focus {
-  border-color: var(--accent);
-  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.08);
-}
-
 /* ── 提交按钮 ── */
+
 .submit-section {
-  margin-bottom: 20px;
+  margin-bottom: 28px;
 }
 
 .submit-btn-expense {
   width: 100%;
-  padding: 14px;
+  padding: 16px;
   border: none;
-  border-radius: 14px;
-  background: var(--accent);
+  border-radius: 16px;
+  background: var(--accent-gradient);
   color: #fff;
   font-size: 16px;
   font-weight: 600;
+  letter-spacing: 0.02em;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
   animation: glowPulse 3s ease-in-out infinite;
+  box-shadow:
+    0 4px 14px rgba(99, 102, 241, 0.25),
+    0 2px 6px rgba(99, 102, 241, 0.12);
+  overflow: hidden;
+  position: relative;
+}
+
+.submit-btn-expense:hover {
+  transform: translateY(-1px);
+  box-shadow:
+    0 6px 20px rgba(99, 102, 241, 0.3),
+    0 2px 8px rgba(99, 102, 241, 0.15);
 }
 
 .submit-btn-expense:disabled {
-  opacity: 0.6;
+  opacity: 0.5;
   cursor: not-allowed;
   animation: none;
+  box-shadow: none;
 }
 
 .submit-btn-expense:active:not(:disabled) {
@@ -181,27 +158,64 @@
 
 .cancel-edit-btn {
   width: 100%;
-  margin-top: 8px;
-  padding: 10px;
+  margin-top: 10px;
+  padding: 12px;
   border: 1px solid var(--border);
   border-radius: 14px;
   background: transparent;
   color: var(--text-secondary);
   font-size: 14px;
   cursor: pointer;
+  transition: background 0.2s;
+}
+
+.cancel-edit-btn:active {
+  background: var(--border-light);
 }
 
 /* ── 记录列表 ── */
+
 .expense-list-section h2 {
-  font-size: 14px;
+  font-size: 13px;
+  font-weight: 600;
   color: var(--text-muted);
-  margin-bottom: 12px;
+  margin-bottom: 16px;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
 }
 
+/* 日期分组容器 */
+.expense-day-group {
+  border: none;
+  border-radius: 0;
+  padding: 0 2px 6px;
+  margin-bottom: 28px;
+  background: transparent;
+  box-shadow: none;
+}
+
+[data-theme='dark'] .expense-day-group {
+  background: transparent;
+}
+
+.expense-day-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-muted);
+  margin-bottom: 8px;
+  padding-left: 8px;
+  letter-spacing: 0.01em;
+}
+
+.expense-day-group .expense-item {
+  margin-bottom: 8px;
+}
+
+/* 单条记录卡片 */
 .expense-item {
   display: flex;
   align-items: center;
-  min-height: 80px;
+  min-height: 84px;
   background: var(--card-bg);
   border-radius: 14px;
   margin-bottom: 8px;
@@ -209,6 +223,19 @@
   overflow: hidden;
   touch-action: pan-y;
   user-select: none;
+  border: 2px solid transparent;
+  box-shadow:
+    0 2px 8px rgba(0, 0, 0, 0.03),
+    0 1px 2px rgba(0, 0, 0, 0.02);
+  transition: border-color 0.25s, box-shadow 0.25s;
+}
+
+.expense-item--editing {
+  border-color: var(--accent);
+  box-shadow:
+    0 0 0 1px rgba(99, 102, 241, 0.15),
+    0 4px 16px rgba(99, 102, 241, 0.08),
+    0 2px 4px rgba(0, 0, 0, 0.04);
 }
 
 .expense-item-category {
@@ -217,27 +244,38 @@
   white-space: nowrap;
 }
 
-.expense-item-category .cat-l1 { color: var(--text-secondary); }
+.expense-item-category .cat-l1 {
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
 .expense-item-category .cat-l2 { color: var(--text-muted); }
 .expense-item-category .cat-l3 { color: var(--text-dim); }
-.expense-item-category .cat-sep { color: var(--text-dim); margin: 0 2px; }
+.expense-item-category .cat-sep {
+  color: var(--text-dim);
+  margin: 0 3px;
+  opacity: 0.5;
+}
 
 /* ── 第二行：金额 + 编辑 ── */
+
 .expense-item-row2 {
   display: flex;
   align-items: baseline;
   justify-content: flex-end;
-  gap: 8px;
+  gap: 10px;
 }
 
 .expense-item-amount {
-  font-size: 18px;
+  font-size: 19px;
   font-weight: 700;
   color: var(--text-primary);
   white-space: nowrap;
+  letter-spacing: -0.01em;
 }
 
-/* ── 第三行：日期 + 备注 ── */
+/* ── 第三行：备注 ── */
+
 .expense-item-row3 {
   display: flex;
   align-items: center;
@@ -246,38 +284,45 @@
   color: var(--text-dim);
 }
 
+/* 编辑按钮 */
 .expense-edit-btn {
-  padding: 6px 10px;
+  padding: 7px 14px;
   border: none;
-  border-radius: 8px;
+  border-radius: 10px;
   font-size: 12px;
+  font-weight: 500;
   cursor: pointer;
   background: var(--border-light);
   color: var(--text-secondary);
-  transition: opacity 0.2s;
+  transition: all 0.2s;
 }
 
 .expense-edit-btn:active {
-  opacity: 0.6;
+  background: var(--border);
+  transform: scale(0.95);
 }
 
-/* 左滑删除 */
+/* ── 左滑删除 ── */
+
 .expense-swipe-bg {
   position: absolute;
   right: 0;
   top: 0;
   bottom: 0;
   width: 80px;
-  background: linear-gradient(135deg, #e74c4c 0%, #c0392b 100%);
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 60%, #991b1b 100%);
   display: flex;
   align-items: center;
   justify-content: center;
-  color: rgba(255, 255, 255, 0.95);
+  color: rgba(255, 255, 255, 0.92);
   font-size: 14px;
   font-weight: 600;
   letter-spacing: 0.5px;
   border-radius: 0 14px 14px 0;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 2px 8px rgba(231, 76, 76, 0.25);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    0 1px 4px rgba(239, 68, 68, 0.2),
+    0 4px 12px rgba(220, 38, 38, 0.15);
   transform: translateX(80px);
   transition: transform 0.25s cubic-bezier(0.22, 0.61, 0.36, 1);
 }
@@ -285,9 +330,9 @@
 .expense-item-inner {
   display: flex;
   flex-direction: column;
-  gap: 0;
+  gap: 2px;
   width: 100%;
-  padding: 14px 12px;
+  padding: 16px 14px;
   background: var(--card-bg);
   border-radius: 14px;
   transition: transform 0.25s cubic-bezier(0.22, 0.61, 0.36, 1);
@@ -295,35 +340,49 @@
   z-index: 1;
 }
 
-/* 加载更多 */
+/* ── 加载更多 ── */
+
 .load-more-row {
   text-align: center;
-  padding: 12px;
+  padding: 16px 12px 8px;
 }
 
 .load-more-btn-expense {
-  padding: 10px 24px;
+  padding: 12px 28px;
   border: 1px solid var(--border);
-  border-radius: 12px;
+  border-radius: 14px;
   background: var(--card-bg);
   color: var(--accent);
   font-size: 14px;
+  font-weight: 500;
   cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
 }
 
-/* 空状态 */
+.load-more-btn-expense:active {
+  background: var(--border-light);
+  transform: scale(0.97);
+}
+
+/* ── 空状态 ── */
+
 .empty-state {
   text-align: center;
-  padding: 40px 20px;
+  padding: 56px 24px;
   color: var(--text-dim);
-  font-size: 14px;
+  font-size: 15px;
+  line-height: 1.6;
 }
 
-/* 快速创建分类弹窗 */
+/* ── 快速创建分类弹窗 ── */
+
 .quick-create-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.3);
+  background: rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
   z-index: 200;
   display: flex;
   align-items: center;
@@ -333,54 +392,71 @@
 .quick-create-dialog {
   background: var(--card-bg-solid);
   border-radius: 18px;
-  padding: 24px;
-  width: 280px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+  padding: 28px 24px 20px;
+  width: 300px;
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.1),
+    0 2px 8px rgba(0, 0, 0, 0.06);
 }
 
 .quick-create-dialog h3 {
-  font-size: 16px;
-  margin-bottom: 12px;
+  font-size: 17px;
+  font-weight: 600;
+  margin-bottom: 16px;
   color: var(--text-primary);
+  letter-spacing: -0.01em;
 }
 
 .quick-create-dialog input {
   width: 100%;
-  padding: 10px 12px;
-  border-radius: 10px;
+  padding: 12px 14px;
+  border-radius: 12px;
   border: 1px solid var(--border);
   background: var(--input-bg);
   color: var(--text-primary);
   font-size: 14px;
   outline: none;
-  margin-bottom: 12px;
+  margin-bottom: 16px;
   box-sizing: border-box;
+  transition: border-color 0.2s, box-shadow 0.2s;
 }
 
 .quick-create-dialog input:focus {
   border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.08);
 }
 
 .quick-create-actions {
   display: flex;
-  gap: 8px;
+  gap: 10px;
   justify-content: flex-end;
 }
 
 .quick-create-actions button {
-  padding: 8px 16px;
-  border-radius: 10px;
+  padding: 10px 20px;
+  border-radius: 12px;
   border: none;
-  font-size: 13px;
+  font-size: 14px;
+  font-weight: 500;
   cursor: pointer;
+  transition: all 0.2s;
 }
 
 .quick-create-confirm {
   background: var(--accent);
   color: #fff;
+  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.2);
+}
+
+.quick-create-confirm:active {
+  transform: scale(0.96);
 }
 
 .quick-create-cancel {
   background: var(--border-light);
   color: var(--text-secondary);
+}
+
+.quick-create-cancel:active {
+  background: var(--border);
 }

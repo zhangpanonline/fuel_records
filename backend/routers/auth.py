@@ -4,8 +4,10 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from database import get_db
-from schemas.auth import UserRegister, UserLogin, TokenResponse
+from schemas.auth import UserRegister, UserLogin, TokenResponse, UserResponse
 from services.auth_service import register_user, login_user
+from models.user import User
+from core.deps import get_current_user
 
 router = APIRouter(prefix="/api/v1/auth", tags=["用户认证"])
 
@@ -34,3 +36,9 @@ def api_login(
         return TokenResponse(**result)
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
+
+
+@router.get("/me", response_model=UserResponse)
+def api_me(current_user: User = Depends(get_current_user)):
+    """获取当前登录用户信息"""
+    return current_user

@@ -32,6 +32,14 @@ if [ -z "${SUPABASE_SERVICE_KEY:-}" ]; then
   exit 1
 fi
 
+echo "==> 检查 capacitor.config.ts ..."
+if grep -q "url:" frontend/capacitor.config.ts 2>/dev/null; then
+  echo "❌ capacitor.config.ts 中仍有 server.url（开发联调配），请先去掉 server 块再打包"
+  echo "   开发联调时才需要 server 块指向电脑 IP，打包 APK 必须从内置 dist/ 加载"
+  exit 1
+fi
+echo "   配置正常（无 server 块，将从内置 dist/ 加载）"
+
 echo "==> 开始发版 ..."
 node scripts/upload-apk.js
 

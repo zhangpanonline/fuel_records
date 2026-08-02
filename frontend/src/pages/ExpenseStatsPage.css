@@ -6,6 +6,81 @@
   padding: 8px 0 24px;
 }
 
+/* ── 日期范围选择 ── */
+.stats-date-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.stats-date-field {
+  flex: 1;
+  min-width: 0;
+}
+
+.stats-date-field input[type='date'] {
+  width: 100%;
+  padding: 11px 14px;
+  font-size: 14px;
+  font-weight: 500;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--input-bg);
+  color: var(--text-body);
+  outline: none;
+  transition: all 0.25s ease;
+}
+
+.stats-date-field input[type='date']:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.08);
+}
+
+.stats-date-sep {
+  font-size: 13px;
+  color: var(--text-dim);
+  font-weight: 500;
+  flex-shrink: 0;
+}
+
+/* ── 快捷时段按钮 ── */
+.stats-period-row {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.stats-period-btn {
+  flex: 1;
+  padding: 10px 0;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  cursor: pointer;
+  letter-spacing: 0.01em;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.stats-period-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.stats-period-btn.active {
+  background: rgba(99, 102, 241, 0.08);
+  border-color: var(--accent);
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.stats-period-btn:active {
+  transform: scale(0.96);
+}
+
 /* ── 时间/图表切换 ── */
 .stats-time-row {
   display: flex;
@@ -41,10 +116,42 @@
 }
 
 .stats-card {
+  position: relative;
   padding: 16px;
   border-radius: 14px;
   background: var(--card-bg);
   text-align: center;
+  overflow: hidden;
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* 卡片顶部彩色装饰线 */
+.stats-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 40px;
+  height: 3px;
+  border-radius: 0 0 4px 4px;
+  transition: width 0.3s ease;
+}
+
+.stats-card:nth-child(1)::before {
+  background: linear-gradient(90deg, #6366f1, #818cf8);
+}
+
+.stats-card:nth-child(2)::before {
+  background: linear-gradient(90deg, #f59e0b, #fbbf24);
+}
+
+.stats-card:nth-child(3)::before {
+  background: linear-gradient(90deg, #10b981, #34d399);
+}
+
+.stats-card:hover::before {
+  width: 60px;
 }
 
 .stats-card-value {
@@ -64,6 +171,170 @@
   padding: 40px;
   color: var(--text-dim);
   font-size: 14px;
+}
+
+/* ── 图表容器 + 全屏按钮 ── */
+.chart-section {
+  position: relative;
+  margin-top: 12px;
+}
+
+.chart-fullscreen-btn {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 10;
+  width: 32px;
+  height: 32px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--card-bg);
+  color: var(--text-secondary);
+  font-size: 16px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  opacity: 0.6;
+}
+
+.chart-fullscreen-btn:hover {
+  opacity: 1;
+  border-color: var(--accent);
+  color: var(--accent);
+  background: rgba(99, 102, 241, 0.06);
+}
+
+/* ── 全屏遮罩 ── */
+.chart-fullscreen-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: var(--bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+
+.chart-fullscreen-container {
+  width: 100vw;
+  height: 100vh;
+  height: 100dvh;
+  position: relative;
+  background: var(--bg);
+  padding: 48px 24px 24px;
+  display: flex;
+  flex-direction: column;
+}
+
+.chart-fullscreen-close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 10;
+  width: 36px;
+  height: 36px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--card-bg);
+  color: var(--text-secondary);
+  font-size: 18px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.chart-fullscreen-close:hover {
+  border-color: var(--danger);
+  color: var(--danger);
+  background: rgba(239, 68, 68, 0.06);
+}
+
+.chart-fullscreen-container .recharts-responsive-container {
+  flex-shrink: 0;
+}
+
+/* ── 饼图图例 ── */
+.pie-legend {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px 16px;
+  margin-top: 8px;
+  padding: 0 4px;
+}
+
+.pie-legend--fs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  flex: 1;
+  overflow-y: auto;
+  align-content: start;
+  margin-top: 4px;
+  padding-bottom: 16px;
+}
+
+.pie-legend-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background 0.15s;
+  font-size: 13px;
+  min-width: 0;
+}
+
+.pie-legend-item:hover {
+  background: var(--hover-bg);
+}
+
+.pie-legend-item:active {
+  transform: scale(0.97);
+}
+
+.pie-legend-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 3px;
+  flex-shrink: 0;
+  align-self: center;
+  margin-right: 2px;
+}
+
+.pie-legend-info {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  min-width: 0;
+}
+
+.pie-legend-name {
+  color: var(--text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+  font-weight: 500;
+}
+
+.pie-legend-pct {
+  color: var(--text-dim);
+  font-variant-numeric: tabular-nums;
+  font-size: 12px;
+  text-align: left;
+}
+
+.pie-legend-amount {
+  color: var(--text-secondary);
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  font-size: 14px;
+  text-align: left;
 }
 
 /* ── 饼图下钻 ── */
@@ -110,15 +381,16 @@
 
 /* ── 分类树 ── */
 .category-node {
-  margin-bottom: 2px;
+  margin-bottom: 0;
   font-size: 14px;
+  line-height: 1.6;
 }
 
 .category-node-header {
   display: flex;
   align-items: center;
-  padding: 8px 10px;
-  border-radius: 10px;
+  padding: 4px 8px 4px 0;
+  border-radius: 8px;
   transition: background 0.15s;
 }
 
@@ -126,12 +398,25 @@
   background: var(--border-light);
 }
 
+/* tree 线段前缀 */
+.category-node-lines {
+  font-family: 'SF Mono', 'Menlo', 'Monaco', 'Consolas', monospace;
+  font-size: 13px;
+  color: var(--text-dim);
+  white-space: pre;
+  flex-shrink: 0;
+  user-select: none;
+  line-height: 1;
+  margin-right: 1px;
+}
+
 .category-node-expand {
-  width: 20px;
+  width: 16px;
   font-size: 10px;
   color: var(--text-dim);
   flex-shrink: 0;
   cursor: pointer;
+  margin-right: 2px;
 }
 
 .category-node-name {
@@ -156,19 +441,152 @@
 }
 
 .category-children {
-  margin-left: 20px;
+  margin-left: 0;
+  padding-left: 0;
 }
 
 .add-category-btn {
-  width: 100%;
-  padding: 10px;
-  margin-top: 12px;
+  padding: 4px 10px;
+  margin-top: 4px;
   border: 1px dashed var(--border);
-  border-radius: 12px;
+  border-radius: 6px;
   background: transparent;
   color: var(--accent);
-  font-size: 14px;
+  font-size: 11px;
   cursor: pointer;
+  display: inline-block;
+}
+
+/* 子分类内：按层级对齐 */
+.add-category-btn[data-add-level='1'] {
+  margin-left: 0;
+}
+
+.add-category-btn[data-add-level='2'] {
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.add-category-btn[data-add-level='3'] {
+  display: block;
+  margin-left: auto;
+  margin-right: 0;
+}
+
+/* 添加按钮行（含 tree 线段） */
+.category-add-row {
+  display: flex;
+  align-items: center;
+  min-height: 24px;
+}
+
+.category-node-branch {
+  font-family: 'SF Mono', 'Menlo', 'Monaco', 'Consolas', monospace;
+  font-size: 13px;
+  color: var(--text-dim);
+  flex-shrink: 0;
+  user-select: none;
+}
+
+.category-add-line {
+  flex: 1;
+  border-bottom: 1px dashed rgba(127, 127, 127, 0.22);
+  margin: 0 4px;
+  min-width: 8px;
+  align-self: center;
+}
+
+[data-theme='dark'] .category-add-line {
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+/* ── 重命名弹框 ── */
+.rename-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: renameFadeIn 0.2s ease;
+}
+
+@keyframes renameFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.rename-dialog {
+  background: var(--card-bg);
+  border-radius: 16px;
+  padding: 24px;
+  width: calc(100% - 48px);
+  max-width: 320px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.18);
+  animation: renameSlideUp 0.25s ease;
+}
+
+@keyframes renameSlideUp {
+  from { transform: translateY(20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+.rename-dialog-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 16px;
+}
+
+.rename-dialog-input {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  font-size: 15px;
+  outline: none;
+  background: var(--input-bg);
+  color: var(--text-primary);
+  box-sizing: border-box;
+}
+
+.rename-dialog-input:focus {
+  border-color: var(--accent);
+}
+
+.rename-dialog-error {
+  margin-top: 8px;
+  font-size: 12px;
+  color: #ef4444;
+}
+
+.rename-dialog-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.rename-dialog-cancel,
+.rename-dialog-ok {
+  flex: 1;
+  padding: 10px 0;
+  border: none;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.rename-dialog-cancel {
+  background: var(--cancel-bg);
+  color: var(--text-secondary);
+}
+
+.rename-dialog-ok {
+  background: var(--accent);
+  color: #fff;
 }
 
 /* ── 内联编辑 ── */
@@ -206,6 +624,54 @@
 .inline-edit-cancel {
   background: var(--border-light);
   color: var(--text-secondary);
+}
+
+/* ── 柱状图横屏全屏布局 ── */
+/* 全屏时 BarChart 用 layout="vertical" 画水平条形图，天然适配横屏宽画幅。
+   用户把手机横过来时 viewport 变宽，条形图自然伸展填满。 */
+.chart-fullscreen-landscape {
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
+  flex-direction: column;
+  padding: 48px 12px 12px;
+  gap: 8px;
+  background: var(--bg);
+}
+
+.chart-landscape-chart {
+  flex: 1;
+  min-height: 0;
+}
+
+.chart-landscape-legend {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px 16px;
+  padding: 8px 0 4px;
+  flex-shrink: 0;
+}
+
+.chart-landscape-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  color: var(--text-secondary);
+  cursor: default;
+}
+
+.chart-landscape-legend-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+.chart-landscape-legend-name {
+  font-weight: 500;
 }
 
 /* ── 响应式 ── */

@@ -7,13 +7,15 @@ import {
   getUserCache,
   setUserCache,
   getCurrentUser,
+  getApiServer,
+  setApiServer,
+  getApiBaseUrl,
   type UserInfo,
 } from '../services/api'
 import { checkUpdate, type UpdateInfo } from '../services/upgrade'
 import './SettingsModal.css'
 
 const APP_VERSION = import.meta.env.VITE_APP_VERSION as string
-const API_BASE = import.meta.env.VITE_API_BASE_URL || ''
 
 interface Props {
   onClose: () => void
@@ -31,6 +33,16 @@ export default function SettingsModal({ onClose }: Props) {
   const [verifying, setVerifying] = useState(false)
   const [pendingDb, setPendingDb] = useState<'prod' | 'test' | null>(null)
   const [user, setUser] = useState<UserInfo | null>(getUserCache())
+
+  // 服务器切换
+  const [apiServer, setApiServerState] = useState<string>(getApiServer())
+  const [serverVerifying, setServerVerifying] = useState(false)
+  const [serverError, setServerError] = useState('')
+
+  // 性能模式
+  const [perfMode, setPerfMode] = useState<'full' | 'reduced'>(
+    () => (localStorage.getItem('fuel_performance_mode') as 'full' | 'reduced') || 'full'
+  )
 
   // 打开弹窗时：先展示缓存，后台静默刷新
   useEffect(() => {
@@ -57,7 +69,7 @@ export default function SettingsModal({ onClose }: Props) {
 
     try {
       const res = await axios.get<{ prod: boolean; test: boolean }>(
-        `${API_BASE}/api/v1/health/db`,
+        `${getApiBaseUrl()}/api/v1/health/db`,
         { timeout: 8000 }
       )
 
@@ -82,6 +94,46 @@ export default function SettingsModal({ onClose }: Props) {
       setSwitchError('网络异常，无法验证数据库状态，请检查网络后重试')
       setVerifying(false)
     }
+  }
+
+  async function handleSelectServer(server: string) {
+    if (server === apiServer || serverVerifying) return
+
+    setServerVerifying(true)
+    setServerError('')
+
+    const serverUrls: Record<string, string> = {
+      render: 'https://fuel-records.onrender.com',
+      flyio: 'https://fuel-records.fly.dev',
+    }
+    const targetUrl = serverUrls[server]
+
+    if (!targetUrl) {
+      setServerError('未知服务器')
+      setServerVerifying(false)
+      return
+    }
+
+    try {
+      await axios.get(`${targetUrl}/api/v1/health`, { timeout: 8000 })
+      setApiServerState(server)
+      setApiServer(server)
+      setServerVerifying(false)
+    } catch {
+      setServerError(
+        server === 'flyio'
+          ? 'Fly.io 不可用，请稍后重试'
+          : 'Render 不可用，请稍后重试'
+      )
+      setServerVerifying(false)
+    }
+  }
+
+  function handleTogglePerf() {
+    const next = perfMode === 'full' ? 'reduced' : 'full'
+    setPerfMode(next)
+    localStorage.setItem('fuel_performance_mode', next)
+    document.documentElement.dataset.performance = next
   }
 
   async function handleCheckUpdate() {
@@ -153,6 +205,66 @@ export default function SettingsModal({ onClose }: Props) {
           >
             {checkStatus === 'checking' ? '检查中…' : '检查更新'}
           </button>
+        </div>
+
+        {/* 服务器选择 */}
+        <div className="settings-section">
+          <span className="settings-label">服务器</span>
+          <p className="settings-desc">切换后端服务，无需重新登录</p>
+
+          {serverVerifying && (
+            <div className="settings-switch-toast verifying">验证中…</div>
+          )}
+          {serverError && (
+            <div className="settings-switch-toast error">{serverError}</div>
+          )}
+
+          <div className="settings-env-list">
+            <label
+              className={`settings-env-option ${apiServer === 'render' ? 'active' : ''} ${serverVerifying ? 'disabled' : ''}`}
+              onClick={() => handleSelectServer('render')}
+            >
+              <div className="settings-env-radio">
+                {apiServer === 'render' && <div className="settings-env-radio-dot" />}
+              </div>
+              <div className="settings-env-info">
+                <span className="settings-env-name">Render</span>
+                <span className="settings-env-url">当前部署服务器</span>
+              </div>
+            </label>
+
+            <label
+              className={`settings-env-option ${apiServer === 'flyio' ? 'active' : ''} ${serverVerifying ? 'disabled' : ''}`}
+              onClick={() => handleSelectServer('flyio')}
+            >
+              <div className="settings-env-radio">
+                {apiServer === 'flyio' && <div className="settings-env-radio-dot" />}
+              </div>
+              <div className="settings-env-info">
+                <span className="settings-env-name">Fly.io</span>
+                <span className="settings-env-url">零冷启动，响应更快</span>
+              </div>
+            </label>
+          </div>
+        </div>
+
+        {/* 显示 */}
+        <div className="settings-section">
+          <span className="settings-label">显示</span>
+          <div className="settings-perf-row">
+            <div className="settings-perf-info">
+              <span className="settings-perf-name">性能模式</span>
+              <span className="settings-perf-desc">关闭毛玻璃和持续动画，减少手机发热</span>
+            </div>
+            <label className="settings-toggle">
+              <input
+                type="checkbox"
+                checked={perfMode === 'reduced'}
+                onChange={handleTogglePerf}
+              />
+              <span className="settings-toggle-slider" />
+            </label>
+          </div>
         </div>
 
         {/* 数据库选择 */}

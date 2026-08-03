@@ -1,0 +1,15 @@
+app = "fuel-records"
+primary_region = "nrt"
+
+[build]
+  dockerfile = "Dockerfile"
+
+[[services]]
+  protocol = "tcp"
+  internal_port = 8080
+  ports = [{ port = 80, handlers = ["http"] }, { port = 443, handlers = ["tls", "http"] }]
+
+  [[services.tcp_checks]]
+    interval = "15s"
+    timeout = "5s"
+    grace_period = "30s"

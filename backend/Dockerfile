@@ -35,4 +35,5 @@ EXPOSE 8000
 # 7. 启动命令
 # 用 uvicorn 启动 FastAPI 应用
 # --host 0.0.0.0 让容器内监听所有 IP（容器内部默认只有 127.0.0.1）
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
+# $PORT 由 Fly.io 动态分配（本地未设置时回退 8000）
+CMD ["sh", "-c", "uvicorn main:app --host 0.0.0.0 --port ${PORT:-8000}"]

@@ -3,6 +3,8 @@
 > **本项目的架构设计和代码风格参考了 [`company.md`](file:///Users/zp/Code/fuel_records/company.md)（公司项目「井下作业智能体」）的技术栈与分层架构，旨在通过一个麻雀虽小五脏俱全的实操项目，系统学习后端开发知识。**
 >
 > **新增功能**：个人记账模块，详见 [`EXPENSE_SPEC.md`](file:///Users/zp/Code/fuel_records/EXPENSE_SPEC.md)。
+>
+> **性能优化**：前端 CSS 降级（性能模式开关）+ 后端 Render → Fly.io 迁移，详见 [`PERF_SPEC.md`](file:///Users/zp/Code/fuel_records/PERF_SPEC.md)。
 
 ---
 
@@ -574,3 +576,5 @@ Phase 8 ──→  用户体验锦上添花
 > **本规格书对应的公司项目架构参考位于 [`company.md`](file:///Users/zp/Code/fuel_records/company.md)**
 >
 > **新增模块规格书**：[`EXPENSE_SPEC.md`](file:///Users/zp/Code/fuel_records/EXPENSE_SPEC.md) — 个人记账功能（自定义三级分类 + 三环旭日图/堆叠柱状图下钻/饼图下钻多维度统计）
+>
+> **性能优化规格书**：[`PERF_SPEC.md`](file:///Users/zp/Code/fuel_records/PERF_SPEC.md) — 前端 CSS 降级（性能模式开关）+ 后端 Render → Fly.io 迁移

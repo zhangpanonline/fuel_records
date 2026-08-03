@@ -13,6 +13,10 @@ import { isLoggedIn } from './services/api.ts'
 import './index.css'
 import type React from 'react'
 
+// 性能模式：默认 full（完整效果），用户可在设置中切换为 reduced（降级）
+const perfMode = localStorage.getItem('fuel_performance_mode') || 'full'
+document.documentElement.dataset.performance = perfMode
+
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   if (!isLoggedIn()) {
     return <Navigate to="/login" replace />

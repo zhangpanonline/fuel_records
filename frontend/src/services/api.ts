@@ -154,6 +154,33 @@ export function isLoggedIn(): boolean {
   return !!getToken()
 }
 
+// ---- 服务器选择（运行时可切换 Render ↔ Fly.io） ----
+
+const SERVER_KEY = 'fuel_api_server'
+
+/** 服务器 URL 映射表 */
+const SERVERS: Record<string, string> = {
+  render: 'https://fuel-records.onrender.com',
+  flyio: 'https://fuel-records.fly.dev',
+}
+
+const DEFAULT_SERVER = 'render'
+
+/** 获取当前服务器标识 */
+export function getApiServer(): string {
+  return localStorage.getItem(SERVER_KEY) || DEFAULT_SERVER
+}
+
+/** 设置服务器标识 */
+export function setApiServer(server: string): void {
+  localStorage.setItem(SERVER_KEY, server)
+}
+
+/** 获取当前服务器的 API base URL */
+export function getApiBaseUrl(): string {
+  return SERVERS[getApiServer()] || SERVERS[DEFAULT_SERVER]
+}
+
 // ---- 数据库环境选择（运行时可切换） ----
 
 const DB_ENV_KEY = 'fuel_db_env'
@@ -205,12 +232,13 @@ export async function getCurrentUser(): Promise<UserInfo> {
 // ---- Axios 实例（带 token + 数据库环境拦截器） ----
 
 const apiClient = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || '',
+  // baseURL 由请求拦截器动态设置（支持运行时切换服务器），不在此处写死
   timeout: 60000, // 60s，容纳 Render 免费层冷启动（休眠后唤醒需 30-60s）
 })
 
-// 请求拦截器：X-Database-Env 请求头 + Authorization
+// 请求拦截器：动态 baseURL + X-Database-Env + Authorization
 apiClient.interceptors.request.use((config) => {
+  config.baseURL = getApiBaseUrl()
   config.headers['X-Database-Env'] = getDatabaseEnv()
   const token = getToken()
   if (token) {
@@ -382,7 +410,7 @@ export async function fetchTimeline(
 
 export async function exportCSV(vehicleId: number): Promise<Blob> {
   const token = getToken()
-  const baseURL = import.meta.env.VITE_API_BASE_URL || ''
+  const baseURL = getApiBaseUrl()
   const url = `${baseURL}/api/v1/records/export/csv?vehicle_id=${vehicleId}`
 
   const res = await fetch(url, {

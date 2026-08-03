@@ -1,1 +1,75 @@
 /* 基础重置已合并到 App.css */
+
+/* ===== 性能模式降级（用户可在设置中开启） ===== */
+
+/* 等级 1：关闭持续无限动画 */
+[data-performance='reduced'] body {
+  animation: none !important;
+}
+
+[data-performance='reduced'] body::before,
+[data-performance='reduced'] body::after {
+  animation: none !important;
+}
+
+[data-performance='reduced'] .filter-dot {
+  animation: none !important;
+}
+
+[data-performance='reduced'] .submit-btn-expense {
+  animation: none !important;
+}
+
+[data-performance='reduced'] .submit-btn-expense:hover {
+  box-shadow: 0 0 28px rgba(99, 102, 241, 0.35);
+}
+
+[data-performance='reduced'] .smart-fab {
+  animation: none !important;
+}
+
+/* 等级 2：关闭 backdrop-filter blur → 纯色背景 */
+[data-performance='reduced'] .record-form,
+[data-performance='reduced'] .records-section,
+[data-performance='reduced'] .vehicle-form,
+[data-performance='reduced'] .auth-form,
+[data-performance='reduced'] .chart-container,
+[data-performance='reduced'] .record-item,
+[data-performance='reduced'] .stats-card,
+[data-performance='reduced'] .fuel-summary-bar,
+[data-performance='reduced'] .category-picker-trigger,
+[data-performance='reduced'] .category-picker-dropdown,
+[data-performance='reduced'] .date-input,
+[data-performance='reduced'] .note-input,
+[data-performance='reduced'] .stats-page {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  background: var(--card-bg-solid) !important;
+}
+
+[data-performance='reduced'] .topbar {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  background: var(--card-bg-solid) !important;
+}
+
+[data-performance='reduced'] .bottom-nav {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  background: var(--card-bg-solid) !important;
+}
+
+[data-performance='reduced'] .smart-fab {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+[data-performance='reduced'] .upgrade-overlay {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+[data-performance='reduced'] .quick-create-overlay {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}

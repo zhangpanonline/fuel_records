@@ -18,6 +18,8 @@
 .settings-modal {
   width: 100%;
   max-width: 360px;
+  max-height: calc(100vh - 48px);
+  overflow-y: auto;
   background: var(--card-bg-solid);
   border-radius: 18px;
   padding: 24px;

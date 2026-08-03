@@ -9,7 +9,8 @@ import {
   type FuelRecord,
   type SummaryStats,
 } from './services/api'
-import { checkUpdate, downloadApk, installApk, type UpdateInfo } from './services/upgrade'
+import { checkUpdate, type UpdateInfo } from './services/upgrade'
+import UpgradeModal from './components/UpgradeModal'
 import { useFuelData } from './context/FuelDataContext'
 import PullToRefresh from './components/PullToRefresh'
 import FuelPageSkeleton from './components/FuelPageSkeleton'
@@ -183,9 +184,6 @@ function App() {
 
   // ---- 版本更新 ----
   const [updateInfo, setUpdateInfo] = useState<UpdateInfo | null>(null)
-  const [downloadProgress, setDownloadProgress] = useState<number | null>(null)
-  const [downloadError, setDownloadError] = useState<string | null>(null)
-  const [installing, setInstalling] = useState(false)
 
   // 历史备注联想
   const noteSuggestions = useMemo(() => {
@@ -346,33 +344,6 @@ function App() {
     })
   }, [])
 
-  async function handleStartDownload() {
-    if (!updateInfo) return
-    setDownloadProgress(0)
-    setDownloadError(null)
-    try {
-      const localUri = await downloadApk(updateInfo.apk_url, (pct) => {
-        setDownloadProgress(pct)
-      })
-      setDownloadProgress(null)
-      setInstalling(true)
-      await installApk(localUri)
-      setUpdateInfo(null)
-      setInstalling(false)
-    } catch (err) {
-      setDownloadProgress(null)
-      setInstalling(false)
-      setDownloadError(
-        err instanceof Error ? err.message : '下载失败，请重试'
-      )
-    }
-  }
-
-  async function handleRetryDownload() {
-    setDownloadError(null)
-    await handleStartDownload()
-  }
-
   function formatDate(iso: string) {
     const d = new Date(iso)
     return `${d.getMonth() + 1}月${d.getDate()}日 ${d.getHours().toString().padStart(2, '0')}:${d.getMinutes().toString().padStart(2, '0')}`
@@ -389,59 +360,11 @@ function App() {
       <div className="app">
       {/* 版本更新弹窗 */}
       {updateInfo && (
-        <div className="upgrade-overlay">
-          <div className="upgrade-modal animate-scale">
-            {downloadProgress !== null ? (
-              <>
-                <h2 className="upgrade-title">正在下载更新</h2>
-                <div className="upgrade-progress-bar">
-                  <div
-                    className="upgrade-progress-fill"
-                    style={{ width: `${downloadProgress}%` }}
-                  />
-                </div>
-                <p className="upgrade-progress-text">
-                  正在下载... {downloadProgress}%
-                </p>
-              </>
-            ) : installing ? (
-              <>
-                <h2 className="upgrade-title">正在准备安装</h2>
-                <p className="upgrade-body">即将打开系统安装器…</p>
-              </>
-            ) : downloadError ? (
-              <>
-                <h2 className="upgrade-title">下载失败</h2>
-                <p className="upgrade-body">{downloadError}</p>
-                <div className="upgrade-actions">
-                  <button className="upgrade-btn secondary" onClick={handleRetryDownload}>
-                    重试
-                  </button>
-                </div>
-              </>
-            ) : (
-              <>
-                <h2 className="upgrade-title">发现新版本</h2>
-                <p className="upgrade-body">
-                  当前版本：v{import.meta.env.VITE_APP_VERSION || '1.0.0'}
-                  <br />
-                  最新版本：v{updateInfo.version_name}
-                </p>
-                <div className="upgrade-actions">
-                  <button
-                    className="upgrade-btn secondary"
-                    onClick={() => setUpdateInfo(null)}
-                  >
-                    暂不更新
-                  </button>
-                  <button className="upgrade-btn primary" onClick={handleStartDownload}>
-                    立即更新
-                  </button>
-                </div>
-              </>
-            )}
-          </div>
-        </div>
+        <UpgradeModal
+          updateInfo={updateInfo}
+          currentVersion={import.meta.env.VITE_APP_VERSION || '1.0.0'}
+          onClose={() => setUpdateInfo(null)}
+        />
       )}
 
       {/* 车辆选择器 */}

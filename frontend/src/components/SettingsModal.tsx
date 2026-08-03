@@ -13,6 +13,7 @@ import {
   type UserInfo,
 } from '../services/api'
 import { checkUpdate, type UpdateInfo } from '../services/upgrade'
+import UpgradeModal from './UpgradeModal'
 import './SettingsModal.css'
 
 const APP_VERSION = import.meta.env.VITE_APP_VERSION as string
@@ -190,11 +191,14 @@ export default function SettingsModal({ onClose }: Props) {
             <p className="settings-check-result success">已是最新版本</p>
           )}
           {checkStatus === 'available' && updateInfo && (
-            <div className="settings-update-card">
-              <p className="settings-check-result available">
-                发现新版本 v{updateInfo.version_name}
-              </p>
-            </div>
+            <UpgradeModal
+              updateInfo={updateInfo}
+              currentVersion={APP_VERSION}
+              onClose={() => {
+                setUpdateInfo(null)
+                setCheckStatus('idle')
+              }}
+            />
           )}
           {checkError && <p className="settings-check-result error">{checkError}</p>}
 

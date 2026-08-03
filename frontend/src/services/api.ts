@@ -164,7 +164,7 @@ const SERVERS: Record<string, string> = {
   flyio: 'https://fuel-records.fly.dev',
 }
 
-const DEFAULT_SERVER = 'render'
+const DEFAULT_SERVER = 'flyio'
 
 /** 获取当前服务器标识 */
 export function getApiServer(): string {

@@ -3,9 +3,10 @@
 from datetime import date
 from typing import Optional
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
+from core.exceptions import BusinessError, to_http_status
 from database import get_db
 from schemas.expense import ExpenseCreate, ExpenseUpdate, ExpenseResponse, ExpenseListResponse
 from services.expense_service import create_expense, get_expenses, get_expense_by_id, update_expense, delete_expense
@@ -22,7 +23,10 @@ def api_create_expense(
     current_user: User = Depends(get_current_user),
 ):
     """创建支出记录"""
-    return create_expense(db=db, user_id=current_user.id, data=data)
+    try:
+        return create_expense(db=db, user_id=current_user.id, data=data)
+    except BusinessError as e:
+        raise HTTPException(to_http_status(e), e.message)
 
 
 @router.get("/", response_model=ExpenseListResponse)
@@ -65,7 +69,10 @@ def api_update_expense(
     current_user: User = Depends(get_current_user),
 ):
     """修改支出记录"""
-    return update_expense(db=db, expense_id=expense_id, user_id=current_user.id, data=data)
+    try:
+        return update_expense(db=db, expense_id=expense_id, user_id=current_user.id, data=data)
+    except BusinessError as e:
+        raise HTTPException(to_http_status(e), e.message)
 
 
 @router.delete("/{expense_id}", status_code=204)
@@ -75,4 +82,7 @@ def api_delete_expense(
     current_user: User = Depends(get_current_user),
 ):
     """删除支出记录"""
-    delete_expense(db=db, expense_id=expense_id, user_id=current_user.id)
+    try:
+        delete_expense(db=db, expense_id=expense_id, user_id=current_user.id)
+    except BusinessError as e:
+        raise HTTPException(to_http_status(e), e.message)

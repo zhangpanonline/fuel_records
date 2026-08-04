@@ -276,7 +276,7 @@ class TestExpenseAPI:
         data = resp.json()
         assert data["group_by"] == "none"
         assert data["total_amount"] == "35.00"
-        assert len(data["category_breakdown"]) == 3  # L1+L2+L3 full level
+        assert len(data["category_breakdown"]) == 4  # L1+L2+L3 / L1+L2 / L1 / grand total
 
     def test_expense_stats_monthly(self, client):
         token = _register_and_login(client)

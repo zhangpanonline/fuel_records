@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from 'react'
+import { createContext, useContext, useState, useEffect, useCallback, useRef, type ReactNode } from 'react'
 import {
   fetchRecords,
   fetchVehicles,
@@ -59,6 +59,10 @@ export function FuelDataProvider({ children }: { children: ReactNode }) {
   const [filterFullTank, setFilterFullTank] = useState<boolean | undefined>(undefined)
   const [filterNote, setFilterNote] = useState('')
 
+  // useRef 持有最新 filter 值，避免 loadRecords 依赖 filter 状态变化
+  const filtersRef = useRef({ startDate: '', endDate: '', fullTank: undefined as boolean | undefined, note: '' })
+  filtersRef.current = { startDate: filterStartDate, endDate: filterEndDate, fullTank: filterFullTank, note: filterNote }
+
   const loadVehicles = useCallback(async () => {
     try {
       const list = await fetchVehicles()
@@ -85,10 +89,10 @@ export function FuelDataProvider({ children }: { children: ReactNode }) {
     try {
       const data = await fetchRecords(
         pageNum, PAGE_SIZE, vehicleId,
-        filterStartDate || undefined,
-        filterEndDate || undefined,
-        filterFullTank,
-        filterNote || undefined,
+        filtersRef.current.startDate || undefined,
+        filtersRef.current.endDate || undefined,
+        filtersRef.current.fullTank,
+        filtersRef.current.note || undefined,
       )
       setTotal(data.total)
       if (pageNum === 1) {
@@ -102,8 +106,7 @@ export function FuelDataProvider({ children }: { children: ReactNode }) {
     } finally {
       setLoading(false)
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filterStartDate, filterEndDate, filterFullTank, filterNote])
+  }, [])
 
   const refreshRecords = useCallback(async () => {
     if (selectedVehicleId !== null) {

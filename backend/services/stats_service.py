@@ -1,5 +1,6 @@
 """统计数据业务逻辑"""
 
+from collections import defaultdict
 from datetime import date, datetime, timedelta
 from typing import Optional
 
@@ -122,92 +123,63 @@ def get_timeline(
         return []
 
     if group_by == "day":
-        return _group_by_day(rows)
+        return _aggregate(rows, _key_builder_day())
     elif group_by == "week":
-        return _group_by_week(rows, s or rows[0].record_date.date())
+        base = s or rows[0].record_date.date()
+        return _aggregate(rows, _key_builder_week(base))
     else:
-        return _group_by_month(rows)
+        return _aggregate(rows, _key_builder_month())
 
 
-def _group_by_day(rows) -> list[dict]:
-    """按天聚合"""
-    from collections import defaultdict
+# ── Key builders ──────────────────────────────
 
-    buckets: dict[str, dict] = defaultdict(lambda: {"count": 0, "total_volume": 0.0, "total_cost": 0.0, "consumptions": []})
-
-    for r in rows:
-        key = r.record_date.strftime("%Y-%m-%d") if hasattr(r.record_date, 'strftime') else str(r.record_date)[:10]
-        buckets[key]["count"] += 1
-        buckets[key]["total_volume"] += float(r.fuel_volume or 0)
-        buckets[key]["total_cost"] += float(r.fuel_cost or 0)
-        if r.fuel_consumption is not None:
-            buckets[key]["consumptions"].append(float(r.fuel_consumption))
-
-    result = []
-    for period in sorted(buckets.keys()):
-        b = buckets[period]
-        consumptions = b["consumptions"]
-        result.append({
-            "period": period,
-            "count": b["count"],
-            "total_volume": round(b["total_volume"], 2),
-            "total_cost": round(b["total_cost"], 2),
-            "avg_consumption": round(sum(consumptions) / len(consumptions), 2) if consumptions else None,
-        })
-    return result
+def _key_builder_day():
+    """按天 key: 'YYYY-MM-DD'"""
+    def key(r):
+        return r.record_date.strftime("%Y-%m-%d") if hasattr(r.record_date, 'strftime') else str(r.record_date)[:10]
+    return key
 
 
-def _group_by_week(rows, base_date: date) -> list[dict]:
-    """按 7 天一段聚合（从 base_date 开始）"""
-    from collections import defaultdict
-
-    buckets: dict[int, dict] = defaultdict(lambda: {"count": 0, "total_volume": 0.0, "total_cost": 0.0, "consumptions": []})
-
-    for r in rows:
+def _key_builder_week(base_date: date):
+    """按周 key: (week_num, 'MM-DD~MM-DD') — tuple 保证跨年按整数排序"""
+    def key(r):
         d = r.record_date.date() if hasattr(r.record_date, 'date') else r.record_date
-        week_num = (d - base_date).days // 7
-        buckets[week_num]["count"] += 1
-        buckets[week_num]["total_volume"] += float(r.fuel_volume or 0)
-        buckets[week_num]["total_cost"] += float(r.fuel_cost or 0)
-        if r.fuel_consumption is not None:
-            buckets[week_num]["consumptions"].append(float(r.fuel_consumption))
-
-    result = []
-    for wn in sorted(buckets.keys()):
-        b = buckets[wn]
+        wn = (d - base_date).days // 7
         w_start = base_date + timedelta(days=wn * 7)
         w_end = w_start + timedelta(days=6)
-        consumptions = b["consumptions"]
-        result.append({
-            "period": f"{w_start.strftime('%m-%d')}~{w_end.strftime('%m-%d')}",
-            "count": b["count"],
-            "total_volume": round(b["total_volume"], 2),
-            "total_cost": round(b["total_cost"], 2),
-            "avg_consumption": round(sum(consumptions) / len(consumptions), 2) if consumptions else None,
-        })
-    return result
+        return (wn, f"{w_start.strftime('%m-%d')}~{w_end.strftime('%m-%d')}")
+    return key
 
 
-def _group_by_month(rows) -> list[dict]:
-    """按月聚合"""
-    from collections import defaultdict
+def _key_builder_month():
+    """按月 key: 'YYYY-MM'"""
+    def key(r):
+        return r.record_date.strftime("%Y-%m") if hasattr(r.record_date, 'strftime') else str(r.record_date)[:7]
+    return key
 
+
+# ── Generic aggregation ───────────────────────
+
+def _aggregate(rows, key_func) -> list[dict]:
+    """通用时间聚合：按 key_func 分组 → 统计 count / volume / cost / avg consumption"""
     buckets: dict[str, dict] = defaultdict(lambda: {"count": 0, "total_volume": 0.0, "total_cost": 0.0, "consumptions": []})
 
     for r in rows:
-        key = r.record_date.strftime("%Y-%m") if hasattr(r.record_date, 'strftime') else str(r.record_date)[:7]
-        buckets[key]["count"] += 1
-        buckets[key]["total_volume"] += float(r.fuel_volume or 0)
-        buckets[key]["total_cost"] += float(r.fuel_cost or 0)
+        k = key_func(r)
+        buckets[k]["count"] += 1
+        buckets[k]["total_volume"] += float(r.fuel_volume or 0)
+        buckets[k]["total_cost"] += float(r.fuel_cost or 0)
         if r.fuel_consumption is not None:
-            buckets[key]["consumptions"].append(float(r.fuel_consumption))
+            buckets[k]["consumptions"].append(float(r.fuel_consumption))
 
     result = []
     for period in sorted(buckets.keys()):
         b = buckets[period]
         consumptions = b["consumptions"]
+        # tuple key → 提取 display label（如 (0, '08-01~08-07') → '08-01~08-07'）
+        label = period[1] if isinstance(period, tuple) else period
         result.append({
-            "period": period,
+            "period": label,
             "count": b["count"],
             "total_volume": round(b["total_volume"], 2),
             "total_cost": round(b["total_cost"], 2),

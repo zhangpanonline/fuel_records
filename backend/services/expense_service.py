@@ -4,8 +4,8 @@ from datetime import date
 from typing import Optional
 
 from sqlalchemy.orm import Session
-from fastapi import HTTPException
 
+from core.exceptions import NotFoundError, BadRequestError, ForbiddenError
 from models.expense import Expense
 from models.expense_category import ExpenseCategory
 from schemas.expense import ExpenseCreate, ExpenseUpdate
@@ -36,7 +36,7 @@ def _validate_category_chain(
         .first()
     )
     if not cat_l1:
-        raise HTTPException(404, f"一级分类 '{l1}' 不存在")
+        raise NotFoundError(f"一级分类 '{l1}' 不存在")
 
     # 找 L2（必须是 cat_l1 的子分类）
     cat_l2 = (
@@ -50,7 +50,7 @@ def _validate_category_chain(
         .first()
     )
     if not cat_l2:
-        raise HTTPException(400, f"二级分类 '{l2}' 不属于一级分类 '{l1}'")
+        raise BadRequestError(f"二级分类 '{l2}' 不属于一级分类 '{l1}'")
 
     # 找 L3（必须是 cat_l2 的子分类）
     cat_l3 = (
@@ -64,7 +64,7 @@ def _validate_category_chain(
         .first()
     )
     if not cat_l3:
-        raise HTTPException(400, f"三级分类 '{l3}' 不属于二级分类 '{l2}'")
+        raise BadRequestError(f"三级分类 '{l3}' 不属于二级分类 '{l2}'")
 
 
 def create_expense(
@@ -127,9 +127,9 @@ def get_expenses(
 def get_expense_by_id(db: Session, expense_id: int, user_id: int) -> Expense:
     expense = db.query(Expense).filter(Expense.id == expense_id).first()
     if not expense:
-        raise HTTPException(404, "支出记录不存在")
+        raise NotFoundError("支出记录不存在")
     if expense.user_id != user_id:
-        raise HTTPException(403, "无权操作此记录")
+        raise ForbiddenError("无权操作此记录")
     return expense
 
 

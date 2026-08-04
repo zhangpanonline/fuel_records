@@ -7,6 +7,11 @@ from schemas.auth import UserRegister, UserLogin
 from core.security import hash_password, verify_password, generate_access_token
 
 
+class DuplicateUserError(Exception):
+    """用户名已被注册"""
+    pass
+
+
 def register_user(db: Session, data: UserRegister) -> dict:
     """注册新用户：校验唯一性 → 密码哈希 → 写入数据库 → 返回 JWT
 
@@ -19,7 +24,7 @@ def register_user(db: Session, data: UserRegister) -> dict:
     # 1. 检查用户名是否已被占用
     existing = db.query(User).filter(User.username == data.username).first()
     if existing:
-        raise ValueError(f"用户名 '{data.username}' 已被注册")
+        raise DuplicateUserError(f"用户名 '{data.username}' 已被注册")
 
     # 2. 密码哈希
     hashed = hash_password(data.password)

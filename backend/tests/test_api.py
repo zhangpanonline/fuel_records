@@ -14,7 +14,7 @@ class TestAuthAPI:
         assert "access_token" in resp.json()
 
         resp = client.post("/api/v1/auth/register", json={"username": "alice", "password": "pass123"})
-        assert resp.status_code == 400
+        assert resp.status_code == 409
         assert "已被注册" in resp.json()["detail"]
 
     def test_login_wrong_password(self, client):

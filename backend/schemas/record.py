@@ -42,3 +42,11 @@ class FuelRecordUpdate(BaseModel):
     fuel_cost: Optional[Decimal] = Field(None, decimal_places=2, gt=0)
     is_full_tank: Optional[bool] = None
     note: Optional[str] = None
+
+
+class FuelRecordListResponse(BaseModel):
+    """加油记录列表响应体"""
+    total: int
+    page: int
+    page_size: int
+    records: list[FuelRecordResponse]

@@ -161,8 +161,6 @@ def recalculate_consumption(db: Session, from_record_date: datetime, user_id: in
 
         previous = record
 
-    db.commit()
-
 
 def update_record(
     db: Session, record_id: int, record_in: FuelRecordUpdate, user_id: int
@@ -186,8 +184,8 @@ def update_record(
     if "fuel_volume" in update_data or "fuel_cost" in update_data:
         db_record.unit_price = db_record.fuel_cost / db_record.fuel_volume
 
-    db.commit()
     recalculate_consumption(db, db_record.record_date, user_id, db_record.vehicle_id)
+    db.commit()
     db.refresh(db_record)
     return db_record
 
@@ -214,8 +212,8 @@ def delete_record(db: Session, record_id: int, user_id: int) -> FuelRecord:
     vehicle_id = db_record.vehicle_id
 
     db.delete(db_record)
-    db.commit()
 
     recalculate_consumption(db, record_date, user_id, vehicle_id)
+    db.commit()
 
     return db_record

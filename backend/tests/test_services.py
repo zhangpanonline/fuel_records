@@ -6,13 +6,27 @@ from datetime import datetime
 import pytest
 
 from models.vehicle import Vehicle
+from models.user import User
 from schemas.record import FuelRecordCreate, FuelRecordUpdate
 from schemas.vehicle import VehicleCreate, VehicleUpdate
 from core.security import hash_password, verify_password, generate_access_token, verify_access_token
 from services.record_service import create_record, update_record, delete_record, get_records, recalculate_consumption
-from services.auth_service import register_user, login_user
+from services.auth_service import register_user, login_user, DuplicateUserError
 from services.vehicle_service import create_vehicle, get_vehicles, update_vehicle, delete_vehicle
-from services.stats_service import get_summary, get_monthly
+from services.stats_service import get_summary, get_timeline
+
+
+def _create_user(db_session, user_id=None):
+    """创建测试用户并返回 user_id（PostgreSQL 强制外键约束需要）"""
+    if user_id is not None:
+        u = User(id=user_id, username=f"test{user_id}", hashed_password=hash_password("pass123"), is_active=True)
+        db_session.add(u)
+        db_session.commit()
+        return user_id
+    u = User(username="testuser", hashed_password=hash_password("pass123"), is_active=True)
+    db_session.add(u)
+    db_session.commit()
+    return u.id
 
 
 # ══════════════════════════════════════════════════════════════════
@@ -60,7 +74,7 @@ class TestAuthService:
     def test_register_duplicate(self, db_session):
         data = type("D", (), {"username": "alice", "password": "pass123"})()
         register_user(db_session, data)
-        with pytest.raises(ValueError, match="已被注册"):
+        with pytest.raises(DuplicateUserError, match="已被注册"):
             register_user(db_session, data)
 
     def test_login_success(self, db_session):
@@ -89,6 +103,7 @@ class TestAuthService:
 
 class TestVehicleService:
     def test_create_vehicle(self, db_session):
+        _create_user(db_session, user_id=1)
         v = create_vehicle(db_session, VehicleCreate(name="KPT400", plate="京A12345", initial_mileage=10000), user_id=1)
         assert v.name == "KPT400"
         assert v.user_id == 1
@@ -96,6 +111,8 @@ class TestVehicleService:
         assert v.is_active is True
 
     def test_get_vehicles(self, db_session):
+        _create_user(db_session, user_id=1)
+        _create_user(db_session, user_id=2)
         create_vehicle(db_session, VehicleCreate(name="A", initial_mileage=100), user_id=1)
         create_vehicle(db_session, VehicleCreate(name="B", initial_mileage=200), user_id=1)
         create_vehicle(db_session, VehicleCreate(name="C", initial_mileage=300), user_id=2)
@@ -103,22 +120,27 @@ class TestVehicleService:
         assert len(v_list) == 2
 
     def test_update_vehicle(self, db_session):
+        _create_user(db_session, user_id=1)
         v = create_vehicle(db_session, VehicleCreate(name="old", initial_mileage=100), user_id=1)
         updated = update_vehicle(db_session, v.id, VehicleUpdate(name="new"), user_id=1)
         assert updated.name == "new"
 
     def test_update_vehicle_not_owned(self, db_session):
+        _create_user(db_session, user_id=1)
+        _create_user(db_session, user_id=2)
         v = create_vehicle(db_session, VehicleCreate(name="v", initial_mileage=100), user_id=1)
         with pytest.raises(ValueError, match="无权修改"):
             update_vehicle(db_session, v.id, VehicleUpdate(name="x"), user_id=2)
 
     def test_delete_vehicle(self, db_session):
+        _create_user(db_session, user_id=1)
         v = create_vehicle(db_session, VehicleCreate(name="v", initial_mileage=100), user_id=1)
         deleted = delete_vehicle(db_session, v.id, user_id=1)
         assert deleted.id == v.id
         assert get_vehicles(db_session, user_id=1) == []
 
     def test_delete_vehicle_with_records(self, db_session):
+        _create_user(db_session, user_id=1)
         v = create_vehicle(db_session, VehicleCreate(name="v", initial_mileage=50), user_id=1)
         rec = FuelRecordCreate(mileage=Decimal("100.0"), fuel_volume=Decimal("10.0"), fuel_cost=Decimal("80.0"),
                                is_full_tank=True, note="", vehicle_id=v.id, record_date=datetime(2025, 1, 1))
@@ -132,6 +154,7 @@ class TestVehicleService:
 # ══════════════════════════════════════════════════════════════════
 
 def _make_vehicle(db_session, user_id=1):
+    _create_user(db_session, user_id=user_id)
     return create_vehicle(db_session, VehicleCreate(name="Test", initial_mileage=100), user_id=user_id)
 
 
@@ -185,6 +208,8 @@ class TestRecordService:
             ), user_id=1)
 
     def test_vehicle_must_belong_to_user(self, db_session):
+        _create_user(db_session, user_id=1)
+        _create_user(db_session, user_id=2)
         v = create_vehicle(db_session, VehicleCreate(name="Other", initial_mileage=100), user_id=2)
         with pytest.raises(ValueError, match="无权"):
             create_record(db_session, FuelRecordCreate(

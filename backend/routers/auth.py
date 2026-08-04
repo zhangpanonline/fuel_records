@@ -5,7 +5,7 @@ from sqlalchemy.orm import Session
 
 from database import get_db
 from schemas.auth import UserRegister, UserLogin, TokenResponse, UserResponse
-from services.auth_service import register_user, login_user
+from services.auth_service import register_user, login_user, DuplicateUserError
 from models.user import User
 from core.deps import get_current_user
 
@@ -21,6 +21,8 @@ def api_register(
     try:
         result = register_user(db=db, data=data)
         return TokenResponse(**result)
+    except DuplicateUserError as e:
+        raise HTTPException(status_code=409, detail=str(e))
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 

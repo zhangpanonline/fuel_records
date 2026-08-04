@@ -111,23 +111,27 @@ export interface TokenResponse {
 
 // ---- 类型转换辅助 ----
 
-function parseDecimal(val: unknown): number | null {
-  if (val == null || val === '') return null
-  return Number(val)
-}
-
 function parseRecord(raw: Record<string, unknown>): FuelRecord {
+  const num = (v: unknown, fallback = 0): number => {
+    const n = Number(v)
+    return Number.isFinite(n) ? n : fallback
+  }
+  const nullableNum = (v: unknown): number | null => {
+    if (v == null || v === '') return null
+    const n = Number(v)
+    return Number.isFinite(n) ? n : null
+  }
   return {
-    id: raw.id as number,
+    id: num(raw.id),
     user_id: (raw.user_id as number) ?? null,
     vehicle_id: (raw.vehicle_id as number) ?? null,
-    mileage: Number(raw.mileage),
-    fuel_volume: Number(raw.fuel_volume),
-    fuel_cost: Number(raw.fuel_cost),
-    unit_price: parseDecimal(raw.unit_price),
+    mileage: num(raw.mileage),
+    fuel_volume: num(raw.fuel_volume),
+    fuel_cost: num(raw.fuel_cost),
+    unit_price: nullableNum(raw.unit_price),
     is_full_tank: raw.is_full_tank as boolean,
     is_baseline: raw.is_baseline as boolean,
-    fuel_consumption: parseDecimal(raw.fuel_consumption),
+    fuel_consumption: nullableNum(raw.fuel_consumption),
     note: (raw.note as string) ?? '',
     record_date: raw.record_date as string,
     created_at: raw.created_at as string,

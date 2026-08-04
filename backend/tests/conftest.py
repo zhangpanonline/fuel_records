@@ -1,42 +1,60 @@
-"""pytest 配置与共享 fixture"""
+"""pytest 配置与共享 fixture — 使用线上测试 PostgreSQL"""
 
 import pytest
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.testclient import TestClient
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker
-from sqlalchemy.pool import StaticPool
 
+from config import settings
 from database import Base, get_db
-from core.security import generate_access_token, hash_password
 
-# 确保新模型在 Base.metadata 中注册（test fixture 的 create_all 依赖此导入）
+# 确保所有模型注册到 Base.metadata
 import models.expense  # noqa: F401
 import models.expense_category  # noqa: F401
+import models.fuel_record  # noqa: F401
+import models.user  # noqa: F401
+import models.vehicle  # noqa: F401
 
-# ─── Test App（不用 main.py 的 lifespan，避免 Alembic / 真实库连接）───
-TEST_DATABASE_URL = "sqlite:///:memory:"
+# ─── Test App（不使用 main.py 的 lifespan，避免 Alembic 迁移）───
+
+TEST_DB_URL = settings.DB_PG_URL_TEST
+if not TEST_DB_URL:
+    raise RuntimeError("DB_PG_URL_TEST 未配置，请在 .env 中设置测试数据库连接串")
+
+test_engine = create_engine(TEST_DB_URL)
+TestSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=test_engine)
+
+# 表名列表（按外键依赖排序，先删子表再删主表）
+TABLE_NAMES = [
+    "expenses",
+    "expense_categories",
+    "fuel_records",
+    "vehicles",
+    "users",
+]
+
+# 模块级创建表结构（TRUNCATE 不删表，无需每次重建）
+Base.metadata.create_all(bind=test_engine)
 
 
 @pytest.fixture(scope="function")
 def db_session():
-    """每个测试函数独立的 SQLite 内存数据库会话
-    StaticPool 确保 :memory: 下所有连接共享同一个数据库"""
-    engine = create_engine(
-        TEST_DATABASE_URL,
-        connect_args={"check_same_thread": False},
-        poolclass=StaticPool,
-    )
-    Base.metadata.create_all(bind=engine)
-    TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-    db = TestingSessionLocal()
+    """每个测试函数独立的数据库会话，通过 TRUNCATE 清理"""
+    db = TestSessionLocal()
     try:
         yield db
     finally:
         db.close()
-        Base.metadata.drop_all(bind=engine)
-        engine.dispose()
+        # 新建会话执行 TRUNCATE，避免使用已关闭的 session
+        cleanup_db = TestSessionLocal()
+        try:
+            for table in TABLE_NAMES:
+                cleanup_db.execute(text(f"TRUNCATE TABLE {table} RESTART IDENTITY CASCADE"))
+            cleanup_db.commit()
+        finally:
+            cleanup_db.close()
 
 
 @pytest.fixture(scope="function")

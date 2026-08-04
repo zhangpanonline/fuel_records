@@ -34,31 +34,18 @@ def _build_engine_kwargs() -> dict:
             "max_overflow": 10,
             "pool_pre_ping": True,
         })
-    elif settings.DB_TYPE == "sqlite":
-        kwargs["connect_args"] = {"check_same_thread": False}
     elif settings.DB_TYPE in ("postgresql", "postgresql_test") and "pooler.supabase.com" in (settings.DB_PG_URL or ""):
         kwargs["connect_args"] = {"options": "-c pgbouncer=true"}
 
     return kwargs
 
 
-def _create_engine_for_url(url: str) -> tuple:
-    """为指定 URL 创建 engine + SessionLocal，返回 (engine, SessionLocal)"""
-    eng = create_engine(url, **_build_engine_kwargs())
-    sess = sessionmaker[Session](autocommit=False, autoflush=False, bind=eng)
-    return eng, sess
-
-
 # ── 双引擎 ────────────────────────────────────────
 
 _engine_kwargs = _build_engine_kwargs()
 
-# 正式库引擎（必须）
-if settings.DB_PG_URL:
-    prod_engine = create_engine(settings.DB_PG_URL, **_engine_kwargs)
-else:
-    # SQLite / 开发模式：无 PG_URL 时使用 DATABASE_URL 作为正式库
-    prod_engine = create_engine(settings.DATABASE_URL, **_engine_kwargs)
+# 正式库引擎（必须配置 DB_PG_URL）
+prod_engine = create_engine(settings.DB_PG_URL, **_engine_kwargs)
 
 ProdSessionLocal = sessionmaker[Session](autocommit=False, autoflush=False, bind=prod_engine)
 
@@ -67,14 +54,10 @@ test_engine = None
 TestSessionLocal = None
 
 if settings.DB_PG_URL_TEST:
-    test_engine = create_engine(settings.DB_PG_URL_TEST, **_engine_kwargs)
-    # 同样处理 Supabase Pooler
+    test_kwargs = _build_engine_kwargs()
     if "pooler.supabase.com" in settings.DB_PG_URL_TEST:
-        test_engine = create_engine(
-            settings.DB_PG_URL_TEST,
-            connect_args={"options": "-c pgbouncer=true"},
-            echo=settings.APP_DEBUG,
-        )
+        test_kwargs["connect_args"] = {"options": "-c pgbouncer=true"}
+    test_engine = create_engine(settings.DB_PG_URL_TEST, **test_kwargs)
     TestSessionLocal = sessionmaker[Session](autocommit=False, autoflush=False, bind=test_engine)
     logger.info("双数据库模式：正式库 + 测试库均已就绪")
 else:

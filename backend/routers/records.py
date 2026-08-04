@@ -5,13 +5,13 @@ import io
 from datetime import datetime
 from typing import Optional
 
-from fastapi import APIRouter, Depends, HTTPException
-from fastapi.responses import StreamingResponse
+from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi.responses import Response
 from sqlalchemy.orm import Session
 
 from database import get_db
 from models.fuel_record import FuelRecord
-from schemas.record import FuelRecordCreate, FuelRecordResponse, FuelRecordUpdate
+from schemas.record import FuelRecordCreate, FuelRecordResponse, FuelRecordUpdate, FuelRecordListResponse
 from services.record_service import create_record, get_records, update_record, delete_record
 from core.deps import get_current_user
 from models.user import User
@@ -32,12 +32,12 @@ def api_create_record(
         raise HTTPException(status_code=400, detail=str(e))
 
 
-@router.get("/", response_model=dict)
+@router.get("/", response_model=FuelRecordListResponse)
 def api_get_records(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
-    page: int = 1,
-    page_size: int = 20,
+    page: int = Query(1, ge=1, description="页码"),
+    page_size: int = Query(20, ge=1, le=100, description="每页条数"),
     vehicle_id: Optional[int] = None,
     start_date: Optional[str] = None,
     end_date: Optional[str] = None,
@@ -129,8 +129,8 @@ def api_export_csv(
     output.seek(0)
 
     filename = f"fuel_records_{vehicle_id}_{datetime.now().strftime('%Y%m%d')}.csv"
-    return StreamingResponse(
-        iter([output.getvalue()]),
+    return Response(
+        content=output.getvalue(),
         media_type="text/csv",
         headers={"Content-Disposition": f"attachment; filename={filename}"},
     )

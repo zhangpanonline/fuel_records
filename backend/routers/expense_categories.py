@@ -6,14 +6,14 @@ from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
+from core.deps import get_current_user
+from core.exceptions import BusinessError, to_http_status
 from database import get_db
-from models.expense_category import ExpenseCategory
-from models.expense import Expense
+from models.user import User
 from schemas.expense import CategoryCreate, CategoryUpdate, CategoryResponse, CategoryListResponse
 from schemas.expense_stats import ExpenseStatsResponse, MultiSummaryResponse
+from services.expense_category_service import create_category, list_categories, update_category, delete_category
 from services.expense_stats_service import get_stats, get_multi_summary
-from core.deps import get_current_user
-from models.user import User
 
 router = APIRouter(prefix="/api/v1/expenses", tags=["分类管理 & 统计"])
 
@@ -21,216 +21,60 @@ router = APIRouter(prefix="/api/v1/expenses", tags=["分类管理 & 统计"])
 # ── 分类管理 ──
 
 @router.post("/categories", response_model=CategoryResponse, status_code=201)
-def create_category(
+def api_create_category(
     data: CategoryCreate,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    """创建分类"""
-    # 计算 level
-    if data.parent_id is None:
-        level = 1
-    else:
-        parent = (
-            db.query(ExpenseCategory)
-            .filter(
-                ExpenseCategory.id == data.parent_id,
-                ExpenseCategory.user_id == current_user.id,
-            )
-            .first()
+    try:
+        return create_category(
+            db=db,
+            user_id=current_user.id,
+            name=data.name,
+            parent_id=data.parent_id,
+            sort_order=data.sort_order or 0,
         )
-        if not parent:
-            raise HTTPException(404, "父分类不存在")
-        if parent.level >= 3:
-            raise HTTPException(400, "分类最多支持 3 层")
-        level = parent.level + 1
-
-    # 检查同级同名
-    existing = (
-        db.query(ExpenseCategory)
-        .filter(
-            ExpenseCategory.user_id == current_user.id,
-            ExpenseCategory.parent_id == data.parent_id,
-            ExpenseCategory.name == data.name,
-        )
-        .first()
-    )
-    if existing:
-        raise HTTPException(409, f"分类名称 '{data.name}' 已存在")
-
-    category = ExpenseCategory(
-        user_id=current_user.id,
-        parent_id=data.parent_id,
-        name=data.name,
-        level=level,
-        sort_order=data.sort_order or 0,
-    )
-    db.add(category)
-    db.commit()
-    db.refresh(category)
-    return category
+    except BusinessError as e:
+        raise HTTPException(to_http_status(e), e.message)
 
 
 @router.get("/categories", response_model=CategoryListResponse)
-def list_categories(
+def api_list_categories(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    """获取当前用户的分类树（树形结构）"""
-    categories = (
-        db.query(ExpenseCategory)
-        .filter(ExpenseCategory.user_id == current_user.id)
-        .order_by(ExpenseCategory.level, ExpenseCategory.sort_order, ExpenseCategory.id)
-        .all()
-    )
-
-    # 构建树：先按 parent_id 分组
-    children_map: dict[int | None, list[ExpenseCategory]] = {}
-    for c in categories:
-        children_map.setdefault(c.parent_id, []).append(c)
-
-    def build_tree(parent_id):
-        nodes = children_map.get(parent_id, [])
-        result: list[dict] = []
-        for n in nodes:
-            result.append({
-                "id": n.id,
-                "name": n.name,
-                "level": n.level,
-                "sort_order": n.sort_order,
-                "children": build_tree(n.id),
-            })
-        return result
-
-    return CategoryListResponse(categories=build_tree(None))
+    return CategoryListResponse(categories=list_categories(db=db, user_id=current_user.id))
 
 
 @router.put("/categories/{category_id}", response_model=CategoryResponse)
-def update_category(
+def api_update_category(
     category_id: int,
     data: CategoryUpdate,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    """修改分类名称/排序（禁止修改 parent_id）"""
-    category = (
-        db.query(ExpenseCategory)
-        .filter(
-            ExpenseCategory.id == category_id,
-            ExpenseCategory.user_id == current_user.id,
+    try:
+        return update_category(
+            db=db,
+            category_id=category_id,
+            user_id=current_user.id,
+            name=data.name,
+            sort_order=data.sort_order,
         )
-        .first()
-    )
-    if not category:
-        raise HTTPException(404, "分类不存在")
-
-    if data.name is not None:
-        # 检查同级同名
-        existing = (
-            db.query(ExpenseCategory)
-            .filter(
-                ExpenseCategory.user_id == current_user.id,
-                ExpenseCategory.parent_id == category.parent_id,
-                ExpenseCategory.name == data.name,
-                ExpenseCategory.id != category_id,
-            )
-            .first()
-        )
-        if existing:
-            raise HTTPException(409, f"分类名称 '{data.name}' 已存在")
-        category.name = data.name
-
-    if data.sort_order is not None:
-        category.sort_order = data.sort_order
-
-    db.commit()
-    db.refresh(category)
-    return category
+    except BusinessError as e:
+        raise HTTPException(to_http_status(e), e.message)
 
 
 @router.delete("/categories/{category_id}", status_code=204)
-def delete_category(
+def api_delete_category(
     category_id: int,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    """删除分类（校验子分类 + 关联记录）"""
-    category = (
-        db.query(ExpenseCategory)
-        .filter(
-            ExpenseCategory.id == category_id,
-            ExpenseCategory.user_id == current_user.id,
-        )
-        .first()
-    )
-    if not category:
-        raise HTTPException(404, "分类不存在")
-
-    # 校验子分类
-    child_count = (
-        db.query(ExpenseCategory)
-        .filter(ExpenseCategory.parent_id == category_id)
-        .count()
-    )
-    if child_count > 0:
-        raise HTTPException(400, f"该分类下有 {child_count} 个子分类，请先删除子分类")
-
-    # 校验关联支出记录：用分类名去 expenses 表查
-    if category.level == 1:
-        record_count = (
-            db.query(Expense)
-            .filter(
-                Expense.user_id == current_user.id,
-                Expense.category_l1 == category.name,
-            )
-            .count()
-        )
-    elif category.level == 2:
-        # 需要找到 L2 所属的 L1 名称，然后联合匹配
-        parent = (
-            db.query(ExpenseCategory)
-            .filter(ExpenseCategory.id == category.parent_id)
-            .first()
-        )
-        l1_name = parent.name if parent else ""
-        record_count = (
-            db.query(Expense)
-            .filter(
-                Expense.user_id == current_user.id,
-                Expense.category_l1 == l1_name,
-                Expense.category_l2 == category.name,
-            )
-            .count()
-        )
-    else:  # level == 3
-        parent = (
-            db.query(ExpenseCategory)
-            .filter(ExpenseCategory.id == category.parent_id)
-            .first()
-        )
-        grandparent = (
-            db.query(ExpenseCategory)
-            .filter(ExpenseCategory.id == parent.parent_id)
-            .first()
-        ) if parent else None
-        l1_name = grandparent.name if grandparent else ""
-        l2_name = parent.name if parent else ""
-        record_count = (
-            db.query(Expense)
-            .filter(
-                Expense.user_id == current_user.id,
-                Expense.category_l1 == l1_name,
-                Expense.category_l2 == l2_name,
-                Expense.category_l3 == category.name,
-            )
-            .count()
-        )
-
-    if record_count > 0:
-        raise HTTPException(400, f"该分类下有 {record_count} 条支出记录，无法删除")
-
-    db.delete(category)
-    db.commit()
+    try:
+        delete_category(db=db, category_id=category_id, user_id=current_user.id)
+    except BusinessError as e:
+        raise HTTPException(to_http_status(e), e.message)
 
 
 # ── 统计 ──
@@ -246,17 +90,15 @@ def api_get_stats(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    """多维度聚合统计"""
-    return get_stats(
-        db=db,
-        user_id=current_user.id,
-        start_date=start_date,
-        end_date=end_date,
-        group_by=group_by,
-        category_l1=category_l1,
-        category_l2=category_l2,
-        category_l3=category_l3,
-    )
+    try:
+        return get_stats(
+            db=db, user_id=current_user.id,
+            start_date=start_date, end_date=end_date,
+            group_by=group_by,
+            category_l1=category_l1, category_l2=category_l2, category_l3=category_l3,
+        )
+    except BusinessError as e:
+        raise HTTPException(to_http_status(e), e.message)
 
 
 @router.get("/multi_summary", response_model=MultiSummaryResponse)
@@ -264,5 +106,4 @@ def api_multi_summary(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    """一次返回当年/当月/当周/近一年/近一月/近一周累计金额"""
     return get_multi_summary(db=db, user_id=current_user.id)

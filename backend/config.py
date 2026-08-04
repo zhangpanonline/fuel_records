@@ -4,12 +4,11 @@ from pydantic_settings import BaseSettings
 
 
 class Settings(BaseSettings):
-    # 数据库类型: sqlite | postgresql | postgresql_test | mysql
-    # - sqlite:           本地开发，无需安装数据库
+    # 数据库类型: postgresql | postgresql_test | mysql
     # - postgresql:       Render + Supabase 生产部署
     # - postgresql_test:  Supabase 测试数据库（独立的 fuel-records-test 项目）
     # - mysql:            自建服务器/其他部署
-    DB_TYPE: str = "sqlite"
+    DB_TYPE: str = "postgresql"
 
     # Supabase / PostgreSQL 配置
     # 从 Supabase 项目 Settings → Database → Connection string 获取完整连接串
@@ -49,8 +48,8 @@ class Settings(BaseSettings):
                 f"mysql+pymysql://{self.DB_USER}:{self.DB_PASSWORD}"
                 f"@{self.DB_HOST}:{self.DB_PORT}/{self.DB_NAME}?charset=utf8mb4"
             )
-        # 默认 SQLite，文件存在 backend/ 目录下
-        return "sqlite:///./fuel_records.db"
+        # 默认 PostgreSQL 生产库
+        return self.DB_PG_URL
 
     class Config:
         env_file = ".env"

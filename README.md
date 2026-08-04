@@ -1,6 +1,5 @@
 # Fuel Records — 摩托车油耗记录 + 个人记账 App
 
-> **本项目的架构设计和代码风格参考了 [`company.md`](file:///Users/zp/Code/fuel_records/company.md)（公司项目「井下作业智能体」）的技术栈与分层架构，旨在通过一个麻雀虽小五脏俱全的实操项目，系统学习后端开发知识。**
 >
 > **新增功能**：个人记账模块，详见 [`EXPENSE_SPEC.md`](file:///Users/zp/Code/fuel_records/EXPENSE_SPEC.md)。
 >
@@ -25,30 +24,27 @@
 - **数据校验**：Pydantic 模型
 - **日志**：loguru 结构化日志
 - **认证鉴权**：JWT（PyJWT）
-- **部署运维**：Render + Supabase、Docker + docker-compose、Linux 基础运维
+- **部署运维**：Render / Fly.io + Supabase、Docker + docker-compose、Linux 基础运维
 - **容器化**：Dockerfile、多容器编排
 - **CI/CD**（后期）：自动化部署流水线
 
-### 对齐目标
-本项目力求在技术选型、分层架构、代码风格上对齐公司项目 [`company.md`](file:///Users/zp/Code/fuel_records/company.md) 的标准，使得学完本项目后能平滑融入公司项目开发。
 
 ---
 
 ## 2. 技术栈
 
-| 类别 | 技术 | 版本 | 公司对标 |
-|------|------|------|---------|
-| 语言 | Python | 3.12 | ✅ 对齐 |
-| Web 框架 | FastAPI + Uvicorn | latest | ✅ 对齐 |
-| 数据库 | SQLite / PostgreSQL / MySQL | 本地/部署/Docker | ✅ 对齐（公司 MySQL，本项目兼容三种） |
-| ORM | SQLAlchemy | 2.x | ✅ 对齐 |
-| 数据校验 | Pydantic | 2.x | ✅ 对齐 |
-| 日志 | loguru | latest | ✅ 对齐 |
-| 认证 | PyJWT | latest | ✅ 对齐 |
-| 部署 | Render + Supabase | latest | ✅ 对齐（公司 Docker 部署，Render 自动容器化） |
+| 类别 | 技术 | 版本 |
+|------|------|------|
+| 语言 | Python | 3.12 |
+| Web 框架 | FastAPI + Uvicorn | latest |
+| 数据库 | PostgreSQL / MySQL | Supabase 云数据库 |
+| ORM | SQLAlchemy | 2.x |
+| 数据校验 | Pydantic | 2.x |
+| 日志 | loguru | latest |
+| 认证 | PyJWT | latest |
+| 部署 | Render / Fly.io + Supabase | latest（双服务器共存，运行时切换；Docker 部署） |
 | 前端 | React + Capacitor | latest | 你已掌握 React，Capacitor 将网页包为 APK |
 
-**不涉及的**：AI/ML、LLM、SSE、定时任务、缓存层——这些是公司业务特有，本 app 不需要。
 
 ---
 
@@ -112,17 +108,30 @@ fuel_records/
 │   │   └── fuel_record.py      # FuelRecord 模型（P1，含 user_id 外键 P4）
 │   ├── schemas/                # Pydantic 请求/响应模型
 │   │   ├── record.py
-│   │   └── auth.py             # 注册/登录 Schema（P4）
+│   │   ├── auth.py             # 注册/登录 Schema（P4）
+│   │   ├── vehicle.py          # 车辆 Schema（P5）
+│   │   ├── stats.py            # 统计 Schema（P6）
+│   │   ├── expense.py          # 支出 Schema（P10）
+│   │   └── expense_stats.py    # 支出统计 Schema（P10）
 │   ├── routers/                # API 路由
 │   │   ├── records.py
-│   │   └── auth.py             # 注册/登录路由（P4）
+│   │   ├── auth.py             # 注册/登录路由（P4）
+│   │   ├── vehicles.py         # 车辆路由（P5）
+│   │   ├── stats.py            # 统计路由（P6）
+│   │   ├── expenses.py         # 支出记录路由（P10）
+│   │   └── expense_categories.py  # 分类 & 统计路由（P10）
 │   ├── services/               # 业务逻辑层
 │   │   ├── record_service.py   # 油耗计算核心逻辑
-│   │   └── auth_service.py     # 认证逻辑（P4）
+│   │   ├── auth_service.py     # 认证逻辑（P4）
+│   │   ├── vehicle_service.py  # 车辆管理（P5）
+│   │   ├── stats_service.py    # 统计聚合（P6）
+│   │   ├── expense_service.py  # 记账业务（P10）
+│   │   ├── expense_category_service.py  # 分类管理（P10）
+│   │   └── expense_stats_service.py     # 记账统计（P10）
 │   ├── core/                   # 基础设施
 │   │   ├── security.py         # bcrypt 密码哈希 + JWT 签发/验证（P4）
 │   │   └── deps.py             # FastAPI 依赖注入（get_current_user）（P4）
-│   ├── alembic/                # 数据库迁移（后期引入）
+│   ├── alembic/                # 数据库迁移（已实现）
 │   ├── requirements.txt
 │   ├── Dockerfile
 │   └── .env.example
@@ -130,9 +139,11 @@ fuel_records/
 │   ├── src/                    # React 源码
 │   │   ├── pages/              # 页面组件
 │   │   │   ├── LoginPage.tsx   # 登录/注册
+│   │   │   ├── StatsPage.tsx   # 油耗统计 (P6)
 │   │   │   ├── ExpensePage.tsx  # 记账主页 (P10)
 │   │   │   └── ExpenseStatsPage.tsx  # 记账统计 (P10)
 │   │   ├── components/         # 通用组件
+│   │   │   ├── Layout.tsx      # 全局布局（TopBar + Outlet + BottomNav）
 │   │   │   ├── TopBar.tsx      # 全局顶栏 (P10)
 │   │   │   ├── BottomNav.tsx   # 底部双Tab导航 (P10)
 │   │   │   ├── SmartFAB.tsx    # 智能浮动按钮 (P10.5)
@@ -140,7 +151,10 @@ fuel_records/
 │   │   │   ├── PullToRefresh.tsx  # 下拉刷新 (P10.6)
 │   │   │   ├── ExpenseSummaryCards.tsx  # 六区间统计卡片 (P10.6)
 │   │   │   ├── ExpensePageSkeleton.tsx  # 记账骨架屏 (P10.6)
-│   │   │   └── FuelPageSkeleton.tsx  # 油耗骨架屏 (P10.6)
+│   │   │   ├── FuelPageSkeleton.tsx  # 油耗骨架屏 (P10.6)
+│   │   │   ├── UpgradeModal.tsx  # 版本升级弹窗 (P9)
+│   │   │   ├── SettingsModal.tsx  # 设置弹窗 (P11)
+│   │   │   └── CategoryModal.tsx  # 分类操作弹框 (P11)
 │   │   ├── context/            # React Context (P10.5)
 │   │   │   ├── FuelDataContext.tsx  # 加油数据共享
 │   │   │   └── ExpenseDataContext.tsx  # 记账数据共享
@@ -159,13 +173,11 @@ fuel_records/
 ├── .env.example
 ├── .dockerignore
 ├── runtime.txt
-├── company.md                  # 公司项目架构参考
 ├── README.md                   # 本文件 — 项目规格书
 ├── README.tickets.md           # 任务拆解清单
 ├── DIR.md                      # 目录结构说明
 ├── TEST_CHECKLIST.md           # 功能测试清单（每次更新后逐项验证）
 ├── test_all.sh                 # 一键自动化测试脚本
-├── docker-compose.yml          # Docker 编排（本地开发用）
 ```
 
 ---
@@ -243,8 +255,8 @@ fuel_consumption = (当前里程 - 上一条记录的里程) / 当前加油量 �
 ### 5.1 健康检查
 
 ```
-GET /api/v1/health
-→ 200 { "status": "ok", "version": "1.0.0" }
+GET /api/v1/health         → 服务状态
+GET /api/v1/health/db      → 正式库/测试库连接状态
 ```
 
 ### 5.2 加油记录 API
@@ -363,7 +375,7 @@ GET    /api/v1/expenses/multi_summary   六区间累计金额（P10.6 新增：�
 
 **部署**：
 - Dockerfile + docker-compose（本地开发用）
-- Render + Supabase 线上部署（免费托管 + 免费 PostgreSQL）
+- Render + Fly.io 双后端部署 + Supabase 云数据库（用户可在设置中切换服务器）
 
 **学到的知识点**：
 1. FastAPI 路由定义（`@app.get`, `@app.post`）
@@ -402,6 +414,7 @@ GET    /api/v1/expenses/multi_summary   六区间累计金额（P10.6 新增：�
 - 注册 Render 并连接 GitHub 仓库
 - 一键自动部署（Git push 触发自动构建）
 - Render 自动配置 HTTPS（SSL 证书自动管理）
+- Phase 11 追加 Fly.io 作为备选服务器，用户可运行时切换
 
 **学到的知识点**：
 1. Render 平台部署流程
@@ -470,16 +483,16 @@ GET    /api/v1/expenses/multi_summary   六区间累计金额（P10.6 新增：�
 
 ---
 
-### Phase 7 — "生产级"
+### Phase 7 — "生产级" ✅
 
 **目标**：代码质量与运维。
 
-**新增工作**：
-- Alembic 数据库迁移
-- 单元测试（pytest）
-- CI/CD（GitHub Actions 自动部署）
-- 日志轮转与监控
-- API 版本管理
+**已完成工作**：
+- Alembic 数据库迁移（3 个版本文件：initial_schema / add_performance_indexes / add_expense_tables）
+- 单元测试（pytest，57 个测试用例覆盖服务层 + API 层）
+- CI/CD（GitHub Actions + Fly.io 自动部署）
+- 日志轮转（loguru 10MB 轮转 + 30 天保留）
+- 双数据库引擎（正式库 + 测试库，运行时通过 `X-Database-Env` 头切换）
 
 ---
 
@@ -497,6 +510,47 @@ GET    /api/v1/expenses/multi_summary   六区间累计金额（P10.6 新增：�
 > **自动更新是本 App 的生命线**。App 无应用商店分发渠道，一旦自动更新功能被破坏，用户将永久停留在旧版本且无法联系到开发者。详见 [`TEST_CHECKLIST.md 自动更新保护章节`](file:///Users/zp/Code/fuel_records/TEST_CHECKLIST.md)。
 
 - **已移除**：加油提醒推送（Phase 10.5 移除）、统计截图分享（Phase 10.5 移除）
+
+---
+
+### Phase 9 — "永不过期" ✅
+
+**目标**：App 自更新 — 无应用商店分发渠道的生命线。
+
+**已完成工作**：
+- 版本检测服务 [`upgrade.ts`](file:///Users/zp/Code/fuel_records/frontend/src/services/upgrade.ts)：启动时对比版本号 → 弹窗 → 下载 APK → 调系统安装器
+- 发版脚本 `scripts/upload-apk.js`：一键升版本号 → 构建 → 上传 Supabase Storage → INSERT 版本记录
+- 升级弹窗 UI（进度条 + 下载百分比）
+- Supabase 基础设施：`app_versions` 表 + RLS 策略 + Storage bucket
+
+> [!CAUTION]
+> **自动更新是本 App 的生命线**。App 无应用商店分发渠道，一旦自动更新功能被破坏，用户将永久停留在旧版本且无法联系到开发者。详见 [`TEST_CHECKLIST.md 自动更新保护章节`](file:///Users/zp/Code/fuel_records/TEST_CHECKLIST.md)。
+
+---
+
+### Phase 10 — "记账模块" ✅ — [`EXPENSE_SPEC.md`](file:///Users/zp/Code/fuel_records/EXPENSE_SPEC.md)
+
+**目标**：追踪日常支出，自定义三级分类，多维度可视化分析。
+
+**已完成工作**：
+- 支出记录 CRUD（`/api/v1/expenses`）+ 三级分类管理（`/api/v1/expenses/categories`）
+- 多维度统计 API（`/api/v1/expenses/stats` + `/api/v1/expenses/multi_summary`）
+- 前端：记账主页（`ExpensePage`）+ 统计全屏页（`ExpenseStatsPage`）、饼图下钻 / 堆叠柱状图图例下钻
+- 合并三级选择器 `CategoryPicker`（搜索 + Top5 常用 + 上次记忆）
+- 双 Context 状态管理（`FuelDataContext` + `ExpenseDataContext`，Tab 切换不重复请求）
+- 六区间统计卡片、骨架屏、下拉刷新
+
+---
+
+### Phase 11 — "双数据库 + 设置中心" ✅
+
+**目标**：给用户一个"沙箱"测试环境 + 统一设置入口。
+
+**已完成工作**：
+- 双数据库引擎：正式库（`DB_PG_URL`）+ 测试库（`DB_PG_URL_TEST`），运行时通过 HTTP 头 `X-Database-Env` 切换
+- `SettingsModal` 统一设置弹窗：版本检查 + 数据库切换（正式/测试 radio）+ 账户信息显示
+- `CategoryModal` 统一分类操作弹框：重命名 / 添加子级 / 添加同级
+- 服务器运行时切换：Render ↔ Fly.io 双后端，健康检查验证后即时生效
 
 ---
 
@@ -535,28 +589,14 @@ GET    /api/v1/expenses/multi_summary   六区间累计金额（P10.6 新增：�
 
 ---
 
-## 8. 对齐公司架构对照表
-
-| 维度 | 公司项目 | 本项目 | 对齐策略 |
-|------|---------|--------|---------|
-| 入口层 | server.py (Uvicorn) | main.py (Uvicorn) | 同一模式 |
-| Web 接口层 | 20+ 路由模块 | routers/ 按业务拆分 | 结构对齐 |
-| 业务处理层 | 消息模块 + 服务模块 | services/ 层 | 服务层模式对齐 |
-| 数据访问层 | SQLAlchemy + 自定义SQL | SQLAlchemy ORM | ORM 层对齐 |
-| 基础层 | Auth + Config + Tools | core/ (auth, config, deps) | 结构对齐 |
-| 日志 | loguru | loguru | 完全一致 |
-| 部署 | Docker | Docker + docker-compose | Docker 对齐 |
-
----
-
-## 9. 学习路径图
+## 8. 学习路径图
 
 ```
 Phase 1 ──→  FastAPI 入门 + React 入门 + MySQL 基础 + Capacitor APK
    │
 Phase 2 ──→  CRUD 进阶 + SQLAlchemy 熟练
    │
-Phase 3 ──→  Render + Supabase 部署 + 自动 HTTPS（最陡的一期？不，比 VPS 简单多了）
+Phase 3 ──→  Render / Fly.io + Supabase 部署 + 自动 HTTPS
    │
 Phase 4 ──→  JWT + 密码学基础 + 依赖注入
    │
@@ -567,13 +607,17 @@ Phase 6 ──→  聚合查询 + 图表可视化
 Phase 7 ──→  测试 + 迁移 + CI/CD（生产技能）
    │
 Phase 8 ──→  用户体验锦上添花
+   │
+Phase 9 ──→  版本自动更新（生命线）
+   │
+Phase 10 ──→ 记账模块（三级分类 + 多维统计）
+   │
+Phase 11 ──→ 双数据库 + 设置中心 + 双后端切换
 ```
 
 每一期都是**可运行的交付物**，你在手机上能打开 app 看到真实数据。
 
 ---
-
-> **本规格书对应的公司项目架构参考位于 [`company.md`](file:///Users/zp/Code/fuel_records/company.md)**
 >
 > **新增模块规格书**：[`EXPENSE_SPEC.md`](file:///Users/zp/Code/fuel_records/EXPENSE_SPEC.md) — 个人记账功能（自定义三级分类 + 三环旭日图/堆叠柱状图下钻/饼图下钻多维度统计）
 >

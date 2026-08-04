@@ -221,15 +221,16 @@ export default function ExpensePage() {
     loadMoreExpenses()
   }
 
-  // 按日期分组
+  // 按日期分组（含每日金额总和）
   const groupedExpenses = useMemo(() => {
-    const groups: { date: string; items: Expense[] }[] = []
+    const groups: { date: string; items: Expense[]; dailyTotal: number }[] = []
     for (const exp of expenses) {
       const last = groups[groups.length - 1]
       if (last && last.date === exp.expense_date) {
         last.items.push(exp)
+        last.dailyTotal += Number(exp.amount)
       } else {
-        groups.push({ date: exp.expense_date, items: [exp] })
+        groups.push({ date: exp.expense_date, items: [exp], dailyTotal: Number(exp.amount) })
       }
     }
     return groups
@@ -289,6 +290,11 @@ export default function ExpensePage() {
   function formatDate(iso: string) {
     const d = new Date(iso)
     return `${d.getMonth() + 1}月${d.getDate()}日`
+  }
+
+  function formatTime(iso: string) {
+    const d = new Date(iso)
+    return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`
   }
 
   if (showSkeleton) {
@@ -370,7 +376,10 @@ export default function ExpensePage() {
 
         {groupedExpenses.map((group) => (
           <div key={group.date} className="expense-day-group">
-            <div className="expense-day-label">{formatDate(group.date)}</div>
+            <div className="expense-day-label">
+              {formatDate(group.date)}
+              <span className="expense-day-total"> ¥{group.dailyTotal.toFixed(2)}</span>
+            </div>
             {group.items.map((exp) => (
               <div
                 key={exp.id}
@@ -420,8 +429,10 @@ export default function ExpensePage() {
                     </button>
                   </div>
 
-                  {/* 第三行：日期 + 备注 */}
+                  {/* 第三行：时间 + 备注 */}
                   <div className="expense-item-row3">
+                    <span className="expense-item-time">{formatTime(exp.created_at)}</span>
+                    {exp.note && <span className="expense-item-dot"> · </span>}
                     {exp.note && <span>{exp.note}</span>}
                   </div>
                 </div>

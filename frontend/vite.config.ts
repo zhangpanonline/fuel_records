@@ -12,6 +12,9 @@ export default defineConfig({
   define: {
     'import.meta.env.VITE_APP_VERSION': JSON.stringify(pkg.version),
   },
+  build: {
+    sourcemap: false,
+  },
   server: {
     // 开发时，将 /api 请求代理到后端
     proxy: {

@@ -237,11 +237,8 @@ function App() {
       setShowAddVehicle(false)
       setSelectedVehicleId(v.id)
     } catch (err: unknown) {
-      let msg = '添加车辆失败'
-      if (axios.isAxiosError(err) && err.response?.data?.detail) {
-        msg = err.response.data.detail
-      }
-      alert(msg)
+      console.error('添加车辆失败:', err)
+      alert('操作失败，请稍后重试')
     }
   }
 
@@ -290,13 +287,8 @@ function App() {
       await refreshRecords()
       refreshSummaries()
     } catch (err: unknown) {
-      let msg = '操作失败，请重试'
-      if (axios.isAxiosError(err) && err.response?.data?.detail) {
-        msg = err.response.data.detail
-      } else if (err instanceof Error) {
-        msg = err.message
-      }
-      alert(msg)
+      console.error('提交失败:', err)
+      alert('操作失败，请稍后重试')
     } finally {
       setSubmitting(false)
     }
@@ -309,13 +301,8 @@ function App() {
       await refreshRecords()
       refreshSummaries()
     } catch (err: unknown) {
-      let msg = '删除失败，请重试'
-      if (axios.isAxiosError(err) && err.response?.data?.detail) {
-        msg = err.response.data.detail
-      } else if (err instanceof Error) {
-        msg = err.message
-      }
-      alert(msg)
+      console.error('删除失败:', err)
+      alert('操作失败，请稍后重试')
     }
   }
 

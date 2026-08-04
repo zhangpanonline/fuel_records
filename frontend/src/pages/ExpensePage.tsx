@@ -118,11 +118,8 @@ export default function ExpensePage() {
       setQuickCreateOpen(false)
       await refreshCategories()
     } catch (err: unknown) {
-      let msg = '创建失败'
-      if (axios.isAxiosError(err) && err.response?.data?.detail) {
-        msg = err.response.data.detail
-      }
-      alert(msg)
+      console.error('创建分类失败:', err)
+      alert('操作失败，请稍后重试')
     }
   }
 
@@ -185,11 +182,8 @@ export default function ExpensePage() {
       await refreshExpenses()
       refreshMultiSummary()
     } catch (err: unknown) {
-      let msg = '操作失败'
-      if (axios.isAxiosError(err) && err.response?.data?.detail) {
-        msg = err.response.data.detail
-      }
-      alert(msg)
+      console.error('提交失败:', err)
+      alert('操作失败，请稍后重试')
     } finally {
       setSubmitting(false)
     }
@@ -208,11 +202,8 @@ export default function ExpensePage() {
       await refreshExpenses()
       refreshMultiSummary()
     } catch (err: unknown) {
-      let msg = '删除失败'
-      if (axios.isAxiosError(err) && err.response?.data?.detail) {
-        msg = err.response.data.detail
-      }
-      alert(msg)
+      console.error('删除失败:', err)
+      alert('操作失败，请稍后重试')
     }
   }
 

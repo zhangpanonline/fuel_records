@@ -69,13 +69,8 @@ function LoginPage() {
       }
       window.location.href = '/'
     } catch (err: unknown) {
-      let msg = '操作失败，请重试'
-      if (axios.isAxiosError(err) && err.response?.data?.detail) {
-        msg = err.response.data.detail
-      } else if (err instanceof Error) {
-        msg = err.message
-      }
-      alert(msg)
+      console.error('认证失败:', err)
+      alert('操作失败，请稍后重试')
     } finally {
       setSubmitting(false)
     }

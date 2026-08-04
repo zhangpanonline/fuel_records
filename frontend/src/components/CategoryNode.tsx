@@ -89,10 +89,8 @@ export default function CategoryNode({
       await deleteCategory(cat.id)
       onRefresh()
     } catch (err: unknown) {
-      let msg = '删除失败'
-      if (axios.isAxiosError(err) && err.response?.data?.detail)
-        msg = err.response.data.detail
-      alert(msg)
+      console.error('删除分类失败:', err)
+      alert('操作失败，请稍后重试')
     }
   }
 

@@ -26,6 +26,7 @@ class Settings(BaseSettings):
     APP_HOST: str = "0.0.0.0"
     APP_PORT: int = 8000
     APP_DEBUG: bool = True
+    SQL_ECHO: bool = False   # 独立控制 SQL 日志输出（生产环境务必关闭）
 
     # 日志
     LOG_LEVEL: str = "DEBUG"

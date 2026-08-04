@@ -26,7 +26,7 @@ logger = setup_logger()
 
 def _build_engine_kwargs() -> dict:
     """根据 DB_TYPE 返回 create_engine 的额外参数"""
-    kwargs: dict = {"echo": settings.APP_DEBUG}
+    kwargs: dict = {"echo": settings.SQL_ECHO}
 
     if settings.DB_TYPE == "mysql":
         kwargs.update({

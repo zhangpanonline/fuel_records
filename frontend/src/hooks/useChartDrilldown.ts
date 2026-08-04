@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState } from 'react'
 import type { BreakdownItem, PeriodItem } from '../services/api'
 
 /* ================================================================
@@ -129,7 +129,7 @@ export function computeBarData(
     })
     const keys = Array.from(l1Set)
     return monthlyData.map((p) => {
-      const row: Record<string, number | string> = { period: p.period }
+      const row: BarDatum = { period: p.period }
       keys.forEach((k) => {
         row[k] = 0
       })
@@ -162,7 +162,7 @@ export function computeBarData(
     const keys = Array.from(l2Set)
     if (keys.length === 0) return []
     return monthlyData.map((p) => {
-      const row: Record<string, number | string> = { period: p.period }
+      const row: BarDatum = { period: p.period }
       keys.forEach((k) => {
         row[k] = 0
       })
@@ -196,7 +196,7 @@ export function computeBarData(
     const keys = Array.from(l3Set)
     if (keys.length === 0) return []
     return monthlyData.map((p) => {
-      const row: Record<string, number | string> = { period: p.period }
+      const row: BarDatum = { period: p.period }
       keys.forEach((k) => {
         row[k] = 0
       })

@@ -19,7 +19,7 @@ export interface PieChartPanelProps {
 export interface LegendItem {
   name: string
   value: number
-  percent: string
+  percent: number
   color: string
 }
 
@@ -140,7 +140,7 @@ export default function PieChartPanel({
                     style={{ background: item.color }}
                   />
                   <span className="pie-legend-name">{item.name}</span>
-                  <span className="pie-legend-pct">{item.percent}%</span>
+                  <span className="pie-legend-pct">{item.percent.toFixed(1)}%</span>
                 </span>
                 <span className="pie-legend-amount">
                   ¥{item.value.toFixed(2)}

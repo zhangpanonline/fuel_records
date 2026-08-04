@@ -1,5 +1,4 @@
 import { useState, useCallback, useMemo, useRef, type FormEvent } from 'react'
-import axios from 'axios'
 import {
   createExpense,
   updateExpense,

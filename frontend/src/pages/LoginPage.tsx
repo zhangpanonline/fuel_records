@@ -1,5 +1,4 @@
 import { useState, useEffect, type FormEvent } from 'react'
-import axios from 'axios'
 import { login, register, setToken, getCurrentUser, setUserCache } from '../services/api'
 import SettingsModal from '../components/SettingsModal'
 

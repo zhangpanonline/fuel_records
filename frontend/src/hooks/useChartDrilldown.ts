@@ -40,8 +40,8 @@ export function getLevelItems(
   let items: { name: string; value: number }[] = []
   if (level === 1) {
     items = breakdown
-      .filter((b) => b.category_l2 === null && b.category_l3 === null)
-      .map((b) => ({ name: b.category_l1 || '未分类', value: Number(b.total) }))
+      .filter((b) => b.category_l1 && b.category_l2 === null && b.category_l3 === null)
+      .map((b) => ({ name: b.category_l1, value: Number(b.total) }))
   } else if (level === 2) {
     items = breakdown
       .filter(

@@ -141,10 +141,11 @@ fuel_records/
 │   │   │   ├── LoginPage.tsx   # 登录/注册
 │   │   │   ├── StatsPage.tsx   # 油耗统计 (P6)
 │   │   │   ├── ExpensePage.tsx  # 记账主页 (P10)
-│   │   │   └── ExpenseStatsPage.tsx  # 记账统计 (P10)
+│   │   │   ├── ExpenseStatsPage.tsx  # 记账统计 (P10)
+│   │   │   └── DocsPage.tsx    # 文档页（iframe 嵌入 doc.zhangpan.online）
 │   │   ├── components/         # 通用组件
-│   │   │   ├── Layout.tsx      # 全局布局（TopBar + Outlet + BottomNav）
-│   │   │   ├── TopBar.tsx      # 全局顶栏 (P10)
+│   │   │   ├── Layout.tsx      # 全局布局（TopBar + Outlet + BottomNav，/docs 页隐藏 BottomNav/SmartFAB）
+│   │   │   ├── TopBar.tsx      # 全局顶栏：主题切换 + 📖 文档 + ⚙ 设置 (P10)
 │   │   │   ├── BottomNav.tsx   # 底部双Tab导航 (P10)
 │   │   │   ├── SmartFAB.tsx    # 智能浮动按钮 (P10.5)
 │   │   │   ├── CategoryPicker.tsx  # 合并三级选择器 (P10.5)
@@ -163,7 +164,7 @@ fuel_records/
 │   │   │   ├── upgrade.ts      # 版本更新检测 (P9)
 │   │   │   └── upgrade.md       # 版本更新规格书
 │   │   ├── App.tsx             # 加油主页面
-│   │   └── main.tsx            # 路由入口 + DataProviders (P10.6)
+│   │   └── main.tsx            # 路由入口 + DataProviders + /docs 路由 (P10.6)
 │   ├── capacitor-config/       # Capacitor 原生配置
 │   ├── package.json
 │   └── vite.config.ts

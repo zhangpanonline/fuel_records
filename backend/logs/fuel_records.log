@@ -912,3 +912,12 @@
 2026-08-04 11:50:37 | INFO     | database:<module>:62 - 双数据库模式：正式库 + 测试库均已就绪
 2026-08-04 11:59:45 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
 2026-08-04 11:59:45 | INFO     | database:<module>:62 - 双数据库模式：正式库 + 测试库均已就绪
+2026-08-06 08:35:57 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-08-06 08:35:57 | INFO     | database:<module>:62 - 双数据库模式：正式库 + 测试库均已就绪
+2026-08-06 08:35:57 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-08-06 08:35:57 | INFO     | main:lifespan:19 - 应用启动中...
+2026-08-06 08:35:57 | INFO     | database:init_db:116 - 正在运行数据库迁移（正式库）...
+2026-08-06 08:36:00 | INFO     | database:init_db:118 - 正式库迁移完成
+2026-08-06 08:36:00 | INFO     | database:init_db:121 - 正在运行数据库迁移（测试库）...
+2026-08-06 08:36:02 | INFO     | database:init_db:123 - 测试库迁移完成
+2026-08-06 08:36:02 | INFO     | main:lifespan:21 - 应用启动完成

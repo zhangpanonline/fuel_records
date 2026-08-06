@@ -241,6 +241,7 @@ fuel_records/
 │       │                         # └ P10.5 新增：FuelDataLayout → FuelDataProvider 包裹 /fuel 和 /fuel/stats（跨路由数据保持）
 │       │                         # └ P10.5 新增：ExpenseDataLayout → ExpenseDataProvider 包裹 /expense 和 /expense/stats（跨路由数据保持）
 │       │                         # └ P10.6 变更：DataProviders 合并，同时挂载两个 Context，Tab 切换不重新 fetch
+│       │                         # └ 新增 /docs 路由：文档页在 Layout 内但不使用 DataProviders（不需要油耗/记账 Context）
 │       ├── App.tsx               # 加油主页面：加油表单 + 记录列表 + 车辆选择器（P5）+ 筛选面板（P6）
 │       │                         # └ P5 新增：车辆下拉选择器 + 添加车辆表单 + localStorage 记忆
 │       │                         # └ P6 新增：筛选面板（日期范围/加满/备注搜索），位于表单与记录列表之间
@@ -294,14 +295,18 @@ fuel_records/
 │       │   │                         # └ 图表全屏：右上角 ⛶ 按钮。柱状图全屏用 layout="vertical"（水平条形图）适配横屏
 │       │   │                         # └ 修改日期不清空页面，仅刷新数据（firstLoad ref 控制）
 │       │   ├── ExpenseStatsPage.css  # 记账统计页样式
+│       │   ├── DocsPage.tsx        # 文档页（新增）：全屏 iframe 嵌入 https://doc.zhangpan.online/，sandbox 权限控制
+│       │   │                       # └ 该页面不使用 DataProviders，Layout 中自动隐藏 BottomNav 和 SmartFAB
+│       │   ├── DocsPage.css        # 文档页样式：fixed 定位填满 TopBar 与底栏之间的区域
 │       │   └── ExpensePage.css   # 记账页面样式（P10 新增）：大号金额 ¥ 输入，CategoryPicker / 日期 / 备注毛玻璃对齐
 │       │                         # └ 记录列表三行堆叠布局（分类 / 金额+编辑 / 日期+备注），gap:0 紧凑，min-height:80px
 │       │                         # └ P11 变更：expense-day-group 移除边框/背景/圆角/阴影，仅 28px 留白 + 日期标签自然区分
 │       │
 │       ├── components/           # 通用组件
-│       │   ├── TopBar.tsx        # 全局顶栏（40px）：左侧 App 名称/子页←返回按钮，右侧主题切换 + ⚙ 设置齿轮（P11：退出登录移入 SettingsModal）
-│       │   │                     # └ 子页面自动显示"← 返回"按钮，页面标题按路由精确匹配
+│       │   ├── TopBar.tsx        # 全局顶栏（40px）：左侧 App 名称/子页←返回按钮，右侧主题切换 + 📖 文档 + ⚙ 设置齿轮
+│       │   │                     # └ 非 Tab 页面（/fuel、/expense 之外）自动显示"← 返回"按钮
 │       │   │                     # └ 主题：light/dark/auto 三态循环，通过 localStorage + data-theme 共享
+│       │   │                     # └ 文档按钮：📖 图标 → 跳转 /docs 页面
 │       │   ├── TopBar.css         # 顶栏样式：固定顶部、左右布局、主题按钮、.back-btn 返回按钮
 │       │   ├── SettingsModal.tsx   # 设置弹窗（P11 新增）：账户信息（用户名+DB标识）+ 版本检查 + 数据库切换（正式/测试 radio）
 │       │   ├── SettingsModal.css   # 设置弹窗样式
@@ -310,6 +315,7 @@ fuel_records/
 │       │   ├── BottomNav.tsx      # 底部导航：双 Tab（⛽ 油耗 / 💰 记账），固定底部，全局可见（含子页面）
 │       │   ├── BottomNav.css      # 底部导航样式：icon + label、active 高亮
 │       │   ├── Layout.tsx         # 全局布局：TopBar + Outlet + BottomNav + SmartFAB（/login 除外）
+│       │   │                       # └ /docs 页自动隐藏 BottomNav 和 SmartFAB，仅保留 TopBar 返回按钮
 │       │   ├── SmartFAB.tsx       # 智能浮动按钮（P10 重构）：路由感知，主页→统计/统计→返回，可全屏拖拽，位置持久化
 │       │   │                     # └ routeActions 映射表可扩展，后续可改为弹出菜单
 │       │   │                     # └ P11 优化：z-index:10001 覆盖全屏遮罩，全屏模式下仅关闭全屏不跳转路由

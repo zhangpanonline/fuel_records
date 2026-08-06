@@ -22,6 +22,7 @@ const pageTitles: Record<string, string> = {
   '/fuel/stats': '油耗统计',
   '/expense': '记账',
   '/expense/stats': '记账统计',
+  '/docs': '文档',
 }
 
 interface TopBarProps {
@@ -35,7 +36,8 @@ function TopBar({ theme, onToggleTheme }: TopBarProps) {
   const [showSettings, setShowSettings] = useState(false)
 
   const title = pageTitles[location.pathname] || '油耗'
-  const isSubPage = location.pathname.split('/').filter(Boolean).length > 1
+  const tabPages = ['/fuel', '/expense']
+  const isSubPage = !tabPages.includes(location.pathname)
 
   function handleBack() {
     navigate(-1)
@@ -55,6 +57,13 @@ function TopBar({ theme, onToggleTheme }: TopBarProps) {
       <div className="topbar-actions">
         <button className="topbar-btn theme-btn" onClick={onToggleTheme} title="切换主题">
           {theme === 'auto' ? '🌓' : theme === 'dark' ? '🌙' : '☀️'}
+        </button>
+        <button
+          className="topbar-btn docs-btn"
+          onClick={() => navigate('/docs')}
+          title="文档"
+        >
+          📖
         </button>
         <button className="topbar-btn settings-btn" onClick={() => setShowSettings(true)} title="设置">
           ⚙

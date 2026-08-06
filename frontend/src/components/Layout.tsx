@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Outlet } from 'react-router-dom'
+import { Outlet, useLocation } from 'react-router-dom'
 import TopBar, { getTheme, applyTheme } from './TopBar'
 import BottomNav from './BottomNav'
 import SmartFAB from './SmartFAB'
@@ -7,6 +7,8 @@ import './Layout.css'
 
 function Layout() {
   const [theme, setTheme] = useState(getTheme)
+  const location = useLocation()
+  const isDocsPage = location.pathname === '/docs'
 
   useEffect(() => {
     applyTheme(theme)
@@ -25,8 +27,8 @@ function Layout() {
       <main className="layout-content">
         <Outlet />
       </main>
-      <BottomNav />
-      <SmartFAB />
+      {!isDocsPage && <BottomNav />}
+      {!isDocsPage && <SmartFAB />}
     </div>
   )
 }

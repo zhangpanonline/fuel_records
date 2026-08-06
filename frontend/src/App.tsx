@@ -11,6 +11,7 @@ import {
 import { checkUpdate, type UpdateInfo } from './services/upgrade'
 import UpgradeModal from './components/UpgradeModal'
 import { useFuelData } from './context/FuelDataContext'
+import { usePrediction } from './context/PredictionContext'
 import PullToRefresh from './components/PullToRefresh'
 import FuelPageSkeleton from './components/FuelPageSkeleton'
 import './App.css'
@@ -38,6 +39,35 @@ function App() {
     refreshRecords,
     addVehicle,
   } = useFuelData()
+  const prediction = usePrediction()
+
+  // ── 同步页面状态到预测引擎 ──
+  useEffect(() => {
+    const now = new Date()
+    const todayStr = now.toISOString().slice(0, 10)
+    const hasRecordsToday = records.filter((r) => r.record_date === todayStr).length > 0
+    prediction.updatePageState({
+      page: '/fuel',
+      hasRecordsToday,
+      isFilterOpen: showFilter,
+      hour: now.getHours(),
+      dayOfWeek: now.getDay(),
+    })
+  }, [records, showFilter, prediction])
+
+  // ── 响应预测引擎下发的 Action ──
+  useEffect(() => {
+    const action = prediction.pendingAction
+    if (!action) return
+
+    if (action.type === 'scroll_to_top') {
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+      prediction.consumePendingAction()
+    } else if (action.type === 'toggle_filter') {
+      setShowFilter((v) => !v)
+      prediction.consumePendingAction()
+    }
+  }, [prediction.pendingAction])
 
   // ---- 表单状态 ----
   const [mileage, setMileage] = useState('')

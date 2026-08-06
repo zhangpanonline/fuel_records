@@ -4,6 +4,8 @@
 > **新增功能**：个人记账模块，详见 [`EXPENSE_SPEC.md`](file:///Users/zp/Code/fuel_records/EXPENSE_SPEC.md)。
 >
 > **性能优化**：前端 CSS 降级（性能模式开关）+ 后端 Render → Fly.io 迁移，详见 [`PERF_SPEC.md`](file:///Users/zp/Code/fuel_records/PERF_SPEC.md)。
+>
+> **智能预测**：SmartFAB 行为预测引擎，详见 [`SMARTFAB_SPEC.md`](file:///Users/zp/Code/fuel_records/SMARTFAB_SPEC.md)。
 
 ---
 

@@ -9,6 +9,7 @@ import {
   type TimelineItem,
 } from '../services/api'
 import { useFuelData } from '../context/FuelDataContext'
+import { usePrediction } from '../context/PredictionContext'
 import {
   LineChart,
   Line,
@@ -108,12 +109,25 @@ const GROUP_LABELS: Record<string, string> = {
 
 function StatsPage() {
   const { vehicles, selectedVehicleId, setSelectedVehicleId } = useFuelData()
+  const prediction = usePrediction()
   const [summary, setSummary] = useState<SummaryStats | null>(null)
   const [timeline, setTimeline] = useState<TimelineStats | null>(null)
   const [monthly, setMonthly] = useState<MonthlyStats | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const firstLoad = useRef(true)
+
+  // ── 同步页面状态到预测引擎 ──
+  useEffect(() => {
+    const now = new Date()
+    prediction.updatePageState({
+      page: '/fuel/stats',
+      hasRecordsToday: false,
+      isFullscreen: false,
+      hour: now.getHours(),
+      dayOfWeek: now.getDay(),
+    })
+  }, [prediction])
 
   const today = fmtDate(new Date())
   const [startDate, setStartDate] = useState(daysAgo(30))

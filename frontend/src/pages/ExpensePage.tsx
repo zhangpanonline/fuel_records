@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo, useRef, type FormEvent } from 'react'
+import { useState, useCallback, useMemo, useRef, useEffect, type FormEvent } from 'react'
 import {
   createExpense,
   updateExpense,
@@ -8,6 +8,7 @@ import {
   type CreateExpensePayload,
 } from '../services/api'
 import { useExpenseData } from '../context/ExpenseDataContext'
+import { usePrediction } from '../context/PredictionContext'
 import CategoryPicker, {
   recordCategorySelected,
   incrementCategoryCount,
@@ -30,6 +31,84 @@ export default function ExpensePage() {
     refreshMultiSummary,
     loadMoreExpenses,
   } = useExpenseData()
+  const prediction = usePrediction()
+
+  // ── 金额输入 ref（供 focus_amount_input 动作使用） ──
+  const amountInputRef = useRef<HTMLInputElement>(null)
+
+  // ── 表单状态快照 ref（避免 handleQuickRecord 过期闭包） ──
+  const formRef = useRef({
+    amount: '',
+    selectedL1: '',
+    selectedL2: '',
+    selectedL3: '',
+    selectedL1Id: 0,
+    selectedL2Id: 0,
+    selectedL3Id: 0,
+    expenseDate: new Date().toISOString().slice(0, 10),
+    note: '',
+  })
+
+  // ── 同步页面状态到预测引擎 ──
+  useEffect(() => {
+    const now = new Date()
+    const todayStr = now.toISOString().slice(0, 10)
+    const hasRecordsToday = expenses.filter((e) => e.expense_date === todayStr).length > 0
+    prediction.updatePageState({
+      page: '/expense',
+      hasRecordsToday,
+      isEditing: editingId !== null,
+      hour: now.getHours(),
+      dayOfWeek: now.getDay(),
+    })
+  }, [expenses, editingId, prediction])
+
+  // ── 响应预测引擎下发的 Action ──
+  useEffect(() => {
+    const action = prediction.pendingAction
+    if (!action) return
+
+    if (action.type === 'scroll_to_top') {
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+      prediction.consumePendingAction()
+    } else if (action.type === 'focus_amount_input') {
+      amountInputRef.current?.focus()
+      prediction.consumePendingAction()
+    } else if (action.type === 'quick_record') {
+      ;(async () => {
+        const f = formRef.current
+        if (!f.selectedL1 || !f.selectedL2 || !f.selectedL3) {
+          amountInputRef.current?.focus()
+          return
+        }
+        const numAmount = Number(f.amount) || 0
+        if (numAmount <= 0) {
+          amountInputRef.current?.focus()
+          return
+        }
+        setSubmitting(true)
+        try {
+          await createExpense({
+            amount: numAmount,
+            category_l1: f.selectedL1,
+            category_l2: f.selectedL2,
+            category_l3: f.selectedL3,
+            expense_date: f.expenseDate,
+            note: f.note || undefined,
+          })
+          incrementCategoryCount(f.selectedL1Id, f.selectedL2Id, f.selectedL3Id)
+          handleCancelEdit()
+          await refreshExpenses()
+          refreshMultiSummary()
+        } catch {
+          alert('记账失败，请重试')
+        } finally {
+          setSubmitting(false)
+        }
+      })()
+      prediction.consumePendingAction()
+    }
+  }, [prediction.pendingAction])
 
   // ── 表单状态 ──
   const [amount, setAmount] = useState('')
@@ -45,6 +124,9 @@ export default function ExpensePage() {
   const [note, setNote] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [editingId, setEditingId] = useState<number | null>(null)
+
+  // 将表单状态实时同步到 ref，避免 Action 回调中的过期闭包
+  formRef.current = { amount, selectedL1, selectedL2, selectedL3, selectedL1Id, selectedL2Id, selectedL3Id, expenseDate, note }
 
   // ── 快速创建分类弹窗 ──
   const [quickCreateOpen, setQuickCreateOpen] = useState(false)
@@ -300,6 +382,7 @@ export default function ExpensePage() {
           <span className="amount-yuan">¥</span>
           <input
             type="number"
+            ref={amountInputRef}
             inputMode="decimal"
             className="amount-input"
             placeholder="0"

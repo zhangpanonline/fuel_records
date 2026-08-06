@@ -20,11 +20,12 @@ const APP_VERSION = import.meta.env.VITE_APP_VERSION as string
 
 interface Props {
   onClose: () => void
+  onNavigate?: (path: string) => void
 }
 
 type CheckStatus = 'idle' | 'checking' | 'latest' | 'available'
 
-export default function SettingsModal({ onClose }: Props) {
+export default function SettingsModal({ onClose, onNavigate }: Props) {
   const [dbEnv, setDbEnv] = useState<'prod' | 'test'>(getDatabaseEnv())
   const [checkStatus, setCheckStatus] = useState<CheckStatus>('idle')
   const [updateInfo, setUpdateInfo] = useState<UpdateInfo | null>(null)
@@ -269,6 +270,25 @@ export default function SettingsModal({ onClose }: Props) {
               <span className="settings-toggle-slider" />
             </label>
           </div>
+        </div>
+
+        {/* 预测引擎 */}
+        <div className="settings-section">
+          <span className="settings-label">预测引擎</span>
+          <p className="settings-desc">查看 SmartFAB 预测规则和行为日志</p>
+          <button
+            className="settings-check-btn"
+            onClick={() => {
+              onClose()
+              if (onNavigate) {
+                onNavigate('/predict/rules')
+              } else {
+                window.location.href = '/predict/rules'
+              }
+            }}
+          >
+            查看规则
+          </button>
         </div>
 
         {/* 数据库选择 */}

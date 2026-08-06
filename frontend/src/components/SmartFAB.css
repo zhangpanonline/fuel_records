@@ -119,3 +119,123 @@
     font-size: 13px;
   }
 }
+
+/* ── 高置信度脉冲动效 ── */
+@keyframes fab-pulse {
+  0%, 100% {
+    box-shadow:
+      0 4px 24px rgba(99, 102, 241, 0.35),
+      0 1px 3px rgba(0, 0, 0, 0.1),
+      0 0 0 0 rgba(99, 102, 241, 0.5);
+    transform: scale(1);
+  }
+  50% {
+    box-shadow:
+      0 4px 32px rgba(99, 102, 241, 0.5),
+      0 2px 8px rgba(0, 0, 0, 0.12),
+      0 0 0 12px rgba(99, 102, 241, 0);
+    transform: scale(1.04);
+  }
+}
+
+.smart-fab--high-confidence {
+  animation: fab-pulse 2s ease-in-out infinite;
+}
+
+/* ── 备选菜单遮罩 ── */
+.fab-menu-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 10002;
+  background: rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding-bottom: 120px;
+  animation: menu-fade-in 0.2s ease;
+}
+
+@keyframes menu-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* ── 菜单本体 ── */
+.fab-menu {
+  background: var(--bg-card, #fff);
+  border-radius: 20px;
+  padding: 8px;
+  min-width: 220px;
+  max-width: 300px;
+  box-shadow:
+    0 12px 40px rgba(0, 0, 0, 0.18),
+    0 2px 8px rgba(0, 0, 0, 0.08);
+  animation: menu-slide-up 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes menu-slide-up {
+  from { transform: translateY(20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+/* ── 菜单标题 ── */
+.fab-menu-header {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-dim, #9ca3af);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 6px 12px 4px;
+}
+
+/* ── 菜单项 ── */
+.fab-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: background 0.15s ease;
+  user-select: none;
+}
+
+.fab-menu-item:hover {
+  background: var(--bg-hover, rgba(99, 102, 241, 0.06));
+}
+
+.fab-menu-item--predicted {
+  background: var(--bg-hover, rgba(99, 102, 241, 0.08));
+  border: 1px solid rgba(99, 102, 241, 0.15);
+}
+
+.fab-menu-item-icon {
+  font-size: 18px;
+  width: 24px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.fab-menu-item-label {
+  flex: 1;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-primary, #1f2937);
+}
+
+.fab-menu-item-badge {
+  font-size: 10px;
+  font-weight: 600;
+  color: #6366f1;
+  background: rgba(99, 102, 241, 0.1);
+  padding: 2px 6px;
+  border-radius: 8px;
+}
+
+.fab-menu-item-weight {
+  font-size: 12px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}

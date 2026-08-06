@@ -28,9 +28,10 @@ const pageTitles: Record<string, string> = {
 interface TopBarProps {
   theme: string
   onToggleTheme: () => void
+  onNavigate?: (path: string) => void
 }
 
-function TopBar({ theme, onToggleTheme }: TopBarProps) {
+function TopBar({ theme, onToggleTheme, onNavigate }: TopBarProps) {
   const location = useLocation()
   const navigate = useNavigate()
   const [showSettings, setShowSettings] = useState(false)
@@ -70,7 +71,7 @@ function TopBar({ theme, onToggleTheme }: TopBarProps) {
         </button>
       </div>
     </header>
-    {showSettings && <SettingsModal onClose={() => setShowSettings(false)} />}
+    {showSettings && <SettingsModal onClose={() => setShowSettings(false)} onNavigate={onNavigate} />}
   </>
   )
 }

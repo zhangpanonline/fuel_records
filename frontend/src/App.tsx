@@ -64,7 +64,7 @@ function App() {
       window.scrollTo({ top: 0, behavior: 'smooth' })
       prediction.consumePendingAction()
     } else if (action.type === 'toggle_filter') {
-      setShowFilter((v) => !v)
+      setShowFilter(!showFilter)
       prediction.consumePendingAction()
     }
   }, [prediction.pendingAction])

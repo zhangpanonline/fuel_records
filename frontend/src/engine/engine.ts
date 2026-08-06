@@ -24,7 +24,6 @@ const GENERATION_WINDOW_DAYS = 7
 const GENERATION_THRESHOLD = 3
 const SEED_ELIMINATION_THRESHOLD = -5
 const GENERATED_NO_HIT_DAYS = 14
-const GENERATED_LOW_HIT_DAYS = 30
 const TEMP_RULE_EXPIRE_DAYS = 7
 const RULE_POOL_LIMIT = 100
 
@@ -259,7 +258,6 @@ export function createEngine(initialRules?: Rule[], initialLog?: BehaviorLogEntr
 
     const now = Date.now()
     const genNoHitCutoff = now - GENERATED_NO_HIT_DAYS * 24 * 60 * 60 * 1000
-    const genLowHitCutoff = now - GENERATED_LOW_HIT_DAYS * 24 * 60 * 60 * 1000
     const tempExpireCutoff = now - TEMP_RULE_EXPIRE_DAYS * 24 * 60 * 60 * 1000
 
     rules = rules.filter((r) => {

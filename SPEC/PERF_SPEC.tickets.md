@@ -66,7 +66,6 @@ Ticket 1（CSS 降级规则）
   - 新增 `getApiServer()` / `setApiServer()` / `getApiBaseUrl()` 三个函数
   - 默认服务器 `'render'`，localStorage key `fuel_api_server`
   - `apiClient` 去掉 `baseURL` 构建时参数，改为请求拦截器 `config.baseURL = getApiBaseUrl()`
-  - `exportCSV()` 中的 `import.meta.env.VITE_API_BASE_URL` 替换为 `getApiBaseUrl()`
   - **依赖**：无
   - **难度**：★★
 

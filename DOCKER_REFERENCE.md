@@ -32,13 +32,13 @@ COPY . .                  ← 最后拷代码
 | 关键字 | 用途 | 示例 |
 |--------|------|------|
 | `services` | 定义有哪些服务 | `services: db: app:` |
-| `image` | 使用官方镜像 | `image: mysql:8.0` |
+| `image` | 使用官方镜像 | `image: postgres:16` |
 | `build` | 用 Dockerfile 构建 | `build: context: ./backend dockerfile: Dockerfile` |
-| `environment` | 环境变量 | `environment: DB_TYPE: mysql` |
+| `environment` | 环境变量 | `environment: DB_TYPE: postgresql` |
 | `ports` | 端口映射（宿主机:容器） | `ports: - "8000:8000"` |
-| `volumes` | 数据持久化 | `volumes: - mysql_data:/var/lib/mysql` |
+| `volumes` | 数据持久化 | `volumes: - pgdata:/var/lib/postgresql/data` |
 | `depends_on` | 启动顺序控制 | `depends_on: db: condition: service_healthy` |
-| `healthcheck` | 检查服务是否就绪 | `healthcheck: test: ["CMD", "mysqladmin", "ping"]` |
+| `healthcheck` | 检查服务是否就绪 | `healthcheck: test: ["CMD", "pg_isready"]` |
 | `container_name` | 给容器取名字 | `container_name: fuel_records_db` |
 | `restart` | 失败后自动重启 | `restart: unless-stopped` |
 
@@ -79,7 +79,7 @@ docker ps
 docker images
 
 # 拉取镜像
-docker pull mysql:8.0
+docker pull postgres:16
 
 # 进入容器内部
 docker exec -it 容器名 bash

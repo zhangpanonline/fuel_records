@@ -45,7 +45,7 @@
 - [x] **1.1.1 初始化项目目录结构**
   - 创建 `backend/` 目录及所有子目录（`models/`, `schemas/`, `routers/`, `services/`, `core/`）
   - 创建 `__init__.py` 使各目录为 Python 包
-  - 创建 `requirements.txt`（fastapi, uvicorn, sqlalchemy, pymysql, pydantic, python-dotenv, loguru）
+  - 创建 `requirements.txt`（fastapi, uvicorn, sqlalchemy, psycopg2-binary, pydantic, python-dotenv, loguru）
   - **依赖**：无
   - **难度**：★
 
@@ -115,10 +115,9 @@
 
 ### Ticket 1.3: 本地开发环境搭建
 
-- [x] **1.3.1 本地启动 MySQL**
-  - 检查本地是否已安装 MySQL，如未安装用 `brew install mysql`
-  - 创建数据库 `fuel_records`（字符集 `utf8mb4`）
-  - 创建数据库用户（可选）
+- [x] **1.3.1 本地启动 PostgreSQL**（通过 Supabase 测试库）
+  - 无需本地安装数据库，直连 Supabase 测试项目 `fuel-records-test`
+  - 配置 `.env` 中 `DB_TYPE=postgresql_test` + `DB_PG_URL_TEST`
   - **依赖**：无
   - **难度**：★
 
@@ -142,15 +141,15 @@
   - **难度**：★★
 
 - [x] **1.4.2 编写 docker-compose.yml**
-  - 定义两个 service：`app`（FastAPI）+ `db`（MySQL 8.0）
-  - `db`：挂载 volume 持久化数据，配置环境变量（MYSQL_ROOT_PASSWORD, MYSQL_DATABASE）
+  - 定义两个 service：`app`（FastAPI）+ `db`（PostgreSQL）
+  - `db`：挂载 volume 持久化数据，配置环境变量（POSTGRES_PASSWORD, POSTGRES_DB）
   - `app`：映射端口 8000:8000，依赖 db，读取 `.env`
   - **依赖**：1.4.1
   - **难度**：★★
 
 - [x] **1.4.3 本地 Docker 验证**
   - `docker-compose up -d` 启动
-  - 验证 MySQL 和 FastAPI 均正常运行
+  - 验证 PostgreSQL 和 FastAPI 均正常运行
   - 调用 API 验证数据写入/读取
   - **依赖**：1.4.2
   - **难度**：★
@@ -513,7 +512,7 @@
 - [x] **7.2.1 测试基础设施**
   - 集成 pytest
   - 使用 `TestClient`（FastAPI 自带）模拟 HTTP 请求
-  - 使用 SQLite 内存数据库做测试隔离
+  - 使用 PostgreSQL 测试数据库做测试隔离
   - 创建 `conftest.py` 定义 fixture
   - **依赖**：1.1.2
   - **难度**：★★
@@ -560,46 +559,31 @@
 
 > **目标**：用户体验完善，更像一个正式产品。
 
-### Ticket 8.1: 数据导出
+### Ticket 8.1: 暗黑模式
 
-- [x] **8.1.1 CSV 导出 API**
-  - `GET /api/v1/records/export/csv?vehicle_id=X`
-  - 返回 CSV 文件流（`StreamingResponse` + CSV 头）
-  - **依赖**：5.1.1
-  - **难度**：★★
-
-- [x] **8.1.2 前端下载/分享功能**
-  - 点击"导出" → 浏览器下载 CSV 文件
-  - 使用 `navigator.share` API（Android 支持）分享
-  - 回退方案：复制下载链接
-  - **依赖**：8.1.1
-  - **难度**：★★
-
-### Ticket 8.2: 体验增强
-
-- [x] **8.2.1 暗黑模式**
+- [x] **8.1.1 暗黑模式**
   - React 端使用 CSS 变量 + `prefers-color-scheme` 媒体查询
   - 手动切换按钮（存 localStorage 记住偏好），三态循环：自动/亮色/暗色
   - **依赖**：1.6.3
   - **难度**：★
 
-- [x] **8.2.2 加油提醒推送（已移除）**
+- [x] **8.1.2 加油提醒推送（已移除）**
   - 使用浏览器 Notification API
   - 设置提醒周期（每 7 天弹出通知）
   - **P10 重构时移除，功能未验证可行**
   - **依赖**：1.6.4
   - **难度**：★★
 
-- [x] **8.2.3 记录分享截图（已移除）**
+- [x] **8.1.3 记录分享截图（已移除）**
   - 使用 `html2canvas` 库截图统计页面
   - 支持分享（navigator.share）或保存为图片
   - **P10 重构时移除，简化统计页 UI**
   - **依赖**：8.2.1
   - **难度**：★★
 
-### Ticket 8.3: 性能优化
+### Ticket 8.2: 性能优化
 
-- [x] **8.3.1 数据库索引优化**
+- [x] **8.2.1 数据库索引优化**
   - 添加复合索引 `ix_fuel_records_user_vehicle_date` (user_id, vehicle_id, record_date)
   - 添加单列索引 `ix_vehicles_user_id` (user_id)
   - 添加单列索引 `ix_fuel_records_record_date` (record_date)
@@ -607,40 +591,40 @@
   - **依赖**：1.1.5
   - **难度**：★★
 
-- [x] **8.3.2 前端列表性能**
+- [x] **8.2.2 前端列表性能**
   - 分页加载：每页 20 条，底部"加载更多"按钮
   - 显示加载进度（已加载/总数）
   - 切换车辆/应用筛选时自动重置到第 1 页
   - **依赖**：1.6.3
   - **难度**：★★
 
-### Ticket 8.4: UI 美学升级（/ui-taste 注射）
+### Ticket 8.3: UI 美学升级（/ui-taste 注射）
 
-- [x] **8.4.1 CSS 动画与微动效**
+- [x] **8.3.1 CSS 动画与微动效**
   - 8 个 @keyframes：fadeInUp / scaleIn / bgShift / shimmer / glowPulse / float
   - 页面加载入场动画（列表项逐条从下方淡入，统计卡片交错延迟）
   - 按钮 hover shimmer 扫过效果 + click 缩放反馈（scale(0.96)）
   - 提交按钮光晕脉冲呼吸动画（glowPulse 3s）
-  - **依赖**：8.2.1, 6.2.1
+  - **依赖**：8.1, 6.2.1
   - **难度**：★★
 
-- [x] **8.4.2 玻璃态与视觉层级**
+- [x] **8.3.2 玻璃态与视觉层级**
   - 卡片：`backdrop-filter: blur(20px)` + 半透明底色 + 多层弥散微投影
   - 背景：对角渐变游走（body 20s 渐变色位移）+ 装饰光斑（::before/::after 巨型径向渐变球浮动）
   - 统计卡片：4 色渐变顶部装饰线（靛紫/琥珀/翠绿/蓝），hover 时伸长
   - 标题：靛紫渐变色 background-clip: text
   - 大圆角系统：卡片 18px / 按钮 12-14px / 输入框 12px
-  - **依赖**：8.4.1
+  - **依赖**：8.3.1
   - **难度**：★★
 
-- [x] **8.4.3 暗色模式增强**
+- [x] **8.3.3 暗色模式增强**
   - 暗色模式下：深邃迷幻底色（#0f172a）+ 光斑换为深紫/深蓝
   - 亮色模式下：中性微灰色调底色（#f8fafc）+ 光斑换为暖橙/靛蓝
   - 所有颜色通过 CSS 变量（--bg / --card-bg / --text 等）自动切换
-  - **依赖**：8.2.1, 8.4.2
+  - **依赖**：8.1, 8.3.2
   - **难度**：★
 
-- [x] **8.4.4 Python 3.9 兼容 + 认证修复**
+- [x] **8.3.4 Python 3.9 兼容 + 认证修复**
   - `X | None` 语法 → `Optional[X]` 标准写法（7 文件：schemas 4 个 + services/record_service + routers/records + core/deps）
   - `core/deps.py`：`HTTPBearer(auto_error=False)` 修复无 Token 时错误返回 403 → 401
   - 零新依赖，纯 `from typing import Optional`
@@ -705,7 +689,7 @@
     - `get_stats()`：多维度聚合
       - `group_by="none"` → total_amount/record_count/avg_daily + L1+L2+L3 全层级扁平列表
       - `group_by="month/week/year"` → 分时段 items（含 breakdown）
-    - **跨数据库兼容**：SQLite 用多次 GROUP BY + Python UNION 聚合，PostgreSQL/MySQL 用 `GROUP BY ROLLUP(category_l1, category_l2, category_l3)`
+    - **跨数据库兼容**：PostgreSQL 用原生 `GROUP BY ROLLUP(category_l1, category_l2, category_l3)`
     - 支持分类过滤
   - **依赖**：10.2.1
   - **难度**：★★★
@@ -746,7 +730,7 @@
 - [x] **10.4.3 App.tsx 拆分**
   - 主题切换 → 移到 TopBar
   - 退出登录 → 移到 SettingsModal（P11 变更）
-  - 保留：车辆选择器、加油表单、记录列表、筛选、导出、加油提醒、版本更新检测、分页
+  - 保留：车辆选择器、加油表单、记录列表、筛选、版本更新检测、分页
   - **依赖**：10.4.2
   - **难度**：★★
 
@@ -834,7 +818,7 @@
 
 - [x] **10.7.3 文档更新 + 构建验证**
   - 更新 `DIR.md`：新增/修改文件的目录结构说明
-  - 更新 `TEST_CHECKLIST.md`：记账模块测试清单
+  - 更新 `test-specs/e2e-test-spec.md`：记账模块测试清单
   - 构建 APK 验证：@nivo 包增加约 25KB gzip
   - **依赖**：10.7.2
   - **难度**：★
@@ -1164,7 +1148,7 @@
   - 维护 `prod_engine` + `test_engine` 双 SQLAlchemy 引擎
   - `get_db()` 按请求头 `X-Database-Env: prod|test` 选择 Session
   - `init_db()` 同时对两个库执行 `Base.metadata.create_all()`
-  - 本地 SQLite 时忽略环境头，始终使用单一 SQLite 引擎
+  - 本地 PostgreSQL 时忽略环境头，始终使用单一 PostgreSQL 引擎
   - **依赖**：1.1.5
   - **难度**：★★
 
@@ -1274,8 +1258,8 @@ Phase 1 ──→ Phase 2 ──→ Phase 3 ──→ Phase 4 ──→ Phase 5 
 > - 2026-08-01: Phase 10.5 完成 — 导航与统计重构（抽屉→全屏页 + SmartFAB 拖拽导航 + 统计日期筛选/智能粒度/减震加载 + 移除加油提醒 + 筛选重排 + UTC 时区修复 + FuelDataContext 跨路由数据保持）
 > - 2026-07-31: Phase 10 新增 — 个人记账模块（Expense/ExpenseCategory 数据模型 + 分类 CRUD API + 统计聚合 ROLLUP + 底部双 Tab 导航重构 + CategoryPicker 三级级联 + recharts 三环旭日图/饼图下钻 + 左滑删除手势）共 19 个原子 Ticket
 > - 2026-08-02: P10.6 体验优化 — 旭日图从 @nivo/sunburst 迁移为 recharts 三环 Pie 嵌套；柱状图新增图例下钻（L1→L2→L3）+ 全屏横屏布局（layout="vertical" 水平条形图）
-> - 2026-07-30: Ticket 8.4 完成 — UI 美学升级（8 个 @keyframes 动画 + 玻璃态卡片 + 对角渐变背景 + 装饰光斑 + 4 色统计卡片 + 暗色模式增强 + 大圆角系统 + Python 3.9 Optional[X] 兼容 + HTTPBearer 403→401 修复）
-> - 2026-07-30: Phase 8 完成 — 锦上添花（CSV 导出 + 下载/分享 + 暗黑模式 CSS 变量 + 加油提醒 Notification + 统计截图 html2canvas + 数据库索引优化 + 前端分页加载更多）
+> - 2026-07-30: Ticket 8.3 完成 — UI 美学升级
+> - 2026-07-30: Phase 8 完成 — 锦上添花（暗黑模式 CSS 变量 + 数据库索引优化 + 前端分页加载更多 + UI 美学升级 + Python 3.9 兼容修复）
 > - 2026-07-29: Phase 5 完成 — 多车管理（Vehicle 模型 + CRUD API + 前端车辆选择器/添加表单 + 油耗按车辆分组独立计算 + database 自动迁移 vehicle_id 列）
-> - 2026-07-29: Phase 4 完成 — 用户鉴权（注册/登录 + JWT + 前端登录页 + 路由守卫 + 数据隔离 + 测试清单 TEST_CHECKLIST.md + 自动化测试脚本 test_all.sh）
+> - 2026-07-29: Phase 4 完成 — 用户鉴权（注册/登录 + JWT + 前端登录页 + 路由守卫 + 数据隔离 + 测试清单 test-specs/ + 自动化测试脚本 test_all.sh）
 > - 2026-07-19：初版生成，基于 README.md 规格书拆解 8 个 Phase，共约 45 个原子 Ticket

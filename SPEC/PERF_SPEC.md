@@ -182,15 +182,6 @@ apiClient.interceptors.request.use((config) => {
 })
 ```
 
-**`exportCSV()` 函数同步改造**（使用原生 `fetch`，不走 axios）：
-```typescript
-// 改前
-const baseURL = import.meta.env.VITE_API_BASE_URL || ''
-
-// 改后
-const baseURL = getApiBaseUrl()
-```
-
 #### 3.2.2 SettingsModal 新增"服务器"分区
 
 在"数据库"分区上方新增：
@@ -217,7 +208,7 @@ const baseURL = getApiBaseUrl()
 
 | 文件 | 操作 | 内容 |
 |---|---|---|
-| `frontend/src/services/api.ts` | 修改 | axios baseURL 动态化 + `getApiServer`/`setApiServer`/`getApiBaseUrl` + exportCSV 同步改 |
+| `frontend/src/services/api.ts` | 修改 | axios baseURL 动态化 + `getApiServer`/`setApiServer`/`getApiBaseUrl` |
 | `frontend/src/components/SettingsModal.tsx` | 追加 | "服务器"分区：Render / Fly.io radio 切换 + 健康检查 + toast |
 | `frontend/src/components/SettingsModal.css` | 追加 | 服务器 radio 复用 `.settings-env-option` 样式（已有） |
 

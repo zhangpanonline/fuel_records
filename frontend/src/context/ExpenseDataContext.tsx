@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, useCallback, useMemo, type ReactNode } from 'react'
+import { createContext, useContext, useState, useEffect, useCallback, useMemo, useRef, type ReactNode } from 'react'
 import {
   fetchExpenses,
   fetchCategories,
@@ -18,7 +18,7 @@ interface ExpenseData {
   loading: boolean
   multiSummary: MultiSummaryResponse | null
   multiSummaryLoading: boolean
-  refreshCategories: () => Promise<void>
+  refreshCategories: () => Promise<ExpenseCategory[] | null>
   refreshExpenses: (pageNum?: number) => Promise<void>
   refreshMultiSummary: () => Promise<void>
   loadMoreExpenses: () => Promise<void>
@@ -39,8 +39,10 @@ export function ExpenseDataProvider({ children }: { children: ReactNode }) {
     try {
       const cats = await fetchCategories()
       setCategories(cats)
+      return cats
     } catch {
       // 静默失败
+      return null
     }
   }, [])
 
@@ -62,10 +64,15 @@ export function ExpenseDataProvider({ children }: { children: ReactNode }) {
     }
   }, [])
 
+  const loadingRef = useRef(loading)
+  loadingRef.current = loading
+  const pageRef = useRef(page)
+  pageRef.current = page
+
   const loadMoreExpenses = useCallback(async () => {
-    if (loading) return
-    await refreshExpenses(page + 1)
-  }, [loading, page, refreshExpenses])
+    if (loadingRef.current) return
+    await refreshExpenses(pageRef.current + 1)
+  }, [refreshExpenses])
 
   const refreshMultiSummary = useCallback(async () => {
     setMultiSummaryLoading(true)

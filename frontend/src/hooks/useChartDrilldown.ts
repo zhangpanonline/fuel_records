@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useCallback } from 'react'
 import type { BreakdownItem, PeriodItem } from '../services/api'
 
 /* ================================================================
@@ -223,11 +223,11 @@ export function useDrilldown() {
   const [barDrillL1, setBarDrillL1] = useState<string | null>(null)
   const [barDrillL2, setBarDrillL2] = useState<string | null>(null)
 
-  function resetDrill() {
+  const resetDrill = useCallback(() => {
     setDrillPath([])
     setBarDrillL1(null)
     setBarDrillL2(null)
-  }
+  }, [])
 
   return {
     drillPath,

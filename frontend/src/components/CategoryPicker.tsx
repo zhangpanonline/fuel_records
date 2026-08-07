@@ -361,15 +361,14 @@ export default function CategoryPicker({
                 <div className="cp-tree">
                   {l1List.map((l1) => {
                     const isExpanded = expandedL1 === l1.name
-                    const hasChildren = (l1.children || []).length > 0
                     return (
                       <div key={l1.id} className="cp-tree-group">
                         <div
                           className="cp-tree-l1"
-                          onClick={() => hasChildren ? handleToggleL1(l1.name) : null}
+                          onClick={() => handleToggleL1(l1.name)}
                         >
                           <span className={`cp-tree-expand ${isExpanded ? 'expanded' : ''}`}>
-                            {hasChildren ? '▶' : ''}
+                            ▶
                           </span>
                           <span className="cp-tree-name">{l1.name}</span>
                         </div>
@@ -378,15 +377,14 @@ export default function CategoryPicker({
                           <div className="cp-tree-l2-list">
                             {l2List.map((l2) => {
                               const isL2Expanded = expandedL2 === l2.name
-                              const hasL3 = (l2.children || []).length > 0
                               return (
                                 <div key={l2.id}>
                                   <div
                                     className="cp-tree-l2"
-                                    onClick={() => hasL3 ? handleToggleL2(l2.name) : null}
+                                    onClick={() => handleToggleL2(l2.name)}
                                   >
                                     <span className={`cp-tree-expand ${isL2Expanded ? 'expanded' : ''}`}>
-                                      {hasL3 ? '▶' : ''}
+                                      ▶
                                     </span>
                                     <span className="cp-tree-name">{l2.name}</span>
                                   </div>

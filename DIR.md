@@ -2,7 +2,7 @@
 fuel_records/
 │
 ├── .env                          # 环境变量配置（不上 Git）
-│                                 # └ DB_TYPE=sqlite（本地）/ postgresql（部署）
+│                                 # └ DB_TYPE=postgresql（生产）/ postgresql_test（测试）
 │
 ├── .env.example                  # .env 模板，供其他人参考
 │
@@ -32,7 +32,7 @@ fuel_records/
 │
 ├── company.md                    # 公司项目架构参考，本项目对齐目标
 │
-├── docker-compose.yml            # Docker 编排（FastAPI + MySQL），仅本地开发/自建服务器用
+├── docker-compose.yml            # Docker 编排（FastAPI + PostgreSQL），仅本地开发/自建服务器用
 │                                 # 线上部署使用 Render + Supabase（免费替代方案）
 │                                 # Render URL: https://fuel-records.onrender.com
 │
@@ -45,7 +45,7 @@ fuel_records/
 │   │
 │   ├── config.py                 # 配置管理：读取 .env，提供 Settings 单例
 │   │                             # 关键类：Settings(BaseSettings)
-│   │                             # 支持 DB_TYPE：sqlite（本地开发）/ postgresql（Render+Supabase部署）/ mysql（Docker 自建）
+│   │                             # 支持 DB_TYPE：postgresql（生产）/ postgresql_test（测试）
 │   │                             #        DB_PG_URL → Supabase/PostgreSQL 连接串（部署用）
 │   │
 │   ├── database.py               # 数据库连接管理
@@ -129,8 +129,7 @@ fuel_records/
 │   │   │                         # ├ POST   /api/v1/records → 创建记录（需 JWT, 含 vehicle_id）
 │   │   │                         # ├ GET    /api/v1/records → 获取列表（按 user_id + vehicle_id 过滤）
 │   │   │                         # ├ PUT    /api/v1/records/{id} → 修改记录（校验归属）
-│   │   │                         # ├ DELETE /api/v1/records/{id} → 删除记录（校验归属）
-│   │   │                         # └ GET    /api/v1/records/export/csv → 导出 CSV（P8 新增）
+│   │   │                         # └ DELETE /api/v1/records/{id} → 删除记录（校验归属）
 │   │   ├── auth.py               # 认证路由（P4 新增）
 │   │   │                         # ├ POST /api/v1/auth/register → 注册（返回 JWT）
 │   │   │                         # └ POST /api/v1/auth/login → 登录（返回 JWT）
@@ -191,7 +190,7 @@ fuel_records/
 │       │   └── expense_stats_service.py # 支出统计服务（P10 新增）
 │       │                             # ├ get_stats() → 多维度聚合（支持 group_by=none/month/week/year）
 │       │                             # ├ get_multi_summary() → 六区间累计金额（P10.6 新增：当年/当月/当周/近一年/近一月/近一周）
-│       │                             # └ 跨数据库兼容：PostgreSQL 用 GROUP BY ROLLUP，SQLite 用多次 GROUP BY + UNION
+│       │                             # └ cross-DB: PostgreSQL 用 GROUP BY ROLLUP
 │   │
 │   └── core/                     # 基础设施层
 │       ├── __init__.py           # Python 包标记
@@ -205,7 +204,7 @@ fuel_records/
 │                                 #    └ P8.4 修复：HTTPBearer(auto_error=False) + 手动 401（修复无 Token 时 403）
 │   │
 │   ├── alembic.ini                # Alembic 数据库迁移配置（P7 新增）
-│   │                              # └ sqlalchemy.url 在 env.py 中动态指定，自动适配 SQLite/PostgreSQL/MySQL
+│   │                              # └ sqlalchemy.url 在 env.py 中动态指定，自动适配 PostgreSQL
 │   │
 │   ├── alembic/                   # Alembic 迁移脚本目录（P7 新增）
 │   │   ├── env.py                 # 迁移环境：导入项目 config + Base.metadata，支持 autogenerate
@@ -217,7 +216,7 @@ fuel_records/
 │   │
 │   ├── tests/                     # pytest 单元测试（P7 新增）
 │   │   ├── __init__.py            # 包标记
-│   │   ├── conftest.py            # 测试基础设施：SQLite :memory: + StaticPool + 独立测试 App
+│   │   ├── conftest.py            # 测试基础设施：PostgreSQL 测试数据库 + StaticPool + 独立测试 App
 │   │   ├── test_services.py       # 服务层测试（26 个）：安全/认证/车辆/油耗计算/级联重算/筛选/统计
 │   │   ├── test_api.py            # API 层测试（14 个）：鉴权/CRUD/数据隔离
 │   │   └── test_expense_api.py    # 支出模块测试（P10 新增）：17 个测试覆盖分类 CRUD + 支出 CRUD + 统计 + 数据隔离
@@ -256,7 +255,7 @@ fuel_records/
 │       ├── App.tsx               # 加油主页面：加油表单 + 记录列表 + 车辆选择器（P5）+ 筛选面板（P6）
 │       │                         # └ P5 新增：车辆下拉选择器 + 添加车辆表单 + localStorage 记忆
 │       │                         # └ P6 新增：筛选面板（日期范围/加满/备注搜索），位于表单与记录列表之间
-│       │                         # └ P8 新增：导出按钮（CSV）+ 主题切换 + 分页加载更多
+│       │                         # └ P8 新增：主题切换 + 分页加载更多
 │       │                         # └ P9 新增：useEffect checkUpdate() 启动检测 + 升级弹窗 UI
 │       │                         # └ P10 变更：主题切换+退出登录移到 TopBar；移除加油提醒功能；移除 BottomPanel/FAB
 │       │                         # └ P10 重构：筛选入口改为带图标的卡片按钮，筛选按钮右对齐，面板滑入动画
@@ -365,7 +364,6 @@ fuel_records/
 │           │                     # ├ 响应拦截器：401 自动清除 token 并跳转登录页
 │           │                     # ├ Records CRUD: create/fetch（支持筛选参数）/update/delete
 │           │                     # ├ Stats API: fetchSummary() / fetchMonthly() / fetchTimeline()（均支持 start_date/end_date）
-│           │                     # ├ Export API: exportCSV()（P8 新增）
 │           │                     # ├ Expense API: fetch/create/update/delete + fetchCategories + Category CRUD + fetchExpenseStats（P10 新增）
 │           │                     # ├ Expense API: fetchMultiSummary()（P10.6 新增：六区间累计金额）
 │           │                     # └ parseRecord() → Decimal 字符串转数字

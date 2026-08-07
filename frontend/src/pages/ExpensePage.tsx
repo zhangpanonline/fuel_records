@@ -193,12 +193,51 @@ export default function ExpensePage() {
   async function handleQuickCreate() {
     if (!quickCreateName.trim()) return
     try {
-      await createCategory({
+      const newCat = await createCategory({
         name: quickCreateName.trim(),
         parent_id: quickCreateParentId ?? undefined,
       })
       setQuickCreateOpen(false)
-      await refreshCategories()
+      const updatedCats = await refreshCategories()
+
+      // 规格书要求：回车自动选中新创建的分类
+      if (updatedCats) {
+        if (newCat.level === 3 && quickCreateParentId) {
+          for (const l1 of updatedCats) {
+            const l2 = l1.children?.find((c) => c.id === quickCreateParentId)
+            if (l2) {
+              setSelectedL1(l1.name)
+              setSelectedL2(l2.name)
+              setSelectedL3(newCat.name)
+              setSelectedL1Id(l1.id)
+              setSelectedL2Id(l2.id)
+              setSelectedL3Id(newCat.id)
+              recordCategorySelected({
+                l1: l1.name, l2: l2.name, l3: newCat.name,
+                l1Id: l1.id, l2Id: l2.id, l3Id: newCat.id,
+              })
+              break
+            }
+          }
+        } else if (newCat.level === 2 && quickCreateParentId) {
+          const l1 = updatedCats.find((c) => c.id === quickCreateParentId)
+          if (l1) {
+            setSelectedL1(l1.name)
+            setSelectedL2(newCat.name)
+            setSelectedL3('')
+            setSelectedL1Id(l1.id)
+            setSelectedL2Id(newCat.id)
+            setSelectedL3Id(0)
+          }
+        } else if (newCat.level === 1) {
+          setSelectedL1(newCat.name)
+          setSelectedL2('')
+          setSelectedL3('')
+          setSelectedL1Id(newCat.id)
+          setSelectedL2Id(0)
+          setSelectedL3Id(0)
+        }
+      }
     } catch (err: unknown) {
       console.error('创建分类失败:', err)
       alert('操作失败，请稍后重试')

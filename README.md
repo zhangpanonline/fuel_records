@@ -22,7 +22,7 @@
 >
 > **知识沉淀**：每个 Ticket 完成后，我会同步更新 [`DIR.md`](./DIR.md)，详细说明本次新增或修改的每个目录和文件是做什么的、关键函数是什么、为什么这么设计。你任何时候回头看 `DIR.md`，就能快速回忆起整个项目的结构和设计意图。
 - **API 设计**：FastAPI 路由、请求/响应模型
-- **数据库操作**：MySQL + SQLAlchemy ORM、表设计、CRUD
+- **数据库操作**：PostgreSQL + SQLAlchemy ORM、表设计、CRUD
 - **数据校验**：Pydantic 模型
 - **日志**：loguru 结构化日志
 - **认证鉴权**：JWT（PyJWT）
@@ -39,7 +39,7 @@
 |------|------|------|
 | 语言 | Python | 3.12 |
 | Web 框架 | FastAPI + Uvicorn | latest |
-| 数据库 | PostgreSQL / MySQL | Supabase 云数据库 |
+| 数据库 | PostgreSQL | Supabase 云数据库 |
 | ORM | SQLAlchemy | 2.x |
 | 数据校验 | Pydantic | 2.x |
 | 日志 | loguru | latest |
@@ -169,7 +169,7 @@ fuel_records/
 │   ├── capacitor-config/       # Capacitor 原生配置
 │   ├── package.json
 │   └── vite.config.ts
-├── docker-compose.yml          # 多容器编排（FastAPI + MySQL）
+├── docker-compose.yml          # 多容器编排（FastAPI + PostgreSQL）
 ├── .env                        # 环境配置（不上仓库）
 ├── .gitignore
 ├── .env.example
@@ -178,8 +178,10 @@ fuel_records/
 ├── README.md                   # 本文件 — 项目规格书
 ├── README.tickets.md           # 任务拆解清单
 ├── DIR.md                      # 目录结构说明
-├── TEST_CHECKLIST.md           # 功能测试清单（每次更新后逐项验证）
-├── test_all.sh                 # 一键自动化测试脚本
+├── test-specs/                  # 测试规格书目录
+│   ├── e2e-test-spec.md         # 端到端测试规格书
+│   ├── integration-test-spec.md # 集成测试规格书
+│   └── unit-test-spec.md        # 单元测试规格书
 ```
 
 ---
@@ -361,7 +363,7 @@ GET    /api/v1/expenses/multi_summary   六区间累计金额（P10.6 新增：�
 
 **后端工作**：
 - 搭建 FastAPI 项目骨架（分层目录结构）
-- 配置 MySQL 数据库连接（SQLAlchemy）
+- 配置 PostgreSQL 数据库连接（SQLAlchemy）
 - 创建 `fuel_records` 表（无用户、无车辆的概念，单表）
 - 实现 **2 个 API**：
   - `POST /api/v1/records` — 创建记录
@@ -437,7 +439,7 @@ GET    /api/v1/expenses/multi_summary   六区间累计金额（P10.6 新增：�
 - FastAPI `get_current_user` 依赖注入（`core/deps.py`）
 - 所有 `/records` 接口加 JWT 鉴权 + 按 `user_id` 数据隔离
 - 前端：登录/注册页面（Tab 切换）、axios 拦截器（自动带 token + 401 跳转）、React Router 路由守卫
-- 测试：TEST_CHECKLIST.md + test_all.sh 一键自动化测试
+- 测试：`test-specs/` 三份测试规格书（端到端 / 集成 / 单元）
 
 **学到的知识点**：
 1. 密码哈希（bcrypt）
@@ -503,15 +505,15 @@ GET    /api/v1/expenses/multi_summary   六区间累计金额（P10.6 新增：�
 **目标**：用户体验完善。
 
 **新增工作**：
-- 数据导出（CSV / Excel）
+
 - 暗黑模式
 - 性能优化
 - App 版本更新检测与自动安装（Supabase Storage 托管 APK → 启动检测 → 下载 → 系统安装器）→ 规格书：[`upgrade.md`](./SPEC/upgrade.md)
 
 > [!CAUTION]
-> **自动更新是本 App 的生命线**。App 无应用商店分发渠道，一旦自动更新功能被破坏，用户将永久停留在旧版本且无法联系到开发者。详见 [`TEST_CHECKLIST.md 自动更新保护章节`](./TEST_CHECKLIST.md)。
+> **自动更新是本 App 的生命线**。App 无应用商店分发渠道，一旦自动更新功能被破坏，用户将永久停留在旧版本且无法联系到开发者。详见 [`e2e-test-spec.md 自动更新保护章节`](./test-specs/e2e-test-spec.md)。
 
-- **已移除**：加油提醒推送（Phase 10.5 移除）、统计截图分享（Phase 10.5 移除）
+- **已移除**：加油提醒推送（Phase 10.5 移除）、统计截图分享（Phase 10.5 移除）、CSV 导出（移除）
 
 ---
 
@@ -526,7 +528,7 @@ GET    /api/v1/expenses/multi_summary   六区间累计金额（P10.6 新增：�
 - Supabase 基础设施：`app_versions` 表 + RLS 策略 + Storage bucket
 
 > [!CAUTION]
-> **自动更新是本 App 的生命线**。App 无应用商店分发渠道，一旦自动更新功能被破坏，用户将永久停留在旧版本且无法联系到开发者。详见 [`TEST_CHECKLIST.md 自动更新保护章节`](./TEST_CHECKLIST.md)。
+> **自动更新是本 App 的生命线**。App 无应用商店分发渠道，一旦自动更新功能被破坏，用户将永久停留在旧版本且无法联系到开发者。详见 [`e2e-test-spec.md 自动更新保护章节`](./test-specs/e2e-test-spec.md)。
 
 ---
 
@@ -594,7 +596,7 @@ GET    /api/v1/expenses/multi_summary   六区间累计金额（P10.6 新增：�
 ## 8. 学习路径图
 
 ```
-Phase 1 ──→  FastAPI 入门 + React 入门 + MySQL 基础 + Capacitor APK
+Phase 1 ──→  FastAPI 入门 + React 入门 + PostgreSQL 基础 + Capacitor APK
    │
 Phase 2 ──→  CRUD 进阶 + SQLAlchemy 熟练
    │

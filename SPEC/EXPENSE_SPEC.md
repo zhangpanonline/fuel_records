@@ -258,7 +258,7 @@ GET /api/v1/expenses/multi_summary  六区间累计金额（P10.6 新增）
 
 > `category_breakdown` 返回 L1+L2+L3 全层级扁平列表（`null` 表示该行为父级汇总行）。  
 > 后端实现：SQL `GROUP BY ROLLUP(category_l1, category_l2, category_l3)`（PostgreSQL 语法）。  
-> **跨数据库兼容**：SQLite 不支持 ROLLUP，`expense_stats_service.py` 需检测 `DB_TYPE`——SQLite 时用多次 `GROUP BY` + Python 内存 UNION 聚合，PostgreSQL/MySQL 时用原生 ROLLUP。  
+> **跨数据库兼容**：`expense_stats_service.py` 使用 PostgreSQL 原生 `GROUP BY ROLLUP(category_l1, category_l2, category_l3)`。  
 > 前端收到后 `buildTree()` 转为嵌套结构喂给三环旭日图和饼图下钻。  
 > 堆叠柱状图依照下钻层级渲染——L1 视图取 `category_l2 IS NULL AND category_l3 IS NULL` 的行，点击图例可逐级下钻至 L2 / L3。全屏模式下柱状图使用 `layout="vertical"`（水平条形图）适配手机横屏。
 
@@ -334,7 +334,6 @@ GET /api/v1/expenses/multi_summary  六区间累计金额（P10.6 新增）
 | | 加油表单（里程/油量/金额/提交） |
 | | 记录列表 + 编辑/删除 + 分页加载更多 |
 | | 筛选面板 |
-| | 导出 CSV 按钮 |
 | | 版本更新检测弹窗 |
 
 > **P11 变更**：退出登录从 TopBar 移入 SettingsModal，「设置」齿轮按钮已存在于 TopBar 和 LoginPage。
@@ -426,7 +425,7 @@ backend/
 │   └── expense_categories.py        # 新增：分类管理 + 统计路由
 ├── services/
 │   ├── expense_service.py           # 新增：支出记录业务逻辑
-│   └── expense_stats_service.py     # 新增：统计聚合业务逻辑（含 DB_TYPE 兼容 ROLLUP）
+│   └── expense_stats_service.py     # 新增：统计聚合业务逻辑
 ├── alembic/versions/
 │   └── xxx_add_expense_tables.py    # 新增：expenses + expense_categories 表迁移
 ```

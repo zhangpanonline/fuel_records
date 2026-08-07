@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, useCallback, useRef, type ReactNode } from 'react'
+import { createContext, useContext, useState, useEffect, useCallback, useMemo, useRef, type ReactNode } from 'react'
 import {
   fetchRecords,
   fetchVehicles,
@@ -131,7 +131,14 @@ export function FuelDataProvider({ children }: { children: ReactNode }) {
     setVehicles((prev) => [...prev, v])
   }, [])
 
-  const value: FuelData = {
+  const filters = useMemo(() => ({
+    startDate: filterStartDate,
+    endDate: filterEndDate,
+    fullTank: filterFullTank,
+    note: filterNote,
+  }), [filterStartDate, filterEndDate, filterFullTank, filterNote])
+
+  const value: FuelData = useMemo(() => ({
     vehicles,
     selectedVehicleId,
     setSelectedVehicleId,
@@ -140,12 +147,7 @@ export function FuelDataProvider({ children }: { children: ReactNode }) {
     page,
     loading,
     error,
-    filters: {
-      startDate: filterStartDate,
-      endDate: filterEndDate,
-      fullTank: filterFullTank,
-      note: filterNote,
-    },
+    filters,
     setFilterStartDate,
     setFilterEndDate,
     setFilterFullTank,
@@ -158,7 +160,29 @@ export function FuelDataProvider({ children }: { children: ReactNode }) {
     loadRecords,
     refreshRecords,
     addVehicle,
-  }
+  }), [
+    vehicles,
+    selectedVehicleId,
+    setSelectedVehicleId,
+    records,
+    total,
+    page,
+    loading,
+    error,
+    filters,
+    setFilterStartDate,
+    setFilterEndDate,
+    setFilterFullTank,
+    setFilterNote,
+    showFilter,
+    setShowFilter,
+    showAddVehicle,
+    setShowAddVehicle,
+    loadVehicles,
+    loadRecords,
+    refreshRecords,
+    addVehicle,
+  ])
 
   return (
     <FuelDataContext.Provider value={value}>

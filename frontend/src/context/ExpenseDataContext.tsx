@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from 'react'
+import { createContext, useContext, useState, useEffect, useCallback, useMemo, type ReactNode } from 'react'
 import {
   fetchExpenses,
   fetchCategories,
@@ -86,7 +86,7 @@ export function ExpenseDataProvider({ children }: { children: ReactNode }) {
     refreshMultiSummary()
   }, [refreshCategories, refreshExpenses, refreshMultiSummary])
 
-  const value: ExpenseData = {
+  const value: ExpenseData = useMemo(() => ({
     categories,
     expenses,
     total,
@@ -98,7 +98,19 @@ export function ExpenseDataProvider({ children }: { children: ReactNode }) {
     refreshExpenses,
     refreshMultiSummary,
     loadMoreExpenses,
-  }
+  }), [
+    categories,
+    expenses,
+    total,
+    page,
+    loading,
+    multiSummary,
+    multiSummaryLoading,
+    refreshCategories,
+    refreshExpenses,
+    refreshMultiSummary,
+    loadMoreExpenses,
+  ])
 
   return (
     <ExpenseDataContext.Provider value={value}>

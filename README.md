@@ -1,11 +1,11 @@
 # Fuel Records — 摩托车油耗记录 + 个人记账 App
 
 >
-> **新增功能**：个人记账模块，详见 [`EXPENSE_SPEC.md`](file:///Users/zp/Code/fuel_records/EXPENSE_SPEC.md)。
+> **新增功能**：个人记账模块，详见 [`EXPENSE_SPEC.md`](./SPEC/EXPENSE_SPEC.md)。
 >
-> **性能优化**：前端 CSS 降级（性能模式开关）+ 后端 Render → Fly.io 迁移，详见 [`PERF_SPEC.md`](file:///Users/zp/Code/fuel_records/PERF_SPEC.md)。
+> **性能优化**：前端 CSS 降级（性能模式开关）+ 后端 Render → Fly.io 迁移，详见 [`PERF_SPEC.md`](./SPEC/PERF_SPEC.md)。
 >
-> **智能预测**：SmartFAB 行为预测引擎，详见 [`SMARTFAB_SPEC.md`](file:///Users/zp/Code/fuel_records/SMARTFAB_SPEC.md)。
+> **智能预测**：SmartFAB 行为预测引擎，详见 [`SMARTFAB_SPEC.md`](./SPEC/SMARTFAB_SPEC.md)。
 
 ---
 
@@ -20,7 +20,7 @@
 
 > **教学承诺**：每一行代码都会讲解为什么这么写，每个概念都会从零开始解释清楚再动手。不跳步，不默认你懂任何前置知识。写完一个 Ticket 后，我会明确问你"这个 Ticket 的所有内容你都完全理解了吗？"，你说"理解了"我才进下一个——绝不自作主张帮你跳到下一关。
 >
-> **知识沉淀**：每个 Ticket 完成后，我会同步更新 [`DIR.md`](file:///Users/zp/Code/fuel_records/DIR.md)，详细说明本次新增或修改的每个目录和文件是做什么的、关键函数是什么、为什么这么设计。你任何时候回头看 `DIR.md`，就能快速回忆起整个项目的结构和设计意图。
+> **知识沉淀**：每个 Ticket 完成后，我会同步更新 [`DIR.md`](./DIR.md)，详细说明本次新增或修改的每个目录和文件是做什么的、关键函数是什么、为什么这么设计。你任何时候回头看 `DIR.md`，就能快速回忆起整个项目的结构和设计意图。
 - **API 设计**：FastAPI 路由、请求/响应模型
 - **数据库操作**：MySQL + SQLAlchemy ORM、表设计、CRUD
 - **数据校验**：Pydantic 模型
@@ -164,7 +164,6 @@ fuel_records/
 │   │   ├── services/           # API 调用
 │   │   │   ├── api.ts          # 全部 API 函数
 │   │   │   ├── upgrade.ts      # 版本更新检测 (P9)
-│   │   │   └── upgrade.md       # 版本更新规格书
 │   │   ├── App.tsx             # 加油主页面
 │   │   └── main.tsx            # 路由入口 + DataProviders + /docs 路由 (P10.6)
 │   ├── capacitor-config/       # Capacitor 原生配置
@@ -507,10 +506,10 @@ GET    /api/v1/expenses/multi_summary   六区间累计金额（P10.6 新增：�
 - 数据导出（CSV / Excel）
 - 暗黑模式
 - 性能优化
-- App 版本更新检测与自动安装（Supabase Storage 托管 APK → 启动检测 → 下载 → 系统安装器）→ 规格书：[`upgrade.md`](file:///Users/zp/Code/fuel_records/frontend/src/services/upgrade.md)
+- App 版本更新检测与自动安装（Supabase Storage 托管 APK → 启动检测 → 下载 → 系统安装器）→ 规格书：[`upgrade.md`](./SPEC/upgrade.md)
 
 > [!CAUTION]
-> **自动更新是本 App 的生命线**。App 无应用商店分发渠道，一旦自动更新功能被破坏，用户将永久停留在旧版本且无法联系到开发者。详见 [`TEST_CHECKLIST.md 自动更新保护章节`](file:///Users/zp/Code/fuel_records/TEST_CHECKLIST.md)。
+> **自动更新是本 App 的生命线**。App 无应用商店分发渠道，一旦自动更新功能被破坏，用户将永久停留在旧版本且无法联系到开发者。详见 [`TEST_CHECKLIST.md 自动更新保护章节`](./TEST_CHECKLIST.md)。
 
 - **已移除**：加油提醒推送（Phase 10.5 移除）、统计截图分享（Phase 10.5 移除）
 
@@ -521,17 +520,17 @@ GET    /api/v1/expenses/multi_summary   六区间累计金额（P10.6 新增：�
 **目标**：App 自更新 — 无应用商店分发渠道的生命线。
 
 **已完成工作**：
-- 版本检测服务 [`upgrade.ts`](file:///Users/zp/Code/fuel_records/frontend/src/services/upgrade.ts)：启动时对比版本号 → 弹窗 → 下载 APK → 调系统安装器
+- 版本检测服务 [`upgrade.ts`](./frontend/src/services/upgrade.ts)：启动时对比版本号 → 弹窗 → 下载 APK → 调系统安装器
 - 发版脚本 `scripts/upload-apk.js`：一键升版本号 → 构建 → 上传 Supabase Storage → INSERT 版本记录
 - 升级弹窗 UI（进度条 + 下载百分比）
 - Supabase 基础设施：`app_versions` 表 + RLS 策略 + Storage bucket
 
 > [!CAUTION]
-> **自动更新是本 App 的生命线**。App 无应用商店分发渠道，一旦自动更新功能被破坏，用户将永久停留在旧版本且无法联系到开发者。详见 [`TEST_CHECKLIST.md 自动更新保护章节`](file:///Users/zp/Code/fuel_records/TEST_CHECKLIST.md)。
+> **自动更新是本 App 的生命线**。App 无应用商店分发渠道，一旦自动更新功能被破坏，用户将永久停留在旧版本且无法联系到开发者。详见 [`TEST_CHECKLIST.md 自动更新保护章节`](./TEST_CHECKLIST.md)。
 
 ---
 
-### Phase 10 — "记账模块" ✅ — [`EXPENSE_SPEC.md`](file:///Users/zp/Code/fuel_records/EXPENSE_SPEC.md)
+### Phase 10 — "记账模块" ✅ — [`EXPENSE_SPEC.md`](./SPEC/EXPENSE_SPEC.md)
 
 **目标**：追踪日常支出，自定义三级分类，多维度可视化分析。
 
@@ -622,6 +621,6 @@ Phase 11 ──→ 双数据库 + 设置中心 + 双后端切换
 
 ---
 >
-> **新增模块规格书**：[`EXPENSE_SPEC.md`](file:///Users/zp/Code/fuel_records/EXPENSE_SPEC.md) — 个人记账功能（自定义三级分类 + 三环旭日图/堆叠柱状图下钻/饼图下钻多维度统计）
+> **新增模块规格书**：[`EXPENSE_SPEC.md`](./SPEC/EXPENSE_SPEC.md) — 个人记账功能（自定义三级分类 + 三环旭日图/堆叠柱状图下钻/饼图下钻多维度统计）
 >
-> **性能优化规格书**：[`PERF_SPEC.md`](file:///Users/zp/Code/fuel_records/PERF_SPEC.md) — 前端 CSS 降级（性能模式开关）+ 后端 Render → Fly.io 迁移
+> **性能优化规格书**：[`PERF_SPEC.md`](./SPEC/PERF_SPEC.md) — 前端 CSS 降级（性能模式开关）+ 后端 Render → Fly.io 迁移

@@ -1,6 +1,9 @@
 # ============ 敏感凭据 ============
 .env
 backend/.env
+*.keystore
+secrets/
+fuel_records.db
 
 # ============ Python ============
 __pycache__/
@@ -51,4 +54,3 @@ flutter_app/windows/flutter/ephemeral/
 Thumbs.db
 .history
 company.md
-fly_secrets.txt

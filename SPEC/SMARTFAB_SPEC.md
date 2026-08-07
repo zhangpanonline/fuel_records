@@ -1,6 +1,6 @@
 # SmartFAB 智能预测引擎 — 技术规格书
 
-> **关联文档**：[`CONTEXT.md`](./CONTEXT.md) — 术语表
+> **关联文档**：[`CONTEXT.md`](../CONTEXT.md) — 术语表
 
 ---
 

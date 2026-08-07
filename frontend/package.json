@@ -1,7 +1,7 @@
 {
   "name": "frontend",
   "private": true,
-  "version": "1.0.18",
+  "version": "1.1.00",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -10,7 +10,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "preview": "vite preview",
-    "build:apk": "npm run build && npx cap sync android && cd android && ./gradlew assembleDebug && cd .. && cp android/app/build/outputs/apk/debug/app-debug.apk dist/fuel_records_v$npm_package_version.apk && echo '\n📦 APK 输出: dist/fuel_records_v'$npm_package_version'.apk'"
+    "build:apk": "npm run build && npx cap sync android && cd android && ./gradlew assembleRelease && cd .. && cp android/app/build/outputs/apk/release/app-release.apk dist/fuel_records_v$npm_package_version.apk && echo '\n📦 APK 输出: dist/fuel_records_v'$npm_package_version'.apk'"
   },
   "dependencies": {
     "@capacitor/android": "^8.4.2",

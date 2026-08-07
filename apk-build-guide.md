@@ -4,7 +4,7 @@
 ./build_apk.sh
 ```
 
-自动完成：检查 JDK 21 → 加载 .env → 升版本号 → 构建 APK → 上传 Storage → INSERT 表
+自动完成：检查 JDK 21 → 加载 .env → 升版本号 → 构建 Release APK（签名） → 上传 Storage → INSERT 表
 
 > 等价于手动执行：
 > ```bash
@@ -22,9 +22,10 @@
 3. [安装 Capacitor 依赖（仅首次）](#3-安装-capacitor-依赖仅首次)
 4. [配置生产环境 API 地址](#4-配置生产环境-api-地址)
 5. [初始化 Capacitor 并添加 Android 平台（仅首次）](#5-初始化-capacitor-并添加-android-平台仅首次)
-6. [常见构建问题及修复](#6-常见构建问题及修复)
-7. [APK 传到手机安装](#7-apk-传到手机安装)
-8. [发版上传到 Supabase](#8-发版上传到-supabase)
+6. [配署 Release 签名（仅首次）](#9-配置-release-签名仅首次)
+7. [常见构建问题及修复](#6-常见构建问题及修复)
+8. [APK 传到手机安装](#7-apk-传到手机安装)
+9. [发版上传到 Supabase](#8-发版上传到-supabase)
 
 ---
 
@@ -85,12 +86,12 @@ export JAVA_HOME=$(/usr/libexec/java_home -v 21)
 npm run build:apk
 ```
 
-这条命令自动执行：Vite 构建 → cap sync → Gradle 编译 → 输出到 `dist/fuel_records_vX.X.X.apk`
+这条命令自动执行：Vite 构建 → cap sync → Gradle 编译（`assembleRelease`，已签名） → 输出到 `dist/fuel_records_vX.X.X.apk`
 
 **产物位置**：
 ```
-frontend/dist/fuel_records_v0.0.1.apk   ← 直接发这个文件给手机安装
-frontend/android/app/build/outputs/apk/debug/app-debug.apk   ← 原始 Gradle 产物
+frontend/dist/fuel_records_v1.0.26.apk   ← 已签名的正式版 APK，直接发这个文件给手机安装
+frontend/android/app/build/outputs/apk/release/app-release.apk   ← Gradle 原始产物（已签名）
 ```
 
 ---
@@ -149,9 +150,79 @@ npx cap add android
 
 ---
 
-## 6. 常见构建问题及修复
+## 6. 配置 Release 签名（仅首次）
 
-### 6.1 Gradle 下载超时（国内网络）
+本项目构建的是 **正式版 Release APK**，需要签名密钥。所有签名相关文件统一放在 `secrets/` 目录下。
+
+### 6.1 密钥文件位置
+
+```
+fuel_records/
+├── secrets/
+│   ├── fuel_records.keystore    # RSA 2048 签名密钥（.gitignore 已排除）
+│   └── keystore.properties      # 密码配置（.gitignore 已排除）
+└── frontend/android/app/
+    └── build.gradle         # 读取 secrets/keystore.properties 并配置 signingConfigs.release
+```
+
+### 6.2 首次配置（生成密钥）
+
+如果 `fuel_records.keystore` 不存在，执行以下命令生成：
+
+```bash
+cd /Users/zp/Code/fuel_records/secrets
+keytool -genkey -v \
+  -keystore fuel_records.keystore \
+  -alias fuel_records \
+  -keyalg RSA -keysize 2048 -validity 10000 \
+  -storepass fuelrecords123 \
+  -keypass fuelrecords123 \
+  -dname "CN=Fuel Records, OU=Dev, O=FuelRecords, L=Unknown, ST=Unknown, C=CN"
+```
+
+然后创建 `secrets/keystore.properties`：
+
+```properties
+KEYSTORE_PATH=secrets/fuel_records.keystore
+KEYSTORE_PASSWORD=fuelrecords123
+KEY_ALIAS=fuel_records
+KEY_PASSWORD=fuelrecords123
+```
+
+> **注意**：`.gitignore` 已配置 `secrets/` 目录排除，不会被提交到仓库。换电脑/重装系统前请备份整个 `secrets/` 目录。
+
+### 6.3 签名原理
+
+`app/build.gradle` 构建时自动读取 `secrets/keystore.properties`，配置 `signingConfigs.release`：
+
+```groovy
+signingConfigs {
+    release {
+        storeFile file("${rootProject.projectDir}/../../${keystoreProps['KEYSTORE_PATH']}")
+        storePassword keystoreProps['KEYSTORE_PASSWORD']
+        keyAlias keystoreProps['KEY_ALIAS']
+        keyPassword keystoreProps['KEY_PASSWORD']
+    }
+}
+```
+
+### 6.4 版本号同步机制
+
+`versionCode` 和 `versionName` 不再写死在 `build.gradle`，而是由 `upload-apk.js` 在构建前动态写入 `frontend/android/version.properties`：
+
+```
+# upload-apk.js 自动生成，每次构建前覆盖
+versionCode=10026
+versionName=1.0.26
+```
+
+Gradle 读取该文件作为 `defaultConfig` 的版本号，确保 APK 内烙的版本号与 Supabase 记录完全一致。
+
+---
+
+## 7. 常见构建问题及修复
+
+### 7.1 Gradle 下载超时（国内网络）
 
 `gradle-wrapper.properties` 默认从 `services.gradle.org` 下载，国内可能超时。
 
@@ -163,7 +234,7 @@ networkTimeout=60000
 validateDistributionUrl=false
 ```
 
-### 6.2 JDK 版本不兼容
+### 7.2 JDK 版本不兼容
 
 报错 `Unsupported class file major version 68` 表示 JDK 版本过高（不是 21）。
 
@@ -173,7 +244,7 @@ validateDistributionUrl=false
 export JAVA_HOME=$(/usr/libexec/java_home -v 21)
 ```
 
-### 6.3 Android SDK 目录不可写 / 缺少组件
+### 7.3 Android SDK 目录不可写 / 缺少组件
 
 ```
 Failed to install the following SDK components:
@@ -187,7 +258,7 @@ Failed to install the following SDK components:
 echo "sdk.dir=/Users/zp/Library/Android/sdk" > android/local.properties
 ```
 
-### 6.4 Kotlin stdlib 重复类冲突
+### 7.4 Kotlin stdlib 重复类冲突
 
 ```
 Duplicate class kotlin.xxx found in modules
@@ -207,15 +278,31 @@ subprojects {
 }
 ```
 
-### 6.5 APK 安装后打开空白页
+### 7.5 APK 安装后打开空白页
 
 **原因**：`capacitor.config.ts` 中 `server.url` 指向了开发机 IP，手机上连不到。
 
 **修复**：打包 APK 前确保 `capacitor.config.ts` 中**没有 `server` 块**，这样 App 会从内置 `dist/` 加载资源。`build_apk.sh` 脚本已内置此检查。
 
+### 7.6 Kotlin 编译 daemon 权限错误
+
+```
+e: java.nio.file.FileSystemException: kotlin-daemon-client-tsmarker...tmp: Operation not permitted
+Could not connect to Kotlin compile daemon
+```
+
+这是 macOS 沙箱权限导致 Kotlin daemon 无法启动的已知问题。Gradle 会自动降级为 fallback 模式编译，不影响最终构建结果。忽略此警告即可。
+
+如果每次都想消除此警告，可以停用 Kotlin daemon：
+
+```bash
+# 在 frontend/android/gradle.properties 中添加
+kotlin.compiler.execution.strategy=in-process
+```
+
 ---
 
-## 7. APK 传到手机安装
+## 8. APK 传到手机安装
 
 APK 路径：`frontend/dist/fuel_records_vX.X.X.apk`
 
@@ -231,9 +318,9 @@ adb install frontend/dist/fuel_records_v0.0.1.apk
 
 ---
 
-## 8. 发版上传到 Supabase
+## 9. 发版上传到 Supabase
 
-**一键完成**：升版本号 → 构建 APK → 上传 Storage → INSERT 表：
+**一键完成**：升版本号 → 写 version.properties → 构建 Release APK（签名） → 上传 Storage → INSERT 表：
 
 ```bash
 cd /Users/zp/Code/fuel_records
@@ -242,13 +329,14 @@ export $(grep -v '^#' .env | xargs)
 node scripts/upload-apk.js
 ```
 
-脚本自动完成（5 步按正确顺序）：
+脚本自动完成（6 步按正确顺序）：
 
 1. `npm version patch` → 升 `package.json` 版本号
 2. 从新 version 计算 `version_code`（公式: MAJOR×10000 + MINOR×100 + PATCH）
-3. `npm run build:apk` → 构建 APK（`upgrade.ts` 在构建时 `import pkg.version` 自动算出 code）
-4. 上传 APK 到 Supabase Storage
-5. INSERT 记录到 `app_versions` 表
+3. 写入 `frontend/android/version.properties`（Gradle 读取作为 versionCode/versionName）
+4. `npm run build:apk` → Vite 构建 → `assembleRelease`（读取 keystore 签名）
+5. 上传 APK 到 Supabase Storage
+6. INSERT 记录到 `app_versions` 表
 
 ### 版本检测流程
 

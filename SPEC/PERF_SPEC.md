@@ -1,6 +1,6 @@
 # Fuel Records — 性能优化规格书（前端降级 + 后端迁移 Fly.io）
 
-> **关联文档**：[README.md](file:///Users/zp/Code/fuel_records/README.md)（项目总规格书）、[EXPENSE_SPEC.md](file:///Users/zp/Code/fuel_records/EXPENSE_SPEC.md)（记账模块规格）
+> **关联文档**：[README.md](../README.md)（项目总规格书）、[EXPENSE_SPEC.md](./EXPENSE_SPEC.md)（记账模块规格）
 
 ---
 

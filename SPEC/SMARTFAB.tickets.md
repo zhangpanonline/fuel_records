@@ -1,7 +1,7 @@
 # SmartFAB 智能预测引擎 — 原子任务清单
 
 > **规格书**：[`SMARTFAB_SPEC.md`](./SMARTFAB_SPEC.md)
-> **术语表**：[`CONTEXT.md`](./CONTEXT.md)
+> **术语表**：[`CONTEXT.md`](../CONTEXT.md)
 
 ---
 

@@ -1,6 +1,6 @@
 # Fuel Records 性能优化 — 任务拆解清单
 
-> 基于 [PERF_SPEC.md](file:///Users/zp/Code/fuel_records/PERF_SPEC.md) 规格书拆解。
+> 基于 [PERF_SPEC.md](./PERF_SPEC.md) 规格书拆解。
 
 ---
 
@@ -101,7 +101,7 @@ Ticket 1（CSS 降级规则）
 
 - [ ] **7.1 本地部署 Fly.io**
   - `cd backend && fly launch`（AI 执行，加 `--name fuel-records --region nrt` 跳过交互）
-  - `fly secrets set`（用户手动执行，从 `fly_secrets.txt` 读取）
+  - `fly secrets set`（用户手动执行，从 `secrets/fly_secrets.txt` 读取）
   - `fly deploy`（AI 执行）
   - **依赖**：6.2
   - **难度**：★

@@ -12,9 +12,20 @@ fuel_records/
 │
 ├── README.md                     # 项目规格书：架构、数据库设计、API、迭代计划
 │
-├── EXPENSE_SPEC.md               # 记账模块规格书（P10 新增）
-│                                 # └ 数据模型/API/前端/边界/依赖完整设计（经 13 轮审查、35 项修正）
-│
+├── SPEC/                         # 功能规格书 + 票据文档
+│   ├── EXPENSE_SPEC.md           # 记账模块规格书（P10 新增）
+│   │                             # └ 数据模型/API/前端/边界/依赖完整设计
+│   ├── PERF_SPEC.md              # 性能优化规格书（前端降级 + 后端迁移 Fly.io）
+│   ├── SMARTFAB_SPEC.md          # SmartFAB 智能预测引擎规格书
+│   ├── upgrade.md                # 版本更新功能规格书
+│   ├── PERF_SPEC.tickets.md      # 性能优化任务拆解清单
+│   ├── SMARTFAB.tickets.md       # 智能预测任务拆解清单
+│   └── upgrade.tickets.md        # 版本更新任务拆解清单
+├── secrets/                      # 隐私敏感文件
+│   ├── fly_secrets.txt           # Fly.io 部署密钥
+│   ├── fuel_records.keystore     # Android 签名密钥库
+│   └── keystore.properties       # 签名密码配置
+
 ├── README.tickets.md             # 任务拆解清单：10 个 Phase 的原子 Ticket，教学进度
 │
 ├── DIR.md                        # 本文件：目录结构说明
@@ -363,8 +374,7 @@ fuel_records/
 │           │                     # ├ checkUpdate()         → 对比 CURRENT_VERSION_CODE（从 package.json version 自动计算）
 │           │                     # ├ downloadApk(url, onProgress) → XHR 下载 + 进度回调
 │           │                     # └ installApk(localPath) → Filesystem 写入 + Intent 调安装器
-│           ├── upgrade.md        # 版本更新功能规格书（/to-spec 产物）⚠️ 包含保护约束
-│           └── upgrade.tickets.md # 版本更新任务拆解清单（/to-tickets 产物）
+│           │                     # 规格书 + 票据：见 ../SPEC/upgrade.md, ../SPEC/upgrade.tickets.md
 │
 ├── scripts/                     # 运维脚本（P9 新增）
 │   └── upload-apk.js            # 发版脚本：升版本号 → 计算 version_code → 构建 → 上传 → INSERT

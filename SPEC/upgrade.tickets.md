@@ -1,6 +1,6 @@
 # App 版本更新检测与安装 — 任务拆解清单
 
-> 基于 [upgrade.md](file:///Users/zp/Code/fuel_records/frontend/src/services/upgrade.md) 规格书拆分，原子任务按依赖顺序排列。
+> 基于 [upgrade.md](./upgrade.md) 规格书拆分，原子任务按依赖顺序排列。
 
 ---
 

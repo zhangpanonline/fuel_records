@@ -240,7 +240,7 @@ export default function SmartFAB() {
 
     // 如果没有匹配的动作但有降级动作，至少显示降级选项
     if (matched.length === 0 && fallbackAction) {
-      matched.push({ action: fallbackAction, rule: null, isPredicted: true })
+      matched.push({ action: fallbackAction, rule: null as unknown as Rule, isPredicted: true })
     }
 
     return matched

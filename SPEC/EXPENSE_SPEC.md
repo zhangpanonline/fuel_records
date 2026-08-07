@@ -487,6 +487,6 @@ frontend/src/
 > **本规格书基于 `/grill-me` 五轮架构盘问产出，设计决策已全部闭环。**
 >
 > **关联文档**：
-> - 项目总规格书：[README.md](file:///Users/zp/Code/fuel_records/README.md)
-> - 任务拆解清单：[README.tickets.md](file:///Users/zp/Code/fuel_records/README.tickets.md)
-> - 目录结构：[DIR.md](file:///Users/zp/Code/fuel_records/DIR.md)
+> - 项目总规格书：[README.md](../README.md)
+> - 任务拆解清单：[README.tickets.md](../README.tickets.md)
+> - 目录结构：[DIR.md](../DIR.md)

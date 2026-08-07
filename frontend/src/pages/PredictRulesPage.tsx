@@ -2,13 +2,8 @@
 
 import { usePrediction } from '../context/PredictionContext'
 import { getActionDisplay } from '../engine/types'
-import type { Rule, BehaviorLogEntry } from '../engine/types'
+import type { Rule } from '../engine/types'
 import './PredictRulesPage.css'
-
-function formatTime(iso: string): string {
-  if (!iso) return '-'
-  return new Date(iso).toLocaleString('zh-CN')
-}
 
 function formatShortTime(iso: string): string {
   if (!iso) return '-'

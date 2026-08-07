@@ -20,7 +20,7 @@ const { execSync } = require('child_process')
 const SUPABASE_URL = 'https://agouobddgpkhipldgzhr.supabase.co'
 const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_KEY
 const FRONTEND_DIR = path.resolve(__dirname, '../frontend')
-const APK_PATH = path.resolve(FRONTEND_DIR, 'android/app/build/outputs/apk/debug/app-debug.apk')
+const APK_PATH = path.resolve(FRONTEND_DIR, 'android/app/build/outputs/apk/release/app-release.apk')
 const PKG_PATH = path.resolve(FRONTEND_DIR, 'package.json')
 
 if (!SUPABASE_SERVICE_KEY) {
@@ -45,6 +45,11 @@ async function main() {
   const pkg = JSON.parse(fs.readFileSync(PKG_PATH, 'utf-8'))
   const newCode = versionToCode(pkg.version)
   console.log(`🔢 新 version_code: ${newCode} (from v${pkg.version})`)
+
+  // 2.5 写入 version.properties 供 Gradle 动态读取
+  const versionPropsPath = path.resolve(FRONTEND_DIR, 'android/version.properties')
+  fs.writeFileSync(versionPropsPath, `versionCode=${newCode}\nversionName=${pkg.version}\n`)
+  console.log(`📝 已写入 ${versionPropsPath}`)
 
   // 3. 构建 APK（upgrade.ts 会在构建时 import pkg.version，自动烘焙对应的 code）
   console.log('🔨 npm run build:apk...')

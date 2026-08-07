@@ -40,34 +40,34 @@ function App() {
     addVehicle,
   } = useFuelData()
   const prediction = usePrediction()
+  const { updatePageState, pendingAction, consumePendingAction } = prediction
 
   // ── 同步页面状态到预测引擎 ──
   useEffect(() => {
     const now = new Date()
     const todayStr = now.toISOString().slice(0, 10)
     const hasRecordsToday = records.filter((r) => r.record_date === todayStr).length > 0
-    prediction.updatePageState({
+    updatePageState({
       page: '/fuel',
       hasRecordsToday,
       isFilterOpen: showFilter,
       hour: now.getHours(),
       dayOfWeek: now.getDay(),
     })
-  }, [records, showFilter, prediction])
+  }, [records, showFilter, updatePageState])
 
   // ── 响应预测引擎下发的 Action ──
   useEffect(() => {
-    const action = prediction.pendingAction
-    if (!action) return
+    if (!pendingAction) return
 
-    if (action.type === 'scroll_to_top') {
+    if (pendingAction.type === 'scroll_to_top') {
       window.scrollTo({ top: 0, behavior: 'smooth' })
-      prediction.consumePendingAction()
-    } else if (action.type === 'toggle_filter') {
+      consumePendingAction()
+    } else if (pendingAction.type === 'toggle_filter') {
       setShowFilter(!showFilter)
-      prediction.consumePendingAction()
+      consumePendingAction()
     }
-  }, [prediction.pendingAction])
+  }, [pendingAction, consumePendingAction, showFilter])
 
   // ---- 表单状态 ----
   const [mileage, setMileage] = useState('')

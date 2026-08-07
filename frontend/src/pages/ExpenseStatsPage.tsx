@@ -59,6 +59,7 @@ const PERIODS = [
 export default function ExpenseStatsPage() {
   const { categories, refreshCategories } = useExpenseData()
   const prediction = usePrediction()
+  const { updatePageState, pendingAction, consumePendingAction } = prediction
 
   // ── 下钻状态 ──
   const {
@@ -85,7 +86,7 @@ export default function ExpenseStatsPage() {
   // ── 同步页面状态到预测引擎 ──
   useEffect(() => {
     const now = new Date()
-    prediction.updatePageState({
+    updatePageState({
       page: '/expense/stats',
       hasRecordsToday: false, // 统计页不需要这个字段，设为默认值
       chartType,
@@ -93,24 +94,23 @@ export default function ExpenseStatsPage() {
       hour: now.getHours(),
       dayOfWeek: now.getDay(),
     })
-  }, [chartType, fullscreenChart, prediction])
+  }, [chartType, fullscreenChart, updatePageState])
 
   // ── 响应预测引擎下发的 Action ──
   useEffect(() => {
-    const action = prediction.pendingAction
-    if (!action) return
+    if (!pendingAction) return
 
-    if (action.type === 'switch_chart') {
-      setChartType(action.chart)
-      prediction.consumePendingAction()
-    } else if (action.type === 'toggle_fullscreen') {
+    if (pendingAction.type === 'switch_chart') {
+      setChartType(pendingAction.chart)
+      consumePendingAction()
+    } else if (pendingAction.type === 'toggle_fullscreen') {
       setFullscreenChart((prev) => prev ? null : fullscreenChart || 'pie')
-      prediction.consumePendingAction()
-    } else if (action.type === 'scroll_to_top') {
+      consumePendingAction()
+    } else if (pendingAction.type === 'scroll_to_top') {
       window.scrollTo({ top: 0, behavior: 'smooth' })
-      prediction.consumePendingAction()
+      consumePendingAction()
     }
-  }, [prediction.pendingAction, fullscreenChart])
+  }, [pendingAction, consumePendingAction, fullscreenChart])
 
   // ── 统计数据 ──
   const [summaryData, setSummaryData] = useState<{

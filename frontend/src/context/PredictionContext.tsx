@@ -6,6 +6,7 @@ import {
   useRef,
   useState,
   useCallback,
+  useMemo,
   useEffect,
   type ReactNode,
 } from 'react'
@@ -32,7 +33,10 @@ const EMPTY_CTX: ContextSnapshot = {
 
 export function PredictionProvider({ children }: { children: ReactNode }) {
   const location = useLocation()
-  const engineRef = useRef(createEngine())
+  const engineRef = useRef<ReturnType<typeof createEngine>>(null as any)
+  if (!engineRef.current) {
+    engineRef.current = createEngine()
+  }
   const ctxRef = useRef<ContextSnapshot>({ ...EMPTY_CTX })
   const pendingActionRef = useRef<Action | null>(null)
 
@@ -112,19 +116,31 @@ export function PredictionProvider({ children }: { children: ReactNode }) {
     }
   }, [recordFeedback, executeAction])
 
+  const ctxValue = useMemo<PredictionContextValue>(
+    () => ({
+      updatePageState,
+      pendingAction,
+      consumePendingAction,
+      currentPrediction,
+      rules,
+      resetAllWeights,
+      clearBehaviorLog,
+      deleteRule,
+    }),
+    [
+      updatePageState,
+      pendingAction,
+      consumePendingAction,
+      currentPrediction,
+      rules,
+      resetAllWeights,
+      clearBehaviorLog,
+      deleteRule,
+    ],
+  )
+
   return (
-    <PredictionCtx.Provider
-      value={{
-        updatePageState,
-        pendingAction,
-        consumePendingAction,
-        currentPrediction,
-        rules,
-        resetAllWeights,
-        clearBehaviorLog,
-        deleteRule,
-      }}
-    >
+    <PredictionCtx.Provider value={ctxValue}>
       {children}
     </PredictionCtx.Provider>
   )

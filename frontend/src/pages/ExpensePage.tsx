@@ -31,7 +31,6 @@ export default function ExpensePage() {
     refreshMultiSummary,
     loadMoreExpenses,
   } = useExpenseData()
-  const prediction = usePrediction()
 
   // ── 金额输入 ref（供 focus_amount_input 动作使用） ──
   const amountInputRef = useRef<HTMLInputElement>(null)
@@ -49,32 +48,52 @@ export default function ExpensePage() {
     note: '',
   })
 
+  // ── 表单状态 ──
+  const [amount, setAmount] = useState('')
+  const [selectedL1, setSelectedL1] = useState('')
+  const [selectedL2, setSelectedL2] = useState('')
+  const [selectedL3, setSelectedL3] = useState('')
+  const [selectedL1Id, setSelectedL1Id] = useState(0)
+  const [selectedL2Id, setSelectedL2Id] = useState(0)
+  const [selectedL3Id, setSelectedL3Id] = useState(0)
+  const [expenseDate, setExpenseDate] = useState(
+    new Date().toISOString().slice(0, 10),
+  )
+  const [note, setNote] = useState('')
+  const [submitting, setSubmitting] = useState(false)
+  const [editingId, setEditingId] = useState<number | null>(null)
+
+  // 将表单状态实时同步到 ref，避免 Action 回调中的过期闭包
+  formRef.current = { amount, selectedL1, selectedL2, selectedL3, selectedL1Id, selectedL2Id, selectedL3Id, expenseDate, note }
+
+  const prediction = usePrediction()
+  const { updatePageState, pendingAction, consumePendingAction } = prediction
+
   // ── 同步页面状态到预测引擎 ──
   useEffect(() => {
     const now = new Date()
     const todayStr = now.toISOString().slice(0, 10)
     const hasRecordsToday = expenses.filter((e) => e.expense_date === todayStr).length > 0
-    prediction.updatePageState({
+    updatePageState({
       page: '/expense',
       hasRecordsToday,
       isEditing: editingId !== null,
       hour: now.getHours(),
       dayOfWeek: now.getDay(),
     })
-  }, [expenses, editingId, prediction])
+  }, [expenses, editingId, updatePageState])
 
   // ── 响应预测引擎下发的 Action ──
   useEffect(() => {
-    const action = prediction.pendingAction
-    if (!action) return
+    if (!pendingAction) return
 
-    if (action.type === 'scroll_to_top') {
+    if (pendingAction.type === 'scroll_to_top') {
       window.scrollTo({ top: 0, behavior: 'smooth' })
-      prediction.consumePendingAction()
-    } else if (action.type === 'focus_amount_input') {
+      consumePendingAction()
+    } else if (pendingAction.type === 'focus_amount_input') {
       amountInputRef.current?.focus()
-      prediction.consumePendingAction()
-    } else if (action.type === 'quick_record') {
+      consumePendingAction()
+    } else if (pendingAction.type === 'quick_record') {
       ;(async () => {
         const f = formRef.current
         if (!f.selectedL1 || !f.selectedL2 || !f.selectedL3) {
@@ -106,27 +125,9 @@ export default function ExpensePage() {
           setSubmitting(false)
         }
       })()
-      prediction.consumePendingAction()
+      consumePendingAction()
     }
-  }, [prediction.pendingAction])
-
-  // ── 表单状态 ──
-  const [amount, setAmount] = useState('')
-  const [selectedL1, setSelectedL1] = useState('')
-  const [selectedL2, setSelectedL2] = useState('')
-  const [selectedL3, setSelectedL3] = useState('')
-  const [selectedL1Id, setSelectedL1Id] = useState(0)
-  const [selectedL2Id, setSelectedL2Id] = useState(0)
-  const [selectedL3Id, setSelectedL3Id] = useState(0)
-  const [expenseDate, setExpenseDate] = useState(
-    new Date().toISOString().slice(0, 10),
-  )
-  const [note, setNote] = useState('')
-  const [submitting, setSubmitting] = useState(false)
-  const [editingId, setEditingId] = useState<number | null>(null)
-
-  // 将表单状态实时同步到 ref，避免 Action 回调中的过期闭包
-  formRef.current = { amount, selectedL1, selectedL2, selectedL3, selectedL1Id, selectedL2Id, selectedL3Id, expenseDate, note }
+  }, [pendingAction, consumePendingAction])
 
   // ── 快速创建分类弹窗 ──
   const [quickCreateOpen, setQuickCreateOpen] = useState(false)

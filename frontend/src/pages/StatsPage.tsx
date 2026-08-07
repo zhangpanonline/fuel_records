@@ -110,6 +110,7 @@ const GROUP_LABELS: Record<string, string> = {
 function StatsPage() {
   const { vehicles, selectedVehicleId, setSelectedVehicleId } = useFuelData()
   const prediction = usePrediction()
+  const { updatePageState } = prediction
   const [summary, setSummary] = useState<SummaryStats | null>(null)
   const [timeline, setTimeline] = useState<TimelineStats | null>(null)
   const [monthly, setMonthly] = useState<MonthlyStats | null>(null)
@@ -120,14 +121,14 @@ function StatsPage() {
   // ── 同步页面状态到预测引擎 ──
   useEffect(() => {
     const now = new Date()
-    prediction.updatePageState({
+    updatePageState({
       page: '/fuel/stats',
       hasRecordsToday: false,
       isFullscreen: false,
       hour: now.getHours(),
       dayOfWeek: now.getDay(),
     })
-  }, [prediction])
+  }, [updatePageState])
 
   const today = fmtDate(new Date())
   const [startDate, setStartDate] = useState(daysAgo(30))

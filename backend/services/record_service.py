@@ -1,6 +1,6 @@
 """加油记录业务逻辑"""
 
-from datetime import datetime
+from datetime import datetime, timedelta
 from decimal import Decimal
 from typing import Optional
 
@@ -8,8 +8,10 @@ from sqlalchemy.orm import Session
 from sqlalchemy import desc
 
 from models.fuel_record import FuelRecord
+from models.vehicle import Vehicle
 from schemas.record import FuelRecordCreate, FuelRecordUpdate
-
+from services.stats_service import _parse_date
+from core.exceptions import NotFoundError, ForbiddenError, BadRequestError
 
 def create_record(db: Session, record_in: FuelRecordCreate, user_id: int) -> FuelRecord:
     """创建加油记录并计算油耗
@@ -18,14 +20,22 @@ def create_record(db: Session, record_in: FuelRecordCreate, user_id: int) -> Fue
     - db: 数据库会话
     - record_in: 请求数据
     - user_id: 当前登录用户的 ID
+
+    油耗计算使用车辆的 initial_mileage 作为隐式基线：
+    - 首条加油记录：用 (mileage - initial_mileage) 作为行驶距离
+    - 后续记录：用 (mileage - 上条 mileage) 作为行驶距离
     """
-    # 0. 校验车辆是否存在且属于当前用户
+    # 0. 校验加油量是否合法（防御性检查，Pydantic 已有 gt=0 校验）
+    if record_in.fuel_volume <= 0:
+        raise BadRequestError("加油量必须大于 0")
+
+    # 1. 校验车辆是否存在且属于当前用户
     from models.vehicle import Vehicle
     vehicle = db.get(Vehicle, record_in.vehicle_id)
     if vehicle is None:
-        raise ValueError(f"车辆不存在 (id={record_in.vehicle_id})")
+        raise NotFoundError(f"车辆不存在 (id={record_in.vehicle_id})")
     if vehicle.user_id != user_id:
-        raise ValueError("无权为此车辆添加记录")
+        raise ForbiddenError("无权为此车辆添加记录")
 
     # 1. 查询该车辆的上一条记录（按 record_date 倒序）
     last_record = (
@@ -35,14 +45,22 @@ def create_record(db: Session, record_in: FuelRecordCreate, user_id: int) -> Fue
         .first()
     )
 
-    # 2. 判断是否为基线记录
+    # 2. 判断是否为基线记录（该车首条加油记录）
     is_baseline = last_record is None
 
-    # 3. 里程校验
-    if last_record and record_in.mileage <= last_record.mileage:
-        raise ValueError(
-            f"里程数 ({record_in.mileage} km) 不能低于上一条记录 ({last_record.mileage} km)"
-        )
+    # 3. 确定油耗计算的参考里程 + 里程校验
+    if last_record is not None:
+        if record_in.mileage <= last_record.mileage:
+            raise BadRequestError(
+                f"里程数 ({record_in.mileage} km) 不能低于上一条记录 ({last_record.mileage} km)"
+            )
+        reference_mileage = last_record.mileage
+    else:
+        if record_in.mileage < vehicle.initial_mileage:
+            raise BadRequestError(
+                f"里程数 ({record_in.mileage} km) 不能低于车辆初始里程 ({vehicle.initial_mileage} km)"
+            )
+        reference_mileage = vehicle.initial_mileage
 
     # 4. 创建 ORM 对象
     db_record = FuelRecord(
@@ -55,11 +73,12 @@ def create_record(db: Session, record_in: FuelRecordCreate, user_id: int) -> Fue
         is_full_tank=record_in.is_full_tank,
         is_baseline=is_baseline,
         note=record_in.note or "",
+        record_date=record_in.record_date or datetime.now(),
     )
 
-    # 5. 计算油耗
-    if record_in.is_full_tank and not is_baseline:
-        mile_diff = record_in.mileage - last_record.mileage
+    # 5. 计算油耗（参考里程可能是 initial_mileage 或上条记录的 mileage）
+    if record_in.is_full_tank and record_in.mileage > reference_mileage:
+        mile_diff = record_in.mileage - reference_mileage
         consumption = record_in.fuel_volume / mile_diff * 100
         db_record.fuel_consumption = consumption.quantize(Decimal("0.00"))
 
@@ -89,10 +108,13 @@ def get_records(
         query = query.filter(FuelRecord.user_id == user_id)
     if vehicle_id is not None:
         query = query.filter(FuelRecord.vehicle_id == vehicle_id)
-    if start_date is not None:
-        query = query.filter(FuelRecord.record_date >= start_date)
-    if end_date is not None:
-        query = query.filter(FuelRecord.record_date <= end_date)
+
+    s = _parse_date(start_date)
+    e = _parse_date(end_date)
+    if s:
+        query = query.filter(FuelRecord.record_date >= s)
+    if e:
+        query = query.filter(FuelRecord.record_date < e + timedelta(days=1))
     if is_full_tank is not None:
         query = query.filter(FuelRecord.is_full_tank == is_full_tank)
     if note is not None and note.strip():
@@ -119,6 +141,8 @@ def recalculate_consumption(db: Session, from_record_date: datetime, user_id: in
     - from_record_date: 从哪个日期开始重算
     - user_id: 只重算该用户的记录（避免跨用户数据污染）
     - vehicle_id: 只重算该车辆的记录
+
+    首条加油记录使用车辆 initial_mileage 作为参考里程计算油耗。
     """
     previous = (
         db.query(FuelRecord)
@@ -130,6 +154,8 @@ def recalculate_consumption(db: Session, from_record_date: datetime, user_id: in
         .order_by(desc(FuelRecord.record_date))
         .first()
     )
+
+    vehicle = db.get(Vehicle, vehicle_id)
 
     records_to_update = (
         db.query(FuelRecord)
@@ -144,20 +170,27 @@ def recalculate_consumption(db: Session, from_record_date: datetime, user_id: in
 
     for record in records_to_update:
         if previous is None:
+            # 没有上一条加油记录 → 使用车辆初始里程作为参考
             record.is_baseline = True
-            record.fuel_consumption = None
+            if record.mileage < vehicle.initial_mileage:
+                raise BadRequestError(
+                    f"里程数 ({record.mileage} km) 不能低于车辆初始里程 ({vehicle.initial_mileage} km)"
+                )
+            reference_mileage = vehicle.initial_mileage
         else:
             record.is_baseline = False
             if record.mileage <= previous.mileage:
-                raise ValueError(
+                raise BadRequestError(
                     f"里程数 ({record.mileage} km) 不能低于上一条记录 ({previous.mileage} km)"
                 )
-            if record.is_full_tank:
-                mile_diff = record.mileage - previous.mileage
-                consumption = record.fuel_volume / mile_diff * 100
-                record.fuel_consumption = consumption.quantize(Decimal("0.00"))
-            else:
-                record.fuel_consumption = None
+            reference_mileage = previous.mileage
+
+        if record.is_full_tank and record.mileage > reference_mileage:
+            mile_diff = record.mileage - reference_mileage
+            consumption = record.fuel_volume / mile_diff * 100
+            record.fuel_consumption = consumption.quantize(Decimal("0.00"))
+        else:
+            record.fuel_consumption = None
 
         previous = record
 
@@ -168,11 +201,11 @@ def update_record(
     """修改加油记录（校验 user_id 归属），修改后级联重算"""
     db_record = db.get(FuelRecord, record_id)
     if db_record is None:
-        raise ValueError(f"记录不存在 (id={record_id})")
+        raise NotFoundError(f"记录不存在 (id={record_id})")
 
     # 权限校验：只能修改自己的记录
     if db_record.user_id != user_id:
-        raise ValueError("无权修改此记录")
+        raise ForbiddenError("无权修改此记录")
 
     update_data = record_in.model_dump(exclude_unset=True)
     if not update_data:
@@ -194,19 +227,11 @@ def delete_record(db: Session, record_id: int, user_id: int) -> FuelRecord:
     """删除加油记录（校验 user_id 归属），删除后级联重算"""
     db_record = db.get(FuelRecord, record_id)
     if db_record is None:
-        raise ValueError(f"记录不存在 (id={record_id})")
+        raise NotFoundError(f"记录不存在 (id={record_id})")
 
     # 权限校验：只能删除自己的记录
     if db_record.user_id != user_id:
-        raise ValueError("无权删除此记录")
-
-    total = (
-        db.query(FuelRecord)
-        .filter(FuelRecord.user_id == user_id, FuelRecord.vehicle_id == db_record.vehicle_id)
-        .count()
-    )
-    if total == 1 and db_record.is_baseline:
-        raise ValueError("这是该车辆唯一的基线记录，无法删除。请先添加一条新记录后再删除。")
+        raise ForbiddenError("无权删除此记录")
 
     record_date = db_record.record_date
     vehicle_id = db_record.vehicle_id

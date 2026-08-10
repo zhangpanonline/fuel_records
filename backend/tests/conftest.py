@@ -4,7 +4,7 @@ import pytest
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.testclient import TestClient
-from sqlalchemy import create_engine, text
+from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
 from config import settings
@@ -26,35 +26,22 @@ if not TEST_DB_URL:
 test_engine = create_engine(TEST_DB_URL)
 TestSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=test_engine)
 
-# 表名列表（按外键依赖排序，先删子表再删主表）
-TABLE_NAMES = [
-    "expenses",
-    "expense_categories",
-    "fuel_records",
-    "vehicles",
-    "users",
-]
-
-# 模块级创建表结构（TRUNCATE 不删表，无需每次重建）
+# 模块级创建表结构（仅首次，后续不再重建）
 Base.metadata.create_all(bind=test_engine)
 
 
 @pytest.fixture(scope="function")
 def db_session():
-    """每个测试函数独立的数据库会话，通过 TRUNCATE 清理"""
-    db = TestSessionLocal()
+    """每个测试函数独立的数据库会话，通过回滚实现数据隔离"""
+    connection = test_engine.connect()
+    transaction = connection.begin()
+    db = TestSessionLocal(bind=connection)
     try:
         yield db
     finally:
         db.close()
-        # 新建会话执行 TRUNCATE，避免使用已关闭的 session
-        cleanup_db = TestSessionLocal()
-        try:
-            for table in TABLE_NAMES:
-                cleanup_db.execute(text(f"TRUNCATE TABLE {table} RESTART IDENTITY CASCADE"))
-            cleanup_db.commit()
-        finally:
-            cleanup_db.close()
+        transaction.rollback()
+        connection.close()
 
 
 @pytest.fixture(scope="function")

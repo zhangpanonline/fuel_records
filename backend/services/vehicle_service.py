@@ -4,6 +4,7 @@ from sqlalchemy.orm import Session
 
 from models.vehicle import Vehicle
 from schemas.vehicle import VehicleCreate, VehicleUpdate
+from core.exceptions import NotFoundError, ForbiddenError, BadRequestError
 
 
 def create_vehicle(db: Session, vehicle_in: VehicleCreate, user_id: int) -> Vehicle:
@@ -34,9 +35,9 @@ def update_vehicle(db: Session, vehicle_id: int, vehicle_in: VehicleUpdate, user
     """修改车辆信息（校验归属）"""
     db_vehicle = db.get(Vehicle, vehicle_id)
     if db_vehicle is None:
-        raise ValueError(f"车辆不存在 (id={vehicle_id})")
+        raise NotFoundError(f"车辆不存在 (id={vehicle_id})")
     if db_vehicle.user_id != user_id:
-        raise ValueError("无权修改此车辆")
+        raise ForbiddenError("无权修改此车辆")
 
     update_data = vehicle_in.model_dump(exclude_unset=True)
     for field, value in update_data.items():
@@ -53,9 +54,9 @@ def delete_vehicle(db: Session, vehicle_id: int, user_id: int) -> Vehicle:
 
     db_vehicle = db.get(Vehicle, vehicle_id)
     if db_vehicle is None:
-        raise ValueError(f"车辆不存在 (id={vehicle_id})")
+        raise NotFoundError(f"车辆不存在 (id={vehicle_id})")
     if db_vehicle.user_id != user_id:
-        raise ValueError("无权删除此车辆")
+        raise ForbiddenError("无权删除此车辆")
 
     # 校验有无关联的加油记录
     record_count = (
@@ -64,7 +65,7 @@ def delete_vehicle(db: Session, vehicle_id: int, user_id: int) -> Vehicle:
         .count()
     )
     if record_count > 0:
-        raise ValueError(f"该车辆下有 {record_count} 条加油记录，无法删除。请先清空记录或归档后再操作。")
+        raise BadRequestError(f"该车辆下有 {record_count} 条加油记录，无法删除。请先清空记录或归档后再操作。")
 
     db.delete(db_vehicle)
     db.commit()

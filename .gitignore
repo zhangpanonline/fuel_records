@@ -5,6 +5,11 @@ backend/.env
 secrets/
 fuel_records.db
 
+# ============ 测试覆盖率 ============
+frontend/coverage/
+backend/htmlcov/
+backend/.coverage
+
 # ============ Python ============
 __pycache__/
 *.py[cod]

@@ -924,3 +924,175 @@
 2026-08-06 09:38:08 | INFO     | main:lifespan:23 - 应用关闭
 2026-08-07 17:43:55 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
 2026-08-07 17:43:56 | INFO     | database:<module>:62 - 双数据库模式：正式库 + 测试库均已就绪
+2026-08-07 17:49:17 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-08-07 17:49:17 | INFO     | database:<module>:62 - 双数据库模式：正式库 + 测试库均已就绪
+2026-08-07 17:51:10 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-08-07 17:51:10 | INFO     | database:<module>:62 - 双数据库模式：正式库 + 测试库均已就绪
+2026-08-07 17:52:39 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-08-07 17:52:39 | INFO     | database:<module>:62 - 双数据库模式：正式库 + 测试库均已就绪
+2026-08-08 17:18:10 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-08-08 17:18:10 | INFO     | database:<module>:62 - 双数据库模式：正式库 + 测试库均已就绪
+2026-08-08 17:19:48 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-08-08 17:19:48 | INFO     | database:<module>:62 - 双数据库模式：正式库 + 测试库均已就绪
+2026-08-08 17:32:33 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-08-08 17:32:33 | INFO     | database:<module>:62 - 双数据库模式：正式库 + 测试库均已就绪
+2026-08-08 17:42:07 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-08-08 17:42:07 | INFO     | database:<module>:62 - 双数据库模式：正式库 + 测试库均已就绪
+2026-08-08 17:42:57 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-08-08 17:42:57 | INFO     | database:<module>:62 - 双数据库模式：正式库 + 测试库均已就绪
+2026-08-08 17:47:01 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-08-08 17:47:02 | INFO     | database:<module>:62 - 双数据库模式：正式库 + 测试库均已就绪
+2026-08-08 17:50:05 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-08-08 17:50:05 | INFO     | database:<module>:62 - 双数据库模式：正式库 + 测试库均已就绪
+2026-08-08 17:59:04 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-08-08 17:59:04 | INFO     | database:<module>:62 - 双数据库模式：正式库 + 测试库均已就绪
+2026-08-08 18:06:05 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-08-08 18:06:05 | INFO     | database:<module>:62 - 双数据库模式：正式库 + 测试库均已就绪
+2026-08-08 18:06:41 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-08-08 18:06:41 | INFO     | database:<module>:62 - 双数据库模式：正式库 + 测试库均已就绪
+2026-08-08 18:15:00 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-08-08 18:15:00 | INFO     | database:<module>:62 - 双数据库模式：正式库 + 测试库均已就绪
+2026-08-08 19:32:25 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-08-08 19:32:25 | INFO     | database:<module>:62 - 双数据库模式：正式库 + 测试库均已就绪
+2026-08-08 19:36:24 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-08-08 19:36:24 | INFO     | database:<module>:62 - 双数据库模式：正式库 + 测试库均已就绪
+2026-08-08 20:19:58 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-08-08 20:19:58 | INFO     | database:<module>:62 - 双数据库模式：正式库 + 测试库均已就绪
+2026-08-08 20:29:52 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-08-08 20:29:52 | INFO     | database:<module>:62 - 双数据库模式：正式库 + 测试库均已就绪
+2026-08-08 20:40:29 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-08-08 20:40:29 | INFO     | database:<module>:62 - 双数据库模式：正式库 + 测试库均已就绪
+2026-08-08 22:09:59 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-08-08 22:09:59 | INFO     | database:<module>:62 - 双数据库模式：正式库 + 测试库均已就绪
+2026-08-08 22:20:58 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-08-08 22:20:58 | INFO     | database:<module>:62 - 双数据库模式：正式库 + 测试库均已就绪
+2026-08-08 23:33:10 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-08-08 23:33:10 | INFO     | database:<module>:62 - 双数据库模式：正式库 + 测试库均已就绪
+2026-08-09 00:34:34 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-08-09 00:34:34 | INFO     | database:<module>:62 - 双数据库模式：正式库 + 测试库均已就绪
+2026-08-09 01:12:27 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-08-09 01:12:27 | INFO     | database:<module>:62 - 双数据库模式：正式库 + 测试库均已就绪
+2026-08-09 01:27:50 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-08-09 01:27:50 | INFO     | database:<module>:62 - 双数据库模式：正式库 + 测试库均已就绪
+2026-08-09 01:28:10 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-08-09 01:28:10 | INFO     | database:<module>:62 - 双数据库模式：正式库 + 测试库均已就绪
+2026-08-09 01:29:07 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-08-09 01:29:07 | INFO     | database:<module>:62 - 双数据库模式：正式库 + 测试库均已就绪
+2026-08-09 01:40:34 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-08-09 01:40:34 | INFO     | database:<module>:62 - 双数据库模式：正式库 + 测试库均已就绪
+2026-08-09 13:27:49 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-08-09 13:27:49 | INFO     | database:<module>:62 - 双数据库模式：正式库 + 测试库均已就绪
+2026-08-09 13:33:13 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-08-09 13:33:13 | INFO     | database:<module>:62 - 双数据库模式：正式库 + 测试库均已就绪
+2026-08-09 22:36:22 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-08-09 22:36:23 | INFO     | database:<module>:62 - 双数据库模式：正式库 + 测试库均已就绪
+2026-08-10 08:14:31 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-08-10 08:14:32 | INFO     | database:<module>:62 - 双数据库模式：正式库 + 测试库均已就绪
+2026-08-10 08:20:15 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-08-10 08:20:15 | INFO     | database:<module>:62 - 双数据库模式：正式库 + 测试库均已就绪
+2026-08-10 08:25:40 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-08-10 08:25:40 | INFO     | database:<module>:62 - 双数据库模式：正式库 + 测试库均已就绪
+2026-08-10 08:26:00 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-08-10 08:26:00 | INFO     | database:<module>:62 - 双数据库模式：正式库 + 测试库均已就绪
+2026-08-10 08:26:28 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-08-10 08:26:28 | INFO     | database:<module>:62 - 双数据库模式：正式库 + 测试库均已就绪
+2026-08-10 09:20:18 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-08-10 09:20:18 | INFO     | database:<module>:62 - 双数据库模式：正式库 + 测试库均已就绪
+2026-08-10 09:26:05 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-08-10 09:26:05 | INFO     | database:<module>:62 - 双数据库模式：正式库 + 测试库均已就绪
+2026-08-10 09:31:51 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-08-10 09:31:51 | INFO     | database:<module>:62 - 双数据库模式：正式库 + 测试库均已就绪
+2026-08-10 09:32:00 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-08-10 09:32:00 | INFO     | database:<module>:62 - 双数据库模式：正式库 + 测试库均已就绪
+2026-08-10 09:32:12 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-08-10 09:32:12 | INFO     | database:<module>:62 - 双数据库模式：正式库 + 测试库均已就绪
+2026-08-10 09:37:55 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-08-10 09:37:55 | INFO     | database:<module>:62 - 双数据库模式：正式库 + 测试库均已就绪
+2026-08-10 09:38:05 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-08-10 09:38:05 | INFO     | database:<module>:62 - 双数据库模式：正式库 + 测试库均已就绪
+2026-08-10 09:38:42 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-08-10 09:38:42 | INFO     | database:<module>:62 - 双数据库模式：正式库 + 测试库均已就绪
+2026-08-10 09:40:35 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-08-10 09:40:35 | INFO     | database:<module>:62 - 双数据库模式：正式库 + 测试库均已就绪
+2026-08-10 09:40:46 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-08-10 09:40:46 | INFO     | database:<module>:62 - 双数据库模式：正式库 + 测试库均已就绪
+2026-08-10 09:40:56 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-08-10 09:40:56 | INFO     | database:<module>:62 - 双数据库模式：正式库 + 测试库均已就绪
+2026-08-10 09:54:24 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-08-10 09:54:24 | INFO     | database:<module>:62 - 双数据库模式：正式库 + 测试库均已就绪
+2026-08-10 10:19:03 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-08-10 10:19:03 | INFO     | database:<module>:62 - 双数据库模式：正式库 + 测试库均已就绪
+2026-08-10 10:24:35 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-08-10 10:24:35 | INFO     | database:<module>:62 - 双数据库模式：正式库 + 测试库均已就绪
+2026-08-10 10:30:45 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-08-10 10:30:45 | INFO     | database:<module>:62 - 双数据库模式：正式库 + 测试库均已就绪
+2026-08-10 10:31:05 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-08-10 10:31:05 | INFO     | database:<module>:62 - 双数据库模式：正式库 + 测试库均已就绪
+2026-08-10 10:40:03 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-08-10 10:40:03 | INFO     | database:<module>:62 - 双数据库模式：正式库 + 测试库均已就绪
+2026-08-10 11:59:50 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-08-10 11:59:50 | INFO     | database:<module>:62 - 双数据库模式：正式库 + 测试库均已就绪
+2026-08-10 12:06:55 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-08-10 12:06:55 | INFO     | database:<module>:62 - 双数据库模式：正式库 + 测试库均已就绪
+2026-08-10 12:12:08 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-08-10 12:12:08 | INFO     | database:<module>:62 - 双数据库模式：正式库 + 测试库均已就绪
+2026-08-10 13:05:20 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-08-10 13:05:20 | INFO     | database:<module>:62 - 双数据库模式：正式库 + 测试库均已就绪
+2026-08-10 13:05:34 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-08-10 13:05:34 | INFO     | database:<module>:62 - 双数据库模式：正式库 + 测试库均已就绪
+2026-08-10 13:06:37 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-08-10 13:06:37 | INFO     | database:<module>:62 - 双数据库模式：正式库 + 测试库均已就绪
+2026-08-10 13:07:06 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-08-10 13:07:06 | INFO     | database:<module>:62 - 双数据库模式：正式库 + 测试库均已就绪
+2026-08-10 13:07:11 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-08-10 13:07:11 | INFO     | database:<module>:62 - 双数据库模式：正式库 + 测试库均已就绪
+2026-08-10 13:08:07 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-08-10 13:08:07 | INFO     | database:<module>:62 - 双数据库模式：正式库 + 测试库均已就绪
+2026-08-10 13:08:09 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-08-10 13:08:09 | INFO     | database:<module>:62 - 双数据库模式：正式库 + 测试库均已就绪
+2026-08-10 13:09:26 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-08-10 13:09:26 | INFO     | database:<module>:62 - 双数据库模式：正式库 + 测试库均已就绪
+2026-08-10 13:09:39 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-08-10 13:09:39 | INFO     | database:<module>:62 - 双数据库模式：正式库 + 测试库均已就绪
+2026-08-10 13:09:58 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-08-10 13:09:58 | INFO     | database:<module>:62 - 双数据库模式：正式库 + 测试库均已就绪
+2026-08-10 13:11:38 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-08-10 13:11:38 | INFO     | database:<module>:62 - 双数据库模式：正式库 + 测试库均已就绪
+2026-08-10 13:11:52 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-08-10 13:11:52 | INFO     | database:<module>:62 - 双数据库模式：正式库 + 测试库均已就绪
+2026-08-10 13:11:55 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-08-10 13:11:55 | INFO     | database:<module>:62 - 双数据库模式：正式库 + 测试库均已就绪
+2026-08-10 13:11:59 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-08-10 13:11:59 | INFO     | database:<module>:62 - 双数据库模式：正式库 + 测试库均已就绪
+2026-08-10 13:12:04 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-08-10 13:12:04 | INFO     | database:<module>:62 - 双数据库模式：正式库 + 测试库均已就绪
+2026-08-10 13:12:14 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-08-10 13:12:14 | INFO     | database:<module>:62 - 双数据库模式：正式库 + 测试库均已就绪
+2026-08-10 13:12:20 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-08-10 13:12:20 | INFO     | database:<module>:62 - 双数据库模式：正式库 + 测试库均已就绪
+2026-08-10 13:13:34 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-08-10 13:13:34 | INFO     | database:<module>:62 - 双数据库模式：正式库 + 测试库均已就绪
+2026-08-10 13:13:43 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-08-10 13:13:43 | INFO     | database:<module>:62 - 双数据库模式：正式库 + 测试库均已就绪
+2026-08-10 13:14:05 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-08-10 13:14:05 | INFO     | database:<module>:62 - 双数据库模式：正式库 + 测试库均已就绪
+2026-08-10 13:14:08 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-08-10 13:14:08 | INFO     | database:<module>:62 - 双数据库模式：正式库 + 测试库均已就绪
+2026-08-10 13:14:15 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-08-10 13:14:15 | INFO     | database:<module>:62 - 双数据库模式：正式库 + 测试库均已就绪
+2026-08-10 13:15:11 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-08-10 13:15:11 | INFO     | database:<module>:62 - 双数据库模式：正式库 + 测试库均已就绪
+2026-08-10 13:15:51 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-08-10 13:15:51 | INFO     | database:<module>:62 - 双数据库模式：正式库 + 测试库均已就绪
+2026-08-10 13:15:52 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-08-10 13:15:52 | INFO     | database:<module>:62 - 双数据库模式：正式库 + 测试库均已就绪
+2026-08-10 13:17:08 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-08-10 13:17:08 | INFO     | database:<module>:62 - 双数据库模式：正式库 + 测试库均已就绪
+2026-08-10 13:19:07 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-08-10 13:19:07 | INFO     | database:<module>:62 - 双数据库模式：正式库 + 测试库均已就绪
+2026-08-10 13:19:16 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-08-10 13:19:16 | INFO     | database:<module>:62 - 双数据库模式：正式库 + 测试库均已就绪
+2026-08-10 13:23:03 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-08-10 13:23:03 | INFO     | database:<module>:62 - 双数据库模式：正式库 + 测试库均已就绪
+2026-08-10 13:32:14 | INFO     | logger:setup_logger:48 - 日志系统初始化完成，日志文件: logs/fuel_records.log
+2026-08-10 13:32:14 | INFO     | database:<module>:62 - 双数据库模式：正式库 + 测试库均已就绪

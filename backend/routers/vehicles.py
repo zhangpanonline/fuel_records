@@ -4,9 +4,10 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from database import get_db
+from core.deps import get_current_user
+from core.exceptions import BusinessError, to_http_status
 from schemas.vehicle import VehicleCreate, VehicleResponse, VehicleUpdate
 from services.vehicle_service import create_vehicle, get_vehicles, update_vehicle, delete_vehicle
-from core.deps import get_current_user
 from models.user import User
 
 router = APIRouter(prefix="/api/v1/vehicles", tags=["车辆管理"])
@@ -21,8 +22,8 @@ def api_create_vehicle(
     """创建车辆（需登录）"""
     try:
         return create_vehicle(db=db, vehicle_in=vehicle_in, user_id=current_user.id)
-    except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+    except BusinessError as e:
+        raise HTTPException(status_code=to_http_status(e), detail=e.message)
 
 
 @router.get("/", response_model=list[VehicleResponse])
@@ -44,8 +45,8 @@ def api_update_vehicle(
     """修改车辆信息（只能修改自己的车辆）"""
     try:
         return update_vehicle(db=db, vehicle_id=vehicle_id, vehicle_in=vehicle_in, user_id=current_user.id)
-    except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+    except BusinessError as e:
+        raise HTTPException(status_code=to_http_status(e), detail=e.message)
 
 
 @router.delete("/{vehicle_id}")
@@ -58,5 +59,5 @@ def api_delete_vehicle(
     try:
         delete_vehicle(db=db, vehicle_id=vehicle_id, user_id=current_user.id)
         return {"detail": "删除成功"}
-    except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+    except BusinessError as e:
+        raise HTTPException(status_code=to_http_status(e), detail=e.message)

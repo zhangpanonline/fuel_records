@@ -8,6 +8,7 @@ from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from models.fuel_record import FuelRecord
+from core.exceptions import BadRequestError
 
 
 def _parse_date(val: Optional[str]) -> Optional[date]:
@@ -94,6 +95,10 @@ def get_timeline(
     - week:  从 start_date 起每 7 天一段，返回 {period: "08-01~08-07"}
     - month: 按月聚合，返回 {period: "2026-08"}
     """
+    valid_groups = {"day", "week", "month"}
+    if group_by not in valid_groups:
+        raise BadRequestError(f"group_by 仅支持 {', '.join(sorted(valid_groups))}")
+
     filters = [
         FuelRecord.user_id == user_id,
         FuelRecord.vehicle_id == vehicle_id,

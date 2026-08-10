@@ -4,23 +4,7 @@
 >
 > **关联规格书**: [端到端测试规格书](./e2e-test-spec.md) | [单元测试规格书](./unit-test-spec.md)
 >
-> **执行环境**: `backend/.env` 中 `DB_TYPE=postgresql_test` + `DB_PG_URL_TEST` 已配置。
->
-> **运行**: `cd backend && source .venv/bin/activate && PYTHONPATH=. pytest tests/test_api.py tests/test_expense_api.py -v`
-
----
-
-## 测试基础设施
-
-### conftest.py 约定
-
-| 项目 | 说明 |
-|------|------|
-| 数据库 | PostgreSQL 测试库，`DB_PG_URL_TEST` |
-| 清理策略 | 每个测试函数后 `TRUNCATE ... RESTART IDENTITY CASCADE`，按外键依赖先子后主 |
-| 表创建 | 模块级 `Base.metadata.create_all()` 一次性建表 |
-| TestClient | 独立 FastAPI app，手动注册所有 router，通过 `dependency_overrides` 注入测试 DB Session |
-| 辅助函数 | `register_user(client, username, password)` → `dict`, `auth_headers(token)` → `dict` |
+> **前置要求**: 见 [测试前置要求](./test-prerequisites.md)（数据库、conftest、辅助函数、运行命令）
 
 ---
 
@@ -90,6 +74,9 @@
 | 操作 | 期望 |
 |------|------|
 | `PUT /api/v1/vehicles/{id}` `{"name":"new_name"}` | 200, 名称已更新 |
+| 修改不存在的车辆 | 404 |
+| 修改 plate | 200, plate 已更新 |
+| 修改 is_active | 200, is_active 已切换 |
 
 ### IV-004 删除车辆
 
@@ -103,8 +90,8 @@
 
 | 操作 | 期望 |
 |------|------|
-| 用户 B 修改用户 A 的车辆 | 400, "无权修改该车辆" |
-| 用户 B 删除用户 A 的车辆 | 400 |
+| 用户 B 修改用户 A 的车辆 | 403, "无权修改该车辆" |
+| 用户 B 删除用户 A 的车辆 | 403 |
 
 ---
 
@@ -114,10 +101,10 @@
 
 | 操作 | 期望 |
 |------|------|
-| 创建首条记录（某车第一条加油） | 200, `is_baseline=true`, `fuel_consumption=null`, `unit_price` 正确计算 |
+| 创建首条记录（某车第一条加油） | 200, `is_baseline=true`, `fuel_consumption` 根据 `mileage > initial_mileage` 时计算，否则为 `null` |
 | 创建第二条记录（加满） | 200, `is_baseline=false`, `fuel_consumption` 正确计算 |
 | 创建记录时不填 `vehicle_id` | 422 校验错误 |
-| 使用不存在或他人的 `vehicle_id` | 400, "无权操作该车辆" |
+| 使用不存在或他人的 `vehicle_id` | 403, "无权操作该车辆" |
 | 里程低于上一条记录 | 400, "里程数不能低于上一条记录" |
 | `is_full_tank=false` 的记录 | 200, `fuel_consumption=null` |
 | 含 `note` 的记录 | 200, 备注正确保存 |
@@ -141,16 +128,16 @@
 | `PUT /api/v1/records/{id}` 修改备注 | 200, 备注已更新 |
 | `PUT /api/v1/records/{id}` 修改里程 | 200, 该记录及后续记录油耗级联重算 |
 | 修改不存在的记录 | 404 |
-| 修改他人记录 | 400, "无权操作此记录" |
+| 修改他人记录 | 403, "无权操作此记录" |
 
 ### IR-004 删除记录
 
 | 操作 | 期望 |
 |------|------|
 | 删除中间记录（该车有 ≥ 2 条记录） | 200, 后续记录油耗级联重算 |
-| 删除该车唯一记录（基线保护） | 400, "无法删除该车辆唯一的基线记录" |
+| 删除该车唯一记录 | 200, 删除成功（`initial_mileage` 作为永久基线，后续加油仍可计算油耗） |
 | 删除不存在的记录 | 404 |
-| 删除他人记录 | 400, "无权操作此记录" |
+| 删除他人记录 | 403, "无权操作此记录" |
 
 ---
 
@@ -168,13 +155,15 @@
 
 | 操作 | 期望 |
 |------|------|
-| `GET /api/v1/stats/monthly?vehicle_id=X&year=2025` | 200, `{year,months:[{month,count,total_volume,total_cost,avg_consumption}]}` |
+| `GET /api/v1/stats/monthly?vehicle_id=X&start_date=2025-01-01&end_date=2025-12-31` | 200, `{year,months:[{month,count,total_volume,total_cost,avg_consumption}]}` |
 
 ### IS-003 时间线统计
 
 | 操作 | 期望 |
 |------|------|
 | `GET /api/v1/stats/timeline?vehicle_id=X&start_date=...&end_date=...&granularity=month` | 200, 按聚合粒度返回时间序列数据 |
+| `GET /api/v1/stats/timeline?vehicle_id=X&group_by=day` | 200, 按天聚合 |
+| `GET /api/v1/stats/timeline?vehicle_id=X&group_by=week` | 200, 按周聚合 |
 
 ---
 
@@ -234,6 +223,8 @@
 | `GET /api/v1/expenses/?page=1&page_size=20` | 200, 分页 |
 | `GET /api/v1/expenses/?start_date=2026-07-01&end_date=2026-07-31` | 200, 按日期筛选 |
 | `GET /api/v1/expenses/?category_l1=餐饮` | 200, 按一级分类筛选 |
+| `GET /api/v1/expenses/?category_l2=午餐` | 200, 按二级分类筛选 |
+| `GET /api/v1/expenses/?category_l3=外卖` | 200, 按三级分类筛选 |
 
 ### IE-003 修改支出
 
@@ -286,15 +277,49 @@
 
 | 操作 | 期望 |
 |------|------|
-| 用户 B 修改用户 A 的车辆 | 400 |
-| 用户 B 替用户 A 的车辆创建加油记录 | 400 |
-| 用户 B 修改用户 A 的加油记录 | 400 |
-| 用户 B 删除用户 A 的加油记录 | 400 |
-| 用户 B 修改用户 A 的分类 | 400/404 |
-| 用户 B 删除用户 A 的分类 | 400/404 |
-| 用户 B 修改用户 A 的支出 | 400/404 |
-| 用户 B 删除用户 A 的支出 | 400/404 |
+| 用户 B 修改用户 A 的车辆 | 403 |
+| 用户 B 替用户 A 的车辆创建加油记录 | 403 |
+| 用户 B 修改用户 A 的加油记录 | 403 |
+| 用户 B 删除用户 A 的加油记录 | 403 |
+| 用户 B 修改用户 A 的分类 | 403/404 |
+| 用户 B 删除用户 A 的分类 | 403/404 |
+| 用户 B 修改用户 A 的支出 | 403/404 |
+| 用户 B 删除用户 A 的支出 | 403/404 |
 
 ---
 
-> **关联**: 本规格书对应的实现代码位于 `backend/tests/test_api.py` 和 `backend/tests/test_expense_api.py`。
+## 9. API 边缘情况
+
+### IE-007 加油记录筛选边界
+
+| 操作 | 期望 |
+|------|------|
+| `GET /api/v1/records/?start_date=`（空字符串） | 正常处理，不报错 |
+| `GET /api/v1/records/?end_date=...`（仅 end_date 无 start_date） | 正常过滤 |
+| `GET /api/v1/records/?is_full_tank=`（空字符串，非 bool） | 422 校验错误 |
+| `GET /api/v1/records/?note=%20%20%20`（空格备注） | 正常返回，空格被忽略 |
+
+### IE-008 支出查询边界
+
+| 操作 | 期望 |
+|------|------|
+| `GET /api/v1/expenses/?start_date=&end_date=`（空参数） | 正常返回全部 |
+| `GET /api/v1/expenses/?page=1&page_size=20` | 分页正常 |
+
+---
+
+## 附录：规格 ID ↔ 测试类映射
+
+| 规格 ID | 测试类 | 文件 |
+|---------|--------|------|
+| IH-001 | `TestAuthAPI.test_health_check` | test_api.py |
+| IA-001~IA-004 | `TestAuthAPI` (8 tests) | test_api.py |
+| IV-001~IV-005 | `TestVehicleAPI` (7 tests) | test_api.py |
+| IR-001~IR-004 | `TestRecordAPI` (16 tests) | test_api.py |
+| IS-001~IS-003 | `TestStatsAPI` (5 tests) | test_api.py |
+| ID-001 (车辆) | `TestDataIsolation.test_vehicle_isolation` | test_api.py |
+| IC-001~IC-004 | `TestExpenseCategoryAPI` (13 tests) | test_expense_api.py |
+| IE-001~IE-006, IE-008 | `TestExpenseAPI` (19 tests) | test_expense_api.py |
+| ID-001 (支出) + ID-002 | `TestExpenseDataIsolation` (6 tests) | test_expense_api.py |
+| IE-007 + IE-008 | `TestAPIEdgeCases` (5 tests) | test_api.py |
+| Auth Me | `TestAuthMe` (5 tests) | test_api.py |

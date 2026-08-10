@@ -13,6 +13,7 @@ class FuelRecordCreate(BaseModel):
     fuel_cost: Decimal = Field(..., decimal_places=2, gt=0, description="加油金额 (元)")
     is_full_tank: bool = Field(True, description="是否加满")
     note: str = Field("", description="备注")
+    record_date: Optional[datetime] = Field(None, description="记录日期，默认当前时间")
 
 
 class FuelRecordResponse(BaseModel):

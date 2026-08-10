@@ -69,7 +69,10 @@ function LoginPage() {
       window.location.href = '/'
     } catch (err: unknown) {
       console.error('认证失败:', err)
-      alert('操作失败，请稍后重试')
+      const msg =
+        (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail ||
+        '操作失败，请稍后重试'
+      alert(msg)
     } finally {
       setSubmitting(false)
     }

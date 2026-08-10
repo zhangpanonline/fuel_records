@@ -65,6 +65,8 @@ def _compute_breakdown_rollup(db: Session, q) -> list[BreakdownItem]:
 
     result: list[BreakdownItem] = []
     for r in rows:
+        if r[3] is None:
+            continue
         total = Decimal(str(r[3]))
         pct = round(float(total / grand_total * 100), 1) if grand_total > 0 else None
         result.append(BreakdownItem(

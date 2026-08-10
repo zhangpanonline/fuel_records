@@ -370,12 +370,10 @@ describe('LoginPage - form validation', () => {
 // ══════════════════════════════════════════════════════════════════
 
 describe('LoginPage - settings modal and theme toggle', () => {
-  let alertSpy: ReturnType<typeof vi.spyOn>
-
   beforeEach(() => {
     localStorage.clear()
     vi.clearAllMocks()
-    alertSpy = vi.spyOn(window, 'alert').mockImplementation(() => {})
+    vi.spyOn(window, 'alert').mockImplementation(() => {})
   })
 
   it('opens settings modal when clicking gear button', async () => {

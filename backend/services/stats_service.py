@@ -27,7 +27,10 @@ def get_summary(
     start_date: Optional[str] = None,
     end_date: Optional[str] = None,
 ) -> dict:
-    """汇总统计：总里程、总加油量、总金额、平均油耗、平均单价"""
+    """汇总统计：总里程、总加油量、总金额、平均油耗、平均单价
+
+    单次聚合查询（min/max 取里程差，消除两次独立查询）。
+    """
     filters = [
         FuelRecord.user_id == user_id,
         FuelRecord.vehicle_id == vehicle_id,
@@ -40,14 +43,21 @@ def get_summary(
     if e:
         filters.append(FuelRecord.record_date < e + timedelta(days=1))
 
-    records = (
-        db.query(FuelRecord)
+    result = (
+        db.query(
+            func.count(FuelRecord.id).label("record_count"),
+            func.sum(FuelRecord.fuel_volume).label("total_fuel_volume"),
+            func.sum(FuelRecord.fuel_cost).label("total_fuel_cost"),
+            func.avg(FuelRecord.fuel_consumption).label("avg_consumption"),
+            func.avg(FuelRecord.unit_price).label("avg_unit_price"),
+            func.min(FuelRecord.mileage).label("min_mileage"),
+            func.max(FuelRecord.mileage).label("max_mileage"),
+        )
         .filter(*filters)
-        .order_by(FuelRecord.record_date)
-        .all()
+        .first()
     )
 
-    if not records:
+    if not result.record_count:
         return {
             "record_count": 0,
             "total_mileage": 0,
@@ -57,19 +67,7 @@ def get_summary(
             "avg_unit_price": None,
         }
 
-    total_mileage = float(records[-1].mileage - records[0].mileage)
-
-    result = (
-        db.query(
-            func.count(FuelRecord.id).label("record_count"),
-            func.sum(FuelRecord.fuel_volume).label("total_fuel_volume"),
-            func.sum(FuelRecord.fuel_cost).label("total_fuel_cost"),
-            func.avg(FuelRecord.fuel_consumption).label("avg_consumption"),
-            func.avg(FuelRecord.unit_price).label("avg_unit_price"),
-        )
-        .filter(*filters)
-        .first()
-    )
+    total_mileage = float(result.max_mileage - result.min_mileage)
 
     return {
         "record_count": result.record_count,

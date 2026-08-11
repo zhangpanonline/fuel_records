@@ -151,6 +151,8 @@
 | `GET /api/v1/stats/summary?vehicle_id=X`（无记录） | 200, `record_count=0` |
 | 无 auth | 401 |
 
+> 💡 **性能优化**：`get_summary` 端点的底层 `stats_service.get_summary` 已优化为单次聚合查询（`min/max` + 聚合函数合并），支出统计 `get_stats` 分组模式使用单次 `ROLLUP` 查询替代 N+1 模式。测试预期不变——接口响应结构和数据完全一致。
+
 ### IS-002 月度统计
 
 | 操作 | 期望 |

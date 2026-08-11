@@ -3,6 +3,7 @@
 from sqlalchemy.orm import Session
 
 from models.vehicle import Vehicle
+from models.fuel_record import FuelRecord
 from schemas.vehicle import VehicleCreate, VehicleUpdate
 from core.exceptions import NotFoundError, ForbiddenError, BadRequestError
 
@@ -50,8 +51,6 @@ def update_vehicle(db: Session, vehicle_id: int, vehicle_in: VehicleUpdate, user
 
 def delete_vehicle(db: Session, vehicle_id: int, user_id: int) -> Vehicle:
     """删除车辆（校验归属，校验无关联记录）"""
-    from models.fuel_record import FuelRecord
-
     db_vehicle = db.get(Vehicle, vehicle_id)
     if db_vehicle is None:
         raise NotFoundError(f"车辆不存在 (id={vehicle_id})")

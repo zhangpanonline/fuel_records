@@ -205,6 +205,8 @@
 |------|------|
 | `get_summary(db, user_id=1, vehicle_id=999)` | `record_count=0` |
 
+> 💡 **性能优化**：`get_summary` 通过单次聚合查询完成所有统计，包括 `func.min(FuelRecord.mileage)` + `func.max(FuelRecord.mileage)` 计算 `total_mileage`，避免先 `db.query(FuelRecord).all()` 取全部记录再 Python 侧计算里程范围。
+
 ### US-102 基础统计
 
 | 测试 | 期望 |
@@ -357,7 +359,9 @@
 |------|------|
 | `get_stats(db, user_id=1, group_by="none")` 有支出数据 | `category_breakdown` 包含 L1+L2+L3 / L1+L2 / L1 / grand total 四层 |
 | 按 `category_l1` 过滤 | 仅返回该分类数据 |
-| 空数据 | `total_amount=0`, `category_breakdown=[]` |
+| 空数据 | `total_amount=0`, `category_breakdown=[]`
+
+> 💡 **性能优化**：`group_by="none"` 模式通过单次 `ROLLUP(category_l1, category_l2, category_l3)` 查询完成全部分类层级 + 总合计的计算，Grand total 直接从 ROLLUP 结果行（三层 category 均为 NULL）提取，无需额外的 `func.sum().scalar()` 查询。
 
 ### US-202 月度聚合
 
@@ -378,6 +382,8 @@
 |------|------|
 | `get_stats(db, user_id=1, group_by="year")` | 按年正确分组 |
 
+> 💡 **性能优化**：`group_by` 分组模式（month/week/year）通过单次 `ROLLUP(TO_CHAR(expense_date, format), category_l1, category_l2, category_l3)` 查询一次性计算全部时段与全部分类的数据，Python 侧解析 ROLLUP 结果完成分组聚合，替代之前 N+1 模式（先查时段列表，再逐时段独立调用 `_compute_breakdown_rollup` 子查询）。
+
 ### US-205 六区间统计
 
 | 测试 | 期望 |
@@ -386,6 +392,8 @@
 | `get_multi_summary` 无数据 | 所有字段 `"0.00"` |
 | 近一年不含起始日 | 12 个月前当天不纳入 |
 | 当周从周一算起 | 周一至今天 |
+
+> 💡 **性能优化**：6 个时间窗口通过单次查询 `SUM(CASE WHEN ... THEN amount ELSE 0 END)` 一次性计算完成，替代之前 6 次独立 `db.query(func.sum()).filter(...).scalar()` 查询。
 
 ### US-206 支出统计边界
 

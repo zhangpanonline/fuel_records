@@ -5,6 +5,9 @@ backend/.env
 secrets/
 fuel_records.db
 
+# ============ 运行时产物 ============
+*.log
+
 # ============ 测试覆盖率 ============
 frontend/coverage/
 backend/htmlcov/

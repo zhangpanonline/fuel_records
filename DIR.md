@@ -18,6 +18,13 @@ fuel_records/
 │   ├── PERF_SPEC.md              # 性能优化规格书（前端降级 + 后端迁移 Fly.io）
 │   ├── SMARTFAB_SPEC.md          # SmartFAB 智能预测引擎规格书
 │   ├── upgrade.md                # 版本更新功能规格书
+│   ├── GLOSSARY.md               # 全项目术语表（油耗/记账/架构/发布四域，SmartFAB 术语见 CONTEXT.md）
+│   ├── ADRs/                     # 架构决策记录（2026-08-28 新增）
+│   │   ├── ADR-001-fuel-reference-full-tank.md  # 油耗参考"上次加满"记录（跳过未加满）
+│   │   ├── ADR-002-permanent-baseline.md        # initial_mileage 永久基线 + 删除唯一记录放行
+│   │   ├── ADR-003-category-name-snapshot.md    # 支出记录冗余分类名快照
+│   │   ├── ADR-004-dual-db-dual-server.md       # 双数据库引擎 + 双服务器运行时切换
+│   │   └── ADR-005-self-update-lifeline.md      # 自动更新生命线：公式化 version_code
 │   ├── PERF_SPEC.tickets.md      # 性能优化任务拆解清单
 │   ├── SMARTFAB.tickets.md       # 智能预测任务拆解清单
 │   └── upgrade.tickets.md        # 版本更新任务拆解清单

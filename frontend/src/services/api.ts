@@ -2,7 +2,8 @@
  * API 服务层
  *
  * 开发环境：Vite 代理将 /api 转发到 localhost:8000
- * 生产环境（Capacitor）：通过 VITE_API_BASE_URL 环境变量指向 Render 地址
+ * 生产环境（Capacitor）：baseURL 由请求拦截器动态设置（SERVERS 映射），
+ * 默认 Fly.io（线上主力），可在设置弹窗运行时切换 Render
  *
  * 数据库切换：前端通过 X-Database-Env 请求头告知后端使用正式库或测试库，
  * 通过 setDatabaseEnv() 切换，默认正式库。切换后需重新登录。

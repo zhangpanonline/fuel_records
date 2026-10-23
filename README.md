@@ -210,7 +210,7 @@ fuel_records/
 | user_id | INT | FK → users.id | 所属用户 |
 | name | VARCHAR(50) | NOT NULL | 车辆名称（如 "KPT400"） |
 | plate | VARCHAR(20) | 可选 | 车牌号 |
-| initial_mileage | DECIMAL(10,1) | NOT NULL | 初始里程（首次记录时的里程） |
+| initial_mileage | DECIMAL(10,1) | NOT NULL | 初始里程（车辆起始/购入里程，首条记录油耗的隐式基线） |
 | is_active | BOOLEAN | DEFAULT TRUE | 是否启用 |
 | created_at | DATETIME | DEFAULT NOW | 创建时间 |
 
@@ -235,13 +235,17 @@ fuel_records/
 ### 4.2 油耗计算算法
 
 ```
-条件：仅当 is_full_tank = TRUE 且 is_baseline = FALSE 时计算
+条件：仅当 is_full_tank = TRUE 且 参考里程 < 当前里程 时计算
 
-fuel_consumption = (当前里程 - 上一条记录的里程) / 当前加油量 × 100
+参考里程（ADR-001）：上一条"加满"记录的里程；无加满历史 → 车辆 initial_mileage
+（跳过中间未加满记录——加满时加入的油量 = 上次加满后烧掉的油量）
+
+fuel_consumption = (当前里程 - 参考里程) / 当前加油量 × 100
 
 结果单位：L/100km
 
-首次记录（无前一条数据）= 基线记录（is_baseline = TRUE），不计算油耗
+首条记录 = 基线记录（is_baseline = TRUE）；里程 > initial_mileage 时仍计算油耗，
+mileage == initial_mileage 时无行驶距离，油耗为空
 ```
 
 ### 4.3 索引设计
@@ -565,7 +569,7 @@ GET    /api/v1/expenses/multi_summary   六区间累计金额（P10.6 新增：�
 | 场景 | 处理方式 |
 |------|---------|
 | 首次加油（无前一条记录） | 标记 `is_baseline=true`，不计算油耗，显示"基线记录，下次加油后显示油耗" |
-| 非加满加油 | `is_full_tank=false`，不参与油耗计算，仅记录金额和油量 |
+| 非加满加油 | `is_full_tank=false`，本条不计算油耗，仅记录金额和油量；后续加满记录跳过未加满、参考上次加满记录（ADR-001） |
 | 修改/删除中间记录 | 级联重新计算受影响的后继记录的油耗 |
 | 里程未增加反而减少 | 提示"里程不能低于上一条记录"，拒绝提交 |
 | 油量或金额为 0 或负数 | Pydantic 校验拦截 |

@@ -23,7 +23,7 @@ def create_record(db: Session, record_in: FuelRecordCreate, user_id: int) -> Fue
 
     油耗计算使用车辆的 initial_mileage 作为隐式基线：
     - 首条加油记录：用 (mileage - initial_mileage) 作为行驶距离
-    - 后续记录：用 (mileage - 上条 mileage) 作为行驶距离
+    - 后续记录：用 (mileage - 上次加满记录 mileage) 作为行驶距离（ADR-001：跳过未加满记录）
     """
     # 0. 校验加油量是否合法（防御性检查，Pydantic 已有 gt=0 校验）
     if record_in.fuel_volume <= 0:
@@ -48,19 +48,31 @@ def create_record(db: Session, record_in: FuelRecordCreate, user_id: int) -> Fue
     # 2. 判断是否为基线记录（该车首条加油记录）
     is_baseline = last_record is None
 
-    # 3. 确定油耗计算的参考里程 + 里程校验
+    # 3. 里程校验：新记录里程必须高于上一条记录（任意类型）
     if last_record is not None:
         if record_in.mileage <= last_record.mileage:
             raise BadRequestError(
                 f"里程数 ({record_in.mileage} km) 不能低于上一条记录 ({last_record.mileage} km)"
             )
-        reference_mileage = last_record.mileage
     else:
         if record_in.mileage < vehicle.initial_mileage:
             raise BadRequestError(
                 f"里程数 ({record_in.mileage} km) 不能低于车辆初始里程 ({vehicle.initial_mileage} km)"
             )
-        reference_mileage = vehicle.initial_mileage
+
+    # 4. 油耗参考里程：上一条"加满"记录的里程（跳过未加满记录）；
+    #    无加满历史则回退车辆初始里程（ADR-001）
+    last_full = (
+        db.query(FuelRecord)
+        .filter(
+            FuelRecord.user_id == user_id,
+            FuelRecord.vehicle_id == record_in.vehicle_id,
+            FuelRecord.is_full_tank.is_(True),
+        )
+        .order_by(desc(FuelRecord.record_date))
+        .first()
+    )
+    reference_mileage = last_full.mileage if last_full is not None else vehicle.initial_mileage
 
     # 4. 创建 ORM 对象
     db_record = FuelRecord(
@@ -76,7 +88,7 @@ def create_record(db: Session, record_in: FuelRecordCreate, user_id: int) -> Fue
         record_date=record_in.record_date or datetime.now(),
     )
 
-    # 5. 计算油耗（参考里程可能是 initial_mileage 或上条记录的 mileage）
+    # 5. 计算油耗（参考里程 = 上次加满记录的里程，无加满历史则为车辆初始里程）
     if record_in.is_full_tank and record_in.mileage > reference_mileage:
         mile_diff = record_in.mileage - reference_mileage
         consumption = record_in.fuel_volume / mile_diff * 100
@@ -143,6 +155,7 @@ def recalculate_consumption(db: Session, from_record_date: datetime, user_id: in
     - vehicle_id: 只重算该车辆的记录
 
     首条加油记录使用车辆 initial_mileage 作为参考里程计算油耗。
+    加满记录的油耗参考"上次加满记录"（ADR-001：跳过未加满记录）。
     """
     previous = (
         db.query(FuelRecord)
@@ -157,6 +170,19 @@ def recalculate_consumption(db: Session, from_record_date: datetime, user_id: in
 
     vehicle = db.get(Vehicle, vehicle_id)
 
+    # 重算起点之前的"上次加满记录"，作为油耗参考起点（ADR-001）
+    last_full = (
+        db.query(FuelRecord)
+        .filter(
+            FuelRecord.user_id == user_id,
+            FuelRecord.vehicle_id == vehicle_id,
+            FuelRecord.record_date < from_record_date,
+            FuelRecord.is_full_tank.is_(True),
+        )
+        .order_by(desc(FuelRecord.record_date))
+        .first()
+    )
+
     records_to_update = (
         db.query(FuelRecord)
         .filter(
@@ -170,20 +196,21 @@ def recalculate_consumption(db: Session, from_record_date: datetime, user_id: in
 
     for record in records_to_update:
         if previous is None:
-            # 没有上一条加油记录 → 使用车辆初始里程作为参考
+            # 没有上一条加油记录 → 该记录成为新的首条记录
             record.is_baseline = True
             if record.mileage < vehicle.initial_mileage:
                 raise BadRequestError(
                     f"里程数 ({record.mileage} km) 不能低于车辆初始里程 ({vehicle.initial_mileage} km)"
                 )
-            reference_mileage = vehicle.initial_mileage
         else:
             record.is_baseline = False
             if record.mileage <= previous.mileage:
                 raise BadRequestError(
                     f"里程数 ({record.mileage} km) 不能低于上一条记录 ({previous.mileage} km)"
                 )
-            reference_mileage = previous.mileage
+
+        # 油耗参考里程：上次加满记录的里程，无加满历史回退车辆初始里程（ADR-001）
+        reference_mileage = last_full.mileage if last_full is not None else vehicle.initial_mileage
 
         if record.is_full_tank and record.mileage > reference_mileage:
             mile_diff = record.mileage - reference_mileage
@@ -193,6 +220,8 @@ def recalculate_consumption(db: Session, from_record_date: datetime, user_id: in
             record.fuel_consumption = None
 
         previous = record
+        if record.is_full_tank:
+            last_full = record
 
 
 def update_record(

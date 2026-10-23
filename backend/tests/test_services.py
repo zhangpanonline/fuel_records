@@ -204,6 +204,41 @@ class TestRecordService:
         ), user_id=1)
         assert rec2.fuel_consumption is None
 
+    def test_full_after_partial_uses_last_full(self, db_session):
+        """ADR-001：加满 → 未加满 → 加满，第三条油耗参考"上次加满"记录，跳过未加满"""
+        v = _make_vehicle(db_session)
+        # 基线：10000 加满 15L
+        create_record(db_session, FuelRecordCreate(
+            mileage=Decimal("10000.0"), fuel_volume=Decimal("15.0"), fuel_cost=Decimal("120.0"),
+            is_full_tank=True, note="", vehicle_id=v.id, record_date=datetime(2025, 1, 1),
+        ), user_id=1)
+        # 未加满：10200 5L
+        create_record(db_session, FuelRecordCreate(
+            mileage=Decimal("10200.0"), fuel_volume=Decimal("5.0"), fuel_cost=Decimal("40.0"),
+            is_full_tank=False, note="", vehicle_id=v.id, record_date=datetime(2025, 2, 1),
+        ), user_id=1)
+        # 加满：10400 10L → 参考 10000 → 10/(10400-10000)*100 = 2.5
+        rec3 = create_record(db_session, FuelRecordCreate(
+            mileage=Decimal("10400.0"), fuel_volume=Decimal("10.0"), fuel_cost=Decimal("80.0"),
+            is_full_tank=True, note="", vehicle_id=v.id, record_date=datetime(2025, 3, 1),
+        ), user_id=1)
+        assert float(rec3.fuel_consumption) == pytest.approx(2.5, 0.01)
+
+    def test_first_full_after_partial_falls_back_to_initial(self, db_session):
+        """ADR-001：无任何加满历史时，加满记录回退参考 initial_mileage"""
+        v = _make_vehicle(db_session)  # initial_mileage=100
+        # 首条未加满：10100 5L
+        create_record(db_session, FuelRecordCreate(
+            mileage=Decimal("10100.0"), fuel_volume=Decimal("5.0"), fuel_cost=Decimal("40.0"),
+            is_full_tank=False, note="", vehicle_id=v.id, record_date=datetime(2025, 1, 1),
+        ), user_id=1)
+        # 第二条加满：10300 10L → 参考 initial=100 → 10/(10300-100)*100 ≈ 0.10（保留 2 位小数）
+        rec2 = create_record(db_session, FuelRecordCreate(
+            mileage=Decimal("10300.0"), fuel_volume=Decimal("10.0"), fuel_cost=Decimal("80.0"),
+            is_full_tank=True, note="", vehicle_id=v.id, record_date=datetime(2025, 2, 1),
+        ), user_id=1)
+        assert float(rec2.fuel_consumption) == pytest.approx(10 / 102, abs=0.01)
+
     def test_mileage_must_increase(self, db_session):
         v = _make_vehicle(db_session)
         create_record(db_session, FuelRecordCreate(
@@ -266,6 +301,35 @@ class TestRecalculateConsumption:
         last = recs_sorted[2]  # mileage=12000
         assert float(mid.fuel_consumption) == pytest.approx(1.5, 0.01)
         assert float(last.fuel_consumption) == pytest.approx(0.67, 0.01)
+
+    def test_recalc_skips_partial_for_full_reference(self, db_session):
+        """ADR-001：删除中间未加满记录后，后继加满记录参考更早的加满记录"""
+        v = _make_vehicle(db_session)
+        # 10000 满 15L / 10200 未满 5L / 10400 满 10L / 10600 满 8L
+        create_record(db_session, FuelRecordCreate(
+            mileage=Decimal("10000"), fuel_volume=Decimal("15"), fuel_cost=Decimal("120"),
+            is_full_tank=True, note="", vehicle_id=v.id, record_date=datetime(2025, 1, 1),
+        ), user_id=1)
+        r_partial = create_record(db_session, FuelRecordCreate(
+            mileage=Decimal("10200"), fuel_volume=Decimal("5"), fuel_cost=Decimal("40"),
+            is_full_tank=False, note="", vehicle_id=v.id, record_date=datetime(2025, 2, 1),
+        ), user_id=1)
+        r3 = create_record(db_session, FuelRecordCreate(
+            mileage=Decimal("10400"), fuel_volume=Decimal("10"), fuel_cost=Decimal("80"),
+            is_full_tank=True, note="", vehicle_id=v.id, record_date=datetime(2025, 3, 1),
+        ), user_id=1)
+        r4 = create_record(db_session, FuelRecordCreate(
+            mileage=Decimal("10600"), fuel_volume=Decimal("8"), fuel_cost=Decimal("64"),
+            is_full_tank=True, note="", vehicle_id=v.id, record_date=datetime(2025, 4, 1),
+        ), user_id=1)
+
+        # 删除未加满记录 → r3 参考 10000 → 10/(10400-10000)*100=2.5；r4 参考 r3 → 8/200*100=4.0
+        delete_record(db_session, r_partial.id, user_id=1)
+
+        db_session.refresh(r3)
+        db_session.refresh(r4)
+        assert float(r3.fuel_consumption) == pytest.approx(2.5, 0.01)
+        assert float(r4.fuel_consumption) == pytest.approx(4.0, 0.01)
 
     def test_delete_record_then_recalc(self, db_session):
         v = _make_vehicle(db_session)

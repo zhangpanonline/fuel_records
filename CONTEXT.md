@@ -2,6 +2,8 @@
 
 SmartFAB 的智能预测子系统，基于用户行为上下文预测下一步最可能的操作，并在悬浮按钮上呈现。
 
+> 油耗 / 记账 / 架构 / 发布域的术语见 [`SPEC/GLOSSARY.md`](./SPEC/GLOSSARY.md)。
+
 ## Language
 
 **预测引擎 (Prediction Engine)**: 运行在浏览器本地的规则-频次混合系统，接收上下文快照，输出优先级排序的动作列表。

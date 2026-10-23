@@ -1252,6 +1252,7 @@ Phase 1 ──→ Phase 2 ──→ Phase 3 ──→ Phase 4 ──→ Phase 5 
 ---
 
 > **更新记录**
+> - 2026-08-28: 油耗算法修正（ADR-001：油耗参考"上次加满"记录，跳过未加满）+ 规格书漂移修正（e2e/integration/upgrade/PERF 与代码对齐，Fly.io 确认为线上主力）+ 新增 `SPEC/GLOSSARY.md` 全项目术语表与 `SPEC/ADRs/` 架构决策记录
 > - 2026-08-02: Phase 11 完成 — 双数据库 + 设置中心 + 记账统计页 UI 优化（双引擎架构 + SettingsModal + 旭日图移除 + 分类树 tree 线段 + CategoryModal 统一弹框 + SmartFAB 全屏交互 + 记账日分组无边框）共 8 个原子 Ticket
 > - 2026-08-01: Phase 10.6 完成 — 体验增强（记账六区间统计卡片 + 油耗累计统计下拉框 + PullToRefresh 下拉刷新 + 页面骨架屏 + BottomNav Tab 调换 + DataProviders 合并 + 左滑删除动画优化）
 > - 2026-08-01: Phase 10.5.7~10.5.9 完成 — 记账模块全面优化（ExpenseDataContext 跨路由数据保持 + CategoryPicker 合并三级选择器：搜索+Top5常用+上次记忆+频次计数+parent路径 + 日期/备注毛玻璃对齐 + 记录列表三行堆叠布局 + 左滑删除完善 + 移动端键盘控制）

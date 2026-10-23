@@ -98,14 +98,14 @@ Ticket 1（CSS 降级规则）
 
 ### Ticket 7: Fly.io 部署 + 前端切换
 
-- [ ] **7.1 本地部署 Fly.io**
+- [x] **7.1 本地部署 Fly.io**
   - `cd backend && fly launch`（AI 执行，加 `--name fuel-records --region nrt` 跳过交互）
   - `fly secrets set`（用户手动执行，从 `secrets/fly_secrets.txt` 读取）
   - `fly deploy`（AI 执行）
   - **依赖**：6.2
   - **难度**：★
 
-- [ ] **7.2 前端环境变量切换**
+- [x] **7.2 前端环境变量切换**
   - `frontend/.env.production` 中 `VITE_API_BASE_URL` 指向 Fly.io（`https://fuel-records.fly.dev`）
   - 作为兜底：服务器切换功能始终可用，用户可切回 Render
   - **依赖**：7.1
@@ -120,4 +120,5 @@ Ticket 1（CSS 降级规则）
 ---
 
 > **更新记录**
+> - 2026-08-28：Ticket 7.1/7.2 标记完成 — Fly.io 已部署并设为线上主力（`api.ts DEFAULT_SERVER='flyio'`），`.env.production` 兜底地址指向 Fly.io，Render 保留为备用
 > - 2026-08-02：初版，基于 PERF_SPEC.md 拆解 7 个 Ticket、11 个子任务。

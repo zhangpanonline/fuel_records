@@ -82,7 +82,7 @@ App 启动 → 请求 Supabase REST API 查询最新版本
 │  main.tsx (挂载点)                                    │
 │    └── App.tsx (useEffect 中调用 checkUpdate)        │
 │          └── services/upgrade.ts                     │
-│               ├── checkVersion()   → 查 Supabase     │
+│               ├── checkUpdate()    → 查 Supabase     │
 │               ├── downloadApk()    → XHR + 进度     │
 │               └── installApk()     → Filesystem +    │
 │                                       Intent         │
@@ -185,71 +185,27 @@ const [downloadError, setDownloadError] = useState<string | null>(null)
 
 ### 3.4 发版自动化脚本
 
-#### `scripts/upload-apk.js`（新建，项目根目录）
+#### `scripts/upload-apk.js`（项目根目录）
 
-```js
-const { createClient } = require('@supabase/supabase-js')
-const fs = require('fs')
-const path = require('path')
-const pkg = require('../frontend/package.json')
+实际实现（2026-08 起）流程：
 
-const supabaseUrl = process.env.SUPABASE_URL     // 从环境变量读取
-const supabaseKey = process.env.SUPABASE_SERVICE_KEY  // Service Role Key
+1. `npm version patch` → 自动递增 `frontend/package.json` 版本号
+2. 从新版本号按 **`versionToCode` 公式（MAJOR×10000 + MINOR×100 + PATCH，与 `upgrade.ts` 一致）** 计算 `version_code`，并写入 `frontend/android/version.properties` 供 Gradle 读取
+3. `npm run build:apk` → 构建 **release 签名包** `android/app/build/outputs/apk/release/app-release.apk`（`upgrade.ts` 在构建时 import `pkg.version` 自动烘焙相同 code）
+4. 上传 APK 到 Supabase Storage bucket `apk`（`fuel_records.apk`，upsert 覆盖）
+5. `INSERT app_versions` 表（version_code / version_name / apk_url）
 
-async function main() {
-  const supabase = createClient(supabaseUrl, supabaseKey)
+> ⚠️ 旧版方案（查询当前最大 `version_code` 再 `+1`）已废弃：`version_code` 必须由版本号公式推导，否则 `checkUpdate()` 的数值比较会失效（如 0.0.9 → 0.1.0 时 max+1 得 10，而新包内置 code 为 100）。
 
-  // 1. 上传 APK 到 Storage
-  const apkPath = path.resolve(__dirname, '../frontend/android/app/build/outputs/apk/debug/app-debug.apk')
-  const file = fs.readFileSync(apkPath)
-  const { error: uploadError } = await supabase.storage
-    .from('apk')
-    .upload('fuel_records.apk', file, { upsert: true })
-
-  if (uploadError) throw uploadError
-
-  // 2. 获取公开 URL
-  const { data: urlData } = supabase.storage
-    .from('apk')
-    .getPublicUrl('fuel_records.apk')
-
-  // 3. 查询当前最大 version_code
-  const { data: latest } = await supabase
-    .from('app_versions')
-    .select('version_code')
-    .order('version_code', { ascending: false })
-    .limit(1)
-
-  const newCode = (latest?.[0]?.version_code ?? 0) + 1
-
-  // 4. INSERT 新版本记录
-  const { error: insertError } = await supabase
-    .from('app_versions')
-    .insert({
-      version_code: newCode,
-      version_name: pkg.version,
-      apk_url: urlData.publicUrl,
-    })
-
-  if (insertError) throw insertError
-
-  console.log(`✅ v${pkg.version} (code ${newCode}) 发布完成`)
-}
-
-main().catch((err) => {
-  console.error('❌ 发版失败:', err)
-  process.exit(1)
-})
-```
-
-运行方式：
+运行方式（一键发版，脚本内部自动升版本号）：
 ```bash
-cd frontend
+cd /Users/zp/Code/fuel_records
 export JAVA_HOME=$(/usr/libexec/java_home -v 21)  # 必须 JDK 21
-npm version patch && npm run build:apk && export $(grep -v '^#' ../.env | xargs) && node ../scripts/upload-apk.js
+export $(grep -v '^#' .env | xargs)               # 提供 SUPABASE_SERVICE_KEY
+node scripts/upload-apk.js
 ```
 
-构建产物会自动输出到 `dist/fuel_records_vX.X.X.apk`（带版本号的文件名）。
+构建产物会自动输出到 `frontend/dist/fuel_records_vX.X.X.apk`（带版本号的文件名）。
 
 ### 3.5 `package.json` 变更
 

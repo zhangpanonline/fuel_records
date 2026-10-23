@@ -155,7 +155,7 @@ const SERVERS: Record<string, string> = {
   render: 'https://fuel-records.onrender.com',
   flyio: 'https://fuel-records.fly.dev',
 }
-const DEFAULT_SERVER = 'render'
+const DEFAULT_SERVER = 'flyio'  // Fly.io 为线上主力（2026-08 起），Render 为备用
 const SERVER_KEY = 'fuel_api_server'
 
 export function getApiServer(): string {
@@ -304,8 +304,8 @@ VITE_API_BASE_URL=https://fuel-records.fly.dev
 | 目标服务器不可达（网络超时 8s） | toast "xxx 不可用，请稍后重试"，不切换 |
 | 目标服务器 health 返回非 200 | toast 报错，不切换 |
 | 用户快速多次点击切换 | 切换中 disabled 所有 radio 选项 |
-| localStorage 被清空 | `getApiServer()` 回退 `'render'`（默认服务器） |
-| 未知 server key | `getApiBaseUrl()` 回退 Render URL |
+| localStorage 被清空 | `getApiServer()` 回退 `'flyio'`（默认服务器） |
+| 未知 server key | `getApiBaseUrl()` 回退 Fly.io URL |
 | 服务器 URL 变更后旧 APK 兼容 | `SERVERS` 内置备用 URL，同时设 `VITE_API_BASE_URL` 兜底 |
 
 ### 4.3 Fly.io 部署
@@ -323,4 +323,4 @@ VITE_API_BASE_URL=https://fuel-records.fly.dev
 
 > **本规格书基于 `/improve-codebase-architecture` 架构审计产出，结合 CSS 全量扫描（15 个 CSS 文件、18 个 TSX 组件）形成，改动精确到行。**
 >
-> **状态**：待实施。实施顺序建议：1. 前端 CSS 降级（性能模式开关）→ 2. 服务器切换功能 + api.ts 动态 baseURL 改造 → 3. 构建 APK 验证 → 4. 后端迁移 Fly.io（20 分钟 CLI）。
+> **状态**：已实施（2026-08）。CSS 降级 + 性能模式开关 + 服务器运行时切换均已上线；后端已部署 Fly.io 并设为线上主力（代码 `DEFAULT_SERVER='flyio'`），Render 保留为备用服务器。

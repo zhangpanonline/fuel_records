@@ -48,9 +48,9 @@
 |------|------|
 | 无 Token 访问 `GET /api/v1/records/` | 401 |
 | 无 Token 访问 `GET /api/v1/vehicles/` | 401 |
-| 无 Token 访问 `GET /api/v1/expenses/` | 403（HTTPBearer 拒绝） |
-| 无 Token 访问 `GET /api/v1/expenses/categories` | 403 |
-| 无 Token 访问 `GET /api/v1/expenses/stats` | 403 |
+| 无 Token 访问 `GET /api/v1/expenses/` | 401 |
+| 无 Token 访问 `GET /api/v1/expenses/categories` | 401 |
+| 无 Token 访问 `GET /api/v1/expenses/stats` | 401 |
 | 无 Token 访问 `GET /api/v1/stats/summary` | 401 |
 
 ---
@@ -163,7 +163,7 @@
 
 | 操作 | 期望 |
 |------|------|
-| `GET /api/v1/stats/timeline?vehicle_id=X&start_date=...&end_date=...&granularity=month` | 200, 按聚合粒度返回时间序列数据 |
+| `GET /api/v1/stats/timeline?vehicle_id=X&start_date=...&end_date=...&group_by=month` | 200, 按聚合粒度返回时间序列数据 |
 | `GET /api/v1/stats/timeline?vehicle_id=X&group_by=day` | 200, 按天聚合 |
 | `GET /api/v1/stats/timeline?vehicle_id=X&group_by=week` | 200, 按周聚合 |
 

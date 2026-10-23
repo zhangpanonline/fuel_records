@@ -15,22 +15,6 @@
 - **油耗记录**：为我的 KPT400 摩托车（当前里程约 52000 km）提供一个**真实可用的油耗记录工具**，支持记录加油数据、自动计算平均油耗、统计总金额和总油耗，支持多车管理。
 - **个人记账**：追踪日常支出，支持自定义三级分类、三环旭日图/堆叠柱状图（图例下钻）/饼图下钻等多维度可视化分析。
 
-### 学习目标
-通过手把手逐行写代码的方式，从零掌握以下后端技能：
-
-> **教学承诺**：每一行代码都会讲解为什么这么写，每个概念都会从零开始解释清楚再动手。不跳步，不默认你懂任何前置知识。写完一个 Ticket 后，我会明确问你"这个 Ticket 的所有内容你都完全理解了吗？"，你说"理解了"我才进下一个——绝不自作主张帮你跳到下一关。
->
-> **知识沉淀**：每个 Ticket 完成后，我会同步更新 [`DIR.md`](./DIR.md)，详细说明本次新增或修改的每个目录和文件是做什么的、关键函数是什么、为什么这么设计。你任何时候回头看 `DIR.md`，就能快速回忆起整个项目的结构和设计意图。
-- **API 设计**：FastAPI 路由、请求/响应模型
-- **数据库操作**：PostgreSQL + SQLAlchemy ORM、表设计、CRUD
-- **数据校验**：Pydantic 模型
-- **日志**：loguru 结构化日志
-- **认证鉴权**：JWT（PyJWT）
-- **部署运维**：Render / Fly.io + Supabase、Docker + docker-compose、Linux 基础运维
-- **容器化**：Dockerfile、多容器编排
-- **CI/CD**（后期）：自动化部署流水线
-
-
 ---
 
 ## 2. 技术栈
@@ -385,14 +369,6 @@ GET    /api/v1/expenses/multi_summary   六区间累计金额（P10.6 新增：�
 - Dockerfile + docker-compose（本地开发用）
 - Render + Fly.io 双后端部署 + Supabase 云数据库（用户可在设置中切换服务器）
 
-**学到的知识点**：
-1. FastAPI 路由定义（`@app.get`, `@app.post`）
-2. SQLAlchemy 表定义与 Session 管理
-3. Pydantic 请求/响应模型
-4. React 页面搭建 + fetch API 调用
-5. Capacitor 打包 APK 流程
-6. Docker 基本命令 + docker-compose 编排
-
 **交付物**：一个可安装到华为 Mate40 Pro 的 app，能真实录数据
 
 ---
@@ -406,11 +382,6 @@ GET    /api/v1/expenses/multi_summary   六区间累计金额（P10.6 新增：�
 - `DELETE /api/v1/records/{id}` — 删除记录（含关联油耗重新计算）
 - 前端：记录支持编辑和删除
 
-**学到的知识点**：
-1. FastAPI 路径参数
-2. SQLAlchemy Update / Delete 操作
-3. 修改基线记录对后续油耗计算的级联影响
-
 ---
 
 ### Phase 3 — "上云"
@@ -423,11 +394,6 @@ GET    /api/v1/expenses/multi_summary   六区间累计金额（P10.6 新增：�
 - 一键自动部署（Git push 触发自动构建）
 - Render 自动配置 HTTPS（SSL 证书自动管理）
 - Phase 11 追加 Fly.io 作为备选服务器，用户可运行时切换
-
-**学到的知识点**：
-1. Render 平台部署流程
-2. Supabase 数据库管理（网页 Dashboard）
-3. 环境变量配置与自动部署
 
 ---
 
@@ -445,13 +411,6 @@ GET    /api/v1/expenses/multi_summary   六区间累计金额（P10.6 新增：�
 - 前端：登录/注册页面（Tab 切换）、axios 拦截器（自动带 token + 401 跳转）、React Router 路由守卫
 - 测试：`test-specs/` 三份测试规格书（端到端 / 集成 / 单元）
 
-**学到的知识点**：
-1. 密码哈希（bcrypt）
-2. JWT 原理（access token）
-3. FastAPI 依赖注入系统
-4. 前端 Token 持久化
-5. 前后端联调鉴权流程
-
 ---
 
 ### Phase 5 — "多车管理" ✅
@@ -467,11 +426,6 @@ GET    /api/v1/expenses/multi_summary   六区间累计金额（P10.6 新增：�
 - 前端：车辆下拉选择器 + 添加车辆表单 + localStorage 记忆
 - 数据库自动迁移 `_migrate_add_column()`
 
-**学到的知识点**：
-1. 多表关联查询
-2. SQLAlchemy 关系映射（relationship）
-3. React 页面导航与状态管理
-
 ---
 
 ### Phase 6 — "数据之美"
@@ -483,11 +437,6 @@ GET    /api/v1/expenses/multi_summary   六区间累计金额（P10.6 新增：�
 - 月度统计接口
 - 前端：统计页面、图表（Recharts）
 - P10.6 新增：油耗页累计统计下拉框（当年/当月/自上月累计油耗+金额，localStorage 记忆选择）
-
-**学到的知识点**：
-1. SQLAlchemy 聚合查询（group_by、func）
-2. 数据清洗与聚合逻辑
-3. Recharts 图表组件使用
 
 ---
 
@@ -597,35 +546,6 @@ GET    /api/v1/expenses/multi_summary   六区间累计金额（P10.6 新增：�
 
 ---
 
-## 8. 学习路径图
-
-```
-Phase 1 ──→  FastAPI 入门 + React 入门 + PostgreSQL 基础 + Capacitor APK
-   │
-Phase 2 ──→  CRUD 进阶 + SQLAlchemy 熟练
-   │
-Phase 3 ──→  Render / Fly.io + Supabase 部署 + 自动 HTTPS
-   │
-Phase 4 ──→  JWT + 密码学基础 + 依赖注入
-   │
-Phase 5 ──→  多表关联 + React 状态管理
-   │
-Phase 6 ──→  聚合查询 + 图表可视化
-   │
-Phase 7 ──→  测试 + 迁移 + CI/CD（生产技能）
-   │
-Phase 8 ──→  用户体验锦上添花
-   │
-Phase 9 ──→  版本自动更新（生命线）
-   │
-Phase 10 ──→ 记账模块（三级分类 + 多维统计）
-   │
-Phase 11 ──→ 双数据库 + 设置中心 + 双后端切换
-```
-
-每一期都是**可运行的交付物**，你在手机上能打开 app 看到真实数据。
-
----
 >
 > **新增模块规格书**：[`EXPENSE_SPEC.md`](./SPEC/EXPENSE_SPEC.md) — 个人记账功能（自定义三级分类 + 三环旭日图/堆叠柱状图下钻/饼图下钻多维度统计）
 >

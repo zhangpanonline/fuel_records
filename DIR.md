@@ -33,7 +33,7 @@ fuel_records/
 │   ├── fuel_records.keystore     # Android 签名密钥库
 │   └── keystore.properties       # 签名密码配置
 
-├── README.tickets.md             # 任务拆解清单：10 个 Phase 的原子 Ticket，教学进度
+├── README.tickets.md             # 任务拆解清单：各 Phase 的原子 Ticket，推进进度
 │
 ├── DIR.md                        # 本文件：目录结构说明
 │

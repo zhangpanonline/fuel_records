@@ -91,7 +91,7 @@ fuel_records/
 │   │   │                         # └ 关系：user → User（多对一）, records → FuelRecord（一对多）
 │   │   ├── expense.py            # Expense 模型：支出记录表（P10 新增）
 │   │   │                         # └ 字段：id, user_id(FK), amount(>0), category_l1/l2/l3(冗余快照),
-│   │   │                         #          note, expense_date, created_at, updated_at
+│   │   │                         #          note, expense_date(DATETIME，含时分), created_at, updated_at
 │   │   │                         # └ 关系：user → User（多对一）
 │   │   └── expense_category.py   # ExpenseCategory 模型：分类表（P10 新增）
 │   │                             # └ 字段：id, user_id(FK), parent_id(FK→self), name, level(1/2/3),
@@ -259,6 +259,7 @@ fuel_records/
 │       │                         # └ P10.5 新增：ExpenseDataLayout → ExpenseDataProvider 包裹 /expense 和 /expense/stats（跨路由数据保持）
 │       │                         # └ P10.6 变更：DataProviders 合并，同时挂载两个 Context，Tab 切换不重新 fetch
 │       │                         # └ 新增 /docs 路由：文档页在 Layout 内但不使用 DataProviders（不需要油耗/记账 Context）
+│       │                         # └ P12 新增 /expense/categories 路由：分类管理全屏页
 │       ├── App.tsx               # 加油主页面：加油表单 + 记录列表 + 车辆选择器（P5）+ 筛选面板（P6）
 │       │                         # └ P5 新增：车辆下拉选择器 + 添加车辆表单 + localStorage 记忆
 │       │                         # └ P6 新增：筛选面板（日期范围/加满/备注搜索），位于表单与记录列表之间
@@ -269,6 +270,8 @@ fuel_records/
 │       │                         # └ P10.5 重构：状态迁移到 FuelDataContext，useFuelData() 替代本地 useState
 │       │                         # └ P10.6 新增：累计统计下拉框（当年/当月/自上月累计油耗+金额），与筛选按钮同行，localStorage 记忆选择
 │       │                         # └ P10.6 新增：PullToRefresh 下拉刷新 + FuelPageSkeleton 骨架屏
+│       │                         # └ P12 新增：录入表单「日期」「时间」两个独立 input（编辑时回填，提交合并为 record_date）
+│       │                         # └ P12 新增：历史记录第二行显示单价 unit_price（¥x.xx/L）
 │       ├── App.css               # 主页面样式：CSS 变量主题系统（P8 暗色模式）+ 卡片布局 + 按钮
 │       │                         # └ P8.4 新增：8 个 @keyframes（fadeInUp/scaleIn/bgShift/shimmer/glowPulse/float）
 │       │                         #          玻璃态卡片（backdrop-filter）+ 对角渐变背景游走
@@ -293,8 +296,10 @@ fuel_records/
 │       │   ├── StatsPage.css      # 油耗统计页面样式：CSS 变量主题 + 玻璃态卡片 + 4 色渐变装饰线
 │       │   │                     # └ 新增：日期行/快捷按钮(chart-period-btn)、图表卡片(chart-card)
 │       │   ├── LoginPage.css      # 登录页面样式（P4 新增，P8.4 动画增强）
-│       │   ├── ExpensePage.tsx   # 记账主页面（P10 新增）：金额 → CategoryPicker 合并选择器 → 日期 → 备注 → 提交 → 列表
-│       │   │                     # └ 状态：amount/l1/l2/l3/date/note/editingId
+│       │   ├── ExpensePage.tsx   # 记账主页面（P10 新增）：金额 → CategoryPicker 合并选择器 → 日期+时间 → 备注 → 提交 → 列表
+│       │   │                     # └ P12 变更：日期、时间拆成两个并排 input（默认当前时间），备注独占一行
+│       │   │                     # └ P12 变更：列表时间显示 expense_date 的时分（原 created_at），日分组按日期部分
+│       │   │                     # └ 状态：amount/l1/l2/l3/date/time/note/editingId
 │       │   │                     # └ 编辑回填、左滑删除（500ms 长按 + 震动反馈，防误触）、分页加载更多
 │       │   │                     # └ 编辑态选中项 accent 边框高亮、同日期记录虚线分组
 │       │   │                     # └ 提交/删除时自动更新 CategoryPicker 频次计数（+1/–1）
@@ -312,6 +317,10 @@ fuel_records/
 │       │   │                         # └ 图表全屏：右上角 ⛶ 按钮。柱状图全屏用 layout="vertical"（水平条形图）适配横屏
 │       │   │                         # └ 修改日期不清空页面，仅刷新数据（firstLoad ref 控制）
 │       │   ├── ExpenseStatsPage.css  # 记账统计页样式
+│       │   ├── CategoryManagePage.tsx  # 分类管理全屏页（P12 新增，路由 /expense/categories）：三级分类树增删改
+│       │   │                         # └ 每行操作：重命名 / +子级（level<3）/ +同级（level>1）/ 删除（复用 CategoryModal）
+│       │   │                         # └ 一级分类默认全部展开，点击带子级名称折叠/展开；删除有子级时二次确认
+│       │   ├── CategoryManagePage.css  # 分类管理页样式：树形缩进 + 行内按钮组
 │       │   ├── DocsPage.tsx        # 文档页（新增）：全屏 iframe 嵌入 https://doc.zhangpan.online/，sandbox 权限控制
 │       │   │                       # └ 该页面不使用 DataProviders，Layout 中自动隐藏 BottomNav 和 SmartFAB
 │       │   ├── DocsPage.css        # 文档页样式：fixed 定位填满 TopBar 与底栏之间的区域
@@ -320,7 +329,8 @@ fuel_records/
 │       │                         # └ P11 变更：expense-day-group 移除边框/背景/圆角/阴影，仅 28px 留白 + 日期标签自然区分
 │       │
 │       ├── components/           # 通用组件
-│       │   ├── TopBar.tsx        # 全局顶栏（40px）：左侧 App 名称/子页←返回按钮，右侧主题切换 + 📖 文档 + ⚙ 设置齿轮
+│       │   ├── TopBar.tsx        # 全局顶栏（40px）：左侧 App 名称/子页←返回按钮，右侧主题切换 + 📖 文档 + 🏷 分类管理 + ⚙ 设置齿轮
+│       │   │                     # └ P12 新增：🏷 分类管理按钮，仅在 /expense 与 /expense/stats 显示 → /expense/categories
 │       │   │                     # └ 非 Tab 页面（/fuel、/expense 之外）自动显示"← 返回"按钮
 │       │   │                     # └ 主题：light/dark/auto 三态循环，通过 localStorage + data-theme 共享
 │       │   │                     # └ 文档按钮：📖 图标 → 跳转 /docs 页面

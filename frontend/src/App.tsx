@@ -16,6 +16,18 @@ import PullToRefresh from './components/PullToRefresh'
 import FuelPageSkeleton from './components/FuelPageSkeleton'
 import './App.css'
 
+/** 本地时区的今天日期 YYYY-MM-DD */
+function todayDatePart(): string {
+  const d = new Date()
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+}
+
+/** 本地时区的当前时分 HH:MM */
+function nowTimePart(): string {
+  const d = new Date()
+  return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`
+}
+
 function App() {
   const {
     vehicles,
@@ -75,6 +87,8 @@ function App() {
   const [fuelCost, setFuelCost] = useState('')
   const [isFullTank, setIsFullTank] = useState(true)
   const [note, setNote] = useState('')
+  const [recordDate, setRecordDate] = useState(todayDatePart())
+  const [recordTime, setRecordTime] = useState(nowTimePart())
   const [submitting, setSubmitting] = useState(false)
   const [editingId, setEditingId] = useState<number | null>(null)
 
@@ -296,6 +310,7 @@ function App() {
           fuel_cost: cost,
           is_full_tank: isFullTank,
           note: note || undefined,
+          record_date: `${recordDate}T${recordTime}`,
         })
       } else {
         await createRecord({
@@ -305,6 +320,7 @@ function App() {
           fuel_cost: cost,
           is_full_tank: isFullTank,
           note: note || undefined,
+          record_date: `${recordDate}T${recordTime}`,
         })
       }
       setMileage('')
@@ -312,6 +328,8 @@ function App() {
       setFuelCost('')
       setIsFullTank(true)
       setNote('')
+      setRecordDate(todayDatePart())
+      setRecordTime(nowTimePart())
       setEditingId(null)
       await refreshRecords()
       refreshSummaries()
@@ -342,6 +360,8 @@ function App() {
     setFuelCost(record.fuel_cost.toString())
     setIsFullTank(record.is_full_tank)
     setNote(record.note || '')
+    setRecordDate(record.record_date.slice(0, 10))
+    setRecordTime(record.record_date.slice(11, 16) || '00:00')
   }
 
   function handleCancelEdit() {
@@ -351,6 +371,8 @@ function App() {
     setFuelCost('')
     setIsFullTank(true)
     setNote('')
+    setRecordDate(todayDatePart())
+    setRecordTime(nowTimePart())
   }
 
   // 版本检测（启动时执行一次）
@@ -492,6 +514,28 @@ function App() {
                       required
                     />
                     <span className="form-field-unit">¥</span>
+                  </div>
+                </label>
+                <label className="form-field">
+                  <span className="form-field-label">日期</span>
+                  <div className="form-field-input-wrapper">
+                    <input
+                      type="date"
+                      value={recordDate}
+                      onChange={(e) => setRecordDate(e.target.value)}
+                      required
+                    />
+                  </div>
+                </label>
+                <label className="form-field">
+                  <span className="form-field-label">时间</span>
+                  <div className="form-field-input-wrapper">
+                    <input
+                      type="time"
+                      value={recordTime}
+                      onChange={(e) => setRecordTime(e.target.value)}
+                      required
+                    />
                   </div>
                 </label>
               </div>
@@ -698,6 +742,11 @@ function App() {
                     ) : (
                       <span className="record-consumption no-data">
                         未加满，未计算油耗
+                      </span>
+                    )}
+                    {r.unit_price != null && (
+                      <span className="record-unit-price">
+                        ¥{r.unit_price.toFixed(2)}/L
                       </span>
                     )}
                     <span className="record-date">{formatDate(r.record_date)}</span>

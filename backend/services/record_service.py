@@ -240,13 +240,17 @@ def update_record(
     if not update_data:
         return db_record
 
+    old_record_date = db_record.record_date
+
     for field, value in update_data.items():
         setattr(db_record, field, value)
 
     if "fuel_volume" in update_data or "fuel_cost" in update_data:
         db_record.unit_price = db_record.fuel_cost / db_record.fuel_volume
 
-    recalculate_consumption(db, db_record.record_date, user_id, db_record.vehicle_id)
+    # 记录时间可被修改：改早了要从更早的起点重算，否则区间内的记录会漏算
+    recalc_from = min(old_record_date, db_record.record_date)
+    recalculate_consumption(db, recalc_from, user_id, db_record.vehicle_id)
     db.commit()
     db.refresh(db_record)
     return db_record

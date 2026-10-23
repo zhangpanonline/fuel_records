@@ -19,6 +19,28 @@ import PullToRefresh from '../components/PullToRefresh'
 import ExpensePageSkeleton from '../components/ExpensePageSkeleton'
 import './ExpensePage.css'
 
+/** 从后端 ISO 字符串取日期部分 YYYY-MM-DD */
+function datePartOf(iso: string): string {
+  return iso.slice(0, 10)
+}
+
+/** 从后端 ISO 字符串取时分 HH:MM */
+function timePartOf(iso: string): string {
+  return iso.length >= 16 ? iso.slice(11, 16) : '00:00'
+}
+
+/** 本地时区的今天日期 YYYY-MM-DD */
+function todayDatePart(): string {
+  const d = new Date()
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+}
+
+/** 本地时区的当前时分 HH:MM */
+function nowTimePart(): string {
+  const d = new Date()
+  return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`
+}
+
 export default function ExpensePage() {
   const {
     categories,
@@ -44,7 +66,8 @@ export default function ExpensePage() {
     selectedL1Id: 0,
     selectedL2Id: 0,
     selectedL3Id: 0,
-    expenseDate: new Date().toISOString().slice(0, 10),
+    expenseDate: todayDatePart(),
+    expenseTime: nowTimePart(),
     note: '',
   })
 
@@ -56,15 +79,14 @@ export default function ExpensePage() {
   const [selectedL1Id, setSelectedL1Id] = useState(0)
   const [selectedL2Id, setSelectedL2Id] = useState(0)
   const [selectedL3Id, setSelectedL3Id] = useState(0)
-  const [expenseDate, setExpenseDate] = useState(
-    new Date().toISOString().slice(0, 10),
-  )
+  const [expenseDate, setExpenseDate] = useState(todayDatePart())
+  const [expenseTime, setExpenseTime] = useState(nowTimePart())
   const [note, setNote] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [editingId, setEditingId] = useState<number | null>(null)
 
   // 将表单状态实时同步到 ref，避免 Action 回调中的过期闭包
-  formRef.current = { amount, selectedL1, selectedL2, selectedL3, selectedL1Id, selectedL2Id, selectedL3Id, expenseDate, note }
+  formRef.current = { amount, selectedL1, selectedL2, selectedL3, selectedL1Id, selectedL2Id, selectedL3Id, expenseDate, expenseTime, note }
 
   const prediction = usePrediction()
   const { updatePageState, pendingAction, consumePendingAction } = prediction
@@ -72,8 +94,8 @@ export default function ExpensePage() {
   // ── 同步页面状态到预测引擎 ──
   useEffect(() => {
     const now = new Date()
-    const todayStr = now.toISOString().slice(0, 10)
-    const hasRecordsToday = expenses.filter((e) => e.expense_date === todayStr).length > 0
+    const todayStr = todayDatePart()
+    const hasRecordsToday = expenses.filter((e) => datePartOf(e.expense_date) === todayStr).length > 0
     updatePageState({
       page: '/expense',
       hasRecordsToday,
@@ -112,7 +134,7 @@ export default function ExpensePage() {
             category_l1: f.selectedL1,
             category_l2: f.selectedL2,
             category_l3: f.selectedL3,
-            expense_date: f.expenseDate,
+            expense_date: `${f.expenseDate}T${f.expenseTime}`,
             note: f.note || undefined,
           })
           incrementCategoryCount(f.selectedL1Id, f.selectedL2Id, f.selectedL3Id)
@@ -251,7 +273,8 @@ export default function ExpensePage() {
     setSelectedL1(exp.category_l1)
     setSelectedL2(exp.category_l2)
     setSelectedL3(exp.category_l3)
-    setExpenseDate(exp.expense_date)
+    setExpenseDate(datePartOf(exp.expense_date))
+    setExpenseTime(timePartOf(exp.expense_date))
     setNote(exp.note || '')
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
@@ -266,7 +289,8 @@ export default function ExpensePage() {
     setSelectedL2Id(0)
     setSelectedL3Id(0)
     setNote('')
-    setExpenseDate(new Date().toISOString().slice(0, 10))
+    setExpenseDate(todayDatePart())
+    setExpenseTime(nowTimePart())
   }
 
   // 提交
@@ -289,7 +313,7 @@ export default function ExpensePage() {
         category_l1: selectedL1,
         category_l2: selectedL2,
         category_l3: selectedL3,
-        expense_date: expenseDate,
+        expense_date: `${expenseDate}T${expenseTime}`,
         note: note || undefined,
       }
       if (editingId !== null) {
@@ -338,11 +362,11 @@ export default function ExpensePage() {
     const groups: { date: string; items: Expense[]; dailyTotal: number }[] = []
     for (const exp of expenses) {
       const last = groups[groups.length - 1]
-      if (last && last.date === exp.expense_date) {
+      if (last && last.date === datePartOf(exp.expense_date)) {
         last.items.push(exp)
         last.dailyTotal += Number(exp.amount)
       } else {
-        groups.push({ date: exp.expense_date, items: [exp], dailyTotal: Number(exp.amount) })
+        groups.push({ date: datePartOf(exp.expense_date), items: [exp], dailyTotal: Number(exp.amount) })
       }
     }
     return groups
@@ -404,11 +428,6 @@ export default function ExpensePage() {
     return `${d.getMonth() + 1}月${d.getDate()}日`
   }
 
-  function formatTime(iso: string) {
-    const d = new Date(iso)
-    return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`
-  }
-
   if (showSkeleton) {
     return <ExpensePageSkeleton />
   }
@@ -445,7 +464,7 @@ export default function ExpensePage() {
         />
       </div>
 
-      {/* 日期 + 备注 */}
+      {/* 记账日期 + 时间 */}
       <div className="meta-row">
         <input
           type="date"
@@ -453,6 +472,16 @@ export default function ExpensePage() {
           value={expenseDate}
           onChange={(e) => setExpenseDate(e.target.value)}
         />
+        <input
+          type="time"
+          className="time-input"
+          value={expenseTime}
+          onChange={(e) => setExpenseTime(e.target.value)}
+        />
+      </div>
+
+      {/* 备注 */}
+      <div className="note-row">
         <input
           type="text"
           className="note-input"
@@ -544,7 +573,7 @@ export default function ExpensePage() {
 
                   {/* 第三行：时间 + 备注 */}
                   <div className="expense-item-row3">
-                    <span className="expense-item-time">{formatTime(exp.created_at)}</span>
+                    <span className="expense-item-time">{timePartOf(exp.expense_date)}</span>
                     {exp.note && <span className="expense-item-dot"> · </span>}
                     {exp.note && <span>{exp.note}</span>}
                   </div>

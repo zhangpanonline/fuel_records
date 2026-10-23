@@ -40,7 +40,10 @@
 | category_l2 | VARCHAR(50) | NOT NULL | 二级分类名称 |
 | category_l3 | VARCHAR(50) | NOT NULL | 三级分类名称 |
 | note | TEXT | NULLABLE | 备注 |
-| expense_date | DATE | NOT NULL | 支出日期 |
+| expense_date | DATETIME | NOT NULL | 支出日期时间（含时分，记账发生的时间） |
+
+> 后端 `ExpenseCreate` / `ExpenseUpdate` 兼容纯日期字符串（`YYYY-MM-DD`），
+> 缺失时分时按 `00:00` 处理。
 | created_at | DATETIME | DEFAULT NOW | 创建时间 |
 | updated_at | DATETIME | ON UPDATE NOW | 修改时间 |
 
@@ -81,7 +84,7 @@ DELETE /api/v1/expenses/{id}      删除记录
   "category_l2": "午餐",
   "category_l3": "外卖",
   "note": "美团 — 黄焖鸡米饭",
-  "expense_date": "2026-07-31"
+  "expense_date": "2026-07-31T14:30"
 }
 ```
 
@@ -93,8 +96,8 @@ DELETE /api/v1/expenses/{id}      删除记录
 |------|------|------|------|
 | page | int | 1 | 页码 |
 | page_size | int | 20 | 每页条数 |
-| start_date | str | 可选 | 开始日期 |
-| end_date | str | 可选 | 结束日期 |
+| start_date | str | 可选 | 开始日期 `YYYY-MM-DD`（含当天 00:00:00 起） |
+| end_date | str | 可选 | 结束日期 `YYYY-MM-DD`（含当天 23:59:59） |
 | category_l1 | str | 可选 | 一级分类筛选 |
 | category_l2 | str | 可选 | 二级分类筛选 |
 | category_l3 | str | 可选 | 三级分类筛选 |
@@ -111,7 +114,7 @@ DELETE /api/v1/expenses/{id}      删除记录
       "category_l2": "午餐",
       "category_l3": "外卖",
       "note": "美团 — 黄焖鸡米饭",
-      "expense_date": "2026-07-31",
+      "expense_date": "2026-07-31T14:30:00",
       "created_at": "2026-07-31T12:30:00",
       "updated_at": "2026-07-31T12:30:00"
     }
@@ -131,7 +134,7 @@ DELETE /api/v1/expenses/{id}      删除记录
   "category_l2": "晚餐",
   "category_l3": "堂食",
   "note": "修改备注",
-  "expense_date": "2026-07-31"
+  "expense_date": "2026-07-31T14:30"
 }
 ```
 
@@ -355,14 +358,15 @@ GET /api/v1/expenses/multi_summary  六区间累计金额（P10.6 新增）
 > - **上次选择记忆**：`localStorage` key `expense_last_category`，打开页面时自动回填上次选的三级分类。分类被删则回退到空
 > - **新建分类**：每级末尾"+ 新建"，弹窗标题带完整父级路径（如"新建「餐饮 / 午餐」下的分类"）
 > - **冷启动**：用户无任何分类时，级联树为空，仅显示"+ 新建"
-3. **日期选择器** — 默认当天，可修改
-4. **备注输入框** — 可选
+3. **日期 + 时间选择器** — 两个并排输入：`<input type="date">`（默认当天）+ `<input type="time">`（默认当前时分）。提交时合并为 `YYYY-MM-DDTHH:MM`
+4. **备注输入框** — 可选，**独占一行**（不与日期时间并排）
 5. **提交按钮** — 大号圆角按钮，提交中 disabled + loading
 6. **历史记录列表** — 日期倒序，每条三行堆叠布局：第一行分类路径（`nowrap` 完整展示）、第二行金额 + 编辑按钮（靠右对齐）、第三行日期 + 备注。左滑删除手势（删除按钮跟手滑出，`translateX` JS inline 实时驱动），露出渐变红"删除"后点击删除。支持分页"加载更多"（每页 20 条）。空状态显示"还没记过账"。
 7. **ExpenseSummaryCards 统计卡片** — 六区间累计金额（P10.6 新增）：两行三列 grid，每个卡片两行一列（金额 + 标签），标签为当年/当月/当周/近一年/近一月/近一周。`GET /api/v1/expenses/multi_summary` 一次返回全部数据，页面进入和新增/删除后自动刷新。无数据时显示 `¥0.00`。
-8. **统计入口** — 通过 SmartFAB 浮动按钮跳转 `/expense/stats` 全屏统计页
-9. **PullToRefresh 下拉刷新**（P10.6 新增）— 页面顶部下拉刷新，触摸手势检测 `.layout-content` 的 scrollTop，仅顶部触发。垂直偏移 > 水平偏移 × 1.6 避免与左滑删除冲突。串行刷新：先 records 后 multi_summary。刷新期间展示 ExpensePageSkeleton。
-10. **ExpensePageSkeleton 骨架屏**（P10.6 新增）— 页面首次加载和下拉刷新时显示，布局与真实页面完全一致：金额输入 → 分类选择器 → 日期/备注行 → 提交按钮 → 6 统计卡片 → 4 条记录。`::after` 伪元素 gradient + `translateX` 动画闪动。
+8. **分类管理入口** — 顶栏 🏷 按钮（仅 `/expense` 与 `/expense/stats` 显示），跳转 `/expense/categories` 全屏分类管理页
+9. **统计入口** — 通过 SmartFAB 浮动按钮跳转 `/expense/stats` 全屏统计页
+10. **PullToRefresh 下拉刷新**（P10.6 新增）— 页面顶部下拉刷新，触摸手势检测 `.layout-content` 的 scrollTop，仅顶部触发。垂直偏移 > 水平偏移 × 1.6 避免与左滑删除冲突。串行刷新：先 records 后 multi_summary。刷新期间展示 ExpensePageSkeleton。
+11. **ExpensePageSkeleton 骨架屏**（P10.6 新增）— 页面首次加载和下拉刷新时显示，布局与真实页面完全一致：金额输入 → 分类选择器 → 日期/备注行 → 提交按钮 → 6 统计卡片 → 4 条记录。`::after` 伪元素 gradient + `translateX` 动画闪动。
 
 #### 记账统计全屏页（`/expense/stats`）
 
@@ -372,6 +376,16 @@ GET /api/v1/expenses/multi_summary  六区间累计金额（P10.6 新增）
 - **堆叠柱状图**（`recharts BarChart`）：X 轴=时间段，默认按一级分类分色堆叠，点击图例可逐级下钻至 L2/L3。全屏模式使用 `layout="vertical"`（水平条形图）适配手机横屏。
 - **明细表**：纯 HTML table，列出所选时间段 + 分类下的所有支出明细
 - **分类管理**：通过"管理分类"按钮展开/折叠，树形展示含 `├──`/`└──` 线段（`tree` 命令风格），通用 CategoryModal 弹框处理重命名/添加分类，添加按钮始终可见并带 CSS 虚线延伸至按钮
+
+#### 分类管理全屏页（`/expense/categories`）
+
+记账页与记账统计页顶栏的 🏷 按钮进入，独立全屏页面统一维护三级分类树：
+
+- **树形展示**：一级分类默认全部展开，点击带子级的名称可折叠/展开
+- **每行操作**：重命名 / +子级（level < 3 时）/ +同级（level > 1 时）/ 删除
+- **新建一级分类**：顶部工具栏固定按钮
+- **删除**：有子分类时二次确认并提示会一并移除；后端拒绝时展示后端 `detail` 文案
+- **弹框**：复用 `CategoryModal`，重命名时回填原名
 
 ### 4.3 组件树
 
@@ -387,15 +401,16 @@ main.tsx
 │   ├── PullToRefresh（P10.6：下拉刷新容器，刷新期间显示 ExpensePageSkeleton）
 │   ├── AmountInput（金额输入）
 │   ├── CategoryPicker（合并三级选择器：搜索 + Top5 常用 + 级联树）
-│   ├── DatePicker（日期选择，毛玻璃样式对齐 CategoryPicker）
-│   ├── NoteInput（备注输入，毛玻璃样式对齐）
+│   ├── DatePicker + TimeInput（日期、时间两个并排输入，毛玻璃样式对齐 CategoryPicker）
+│   ├── NoteInput（备注输入，独占一行，毛玻璃样式对齐）
 │   ├── ExpenseSummaryCards（P10.6：六区间累计金额卡片，两行三列）
 │   ├── ExpenseList（三行堆叠布局：分类 / 金额+编辑 / 日期+备注，左滑删除）
-│   └── /expense/stats → ExpenseStatsPage.tsx（记账统计全屏页，使用 useExpenseData()）
-│       ├── 饼图下钻（recharts Pie，递归下钻 + "其他"归并）
-│       ├── 堆叠柱状图（recharts BarChart，图例下钻）
-│       ├── DetailTable（明细表）
-│       └── CategoryManager（折叠式分类管理，tree 线段可视化 + CategoryModal 弹框）
+│   ├── /expense/stats → ExpenseStatsPage.tsx（记账统计全屏页，使用 useExpenseData()）
+│   │   ├── 饼图下钻（recharts Pie，递归下钻 + "其他"归并）
+│   │   ├── 堆叠柱状图（recharts BarChart，图例下钻）
+│   │   ├── DetailTable（明细表）
+│   │   └── CategoryManager（折叠式分类管理，tree 线段可视化 + CategoryModal 弹框）
+│   └── /expense/categories → CategoryManagePage.tsx（分类管理全屏页：树形增删改）
 ├── SmartFAB（智能浮动导航按钮，路由感知，可拖拽）
 ├── SettingsModal（设置弹窗：账户信息 + 版本检查 + 数据库切换）
 └── /login → LoginPage.tsx（登录页，保持不变）

@@ -35,6 +35,7 @@ export interface CreateRecordPayload {
   fuel_cost: number
   is_full_tank?: boolean
   note?: string
+  record_date?: string
 }
 
 export interface Vehicle {
@@ -66,6 +67,7 @@ export interface UpdateRecordPayload {
   fuel_cost?: number
   is_full_tank?: boolean
   note?: string
+  record_date?: string
 }
 
 // ---- Stats types ----

@@ -1,0 +1,110 @@
+.cat-manage {
+  padding: 16px 0 32px;
+}
+
+.cat-manage-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.cat-manage-hint {
+  font-size: 13px;
+  color: var(--text-dim);
+}
+
+.cat-tree {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.cat-node {
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  background: var(--card-bg);
+  overflow: hidden;
+}
+
+.cat-children {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 8px 12px 12px 20px;
+}
+
+.cat-node--l2 > .cat-row,
+.cat-node--l3 > .cat-row {
+  border: none;
+  background: transparent;
+}
+
+.cat-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 12px 14px;
+  flex-wrap: wrap;
+}
+
+.cat-row-name {
+  font-size: 15px;
+  color: var(--text-body);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.cat-row-name--toggle {
+  cursor: pointer;
+}
+
+.cat-caret {
+  font-size: 11px;
+  color: var(--text-dim);
+}
+
+.cat-row-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.cat-btn {
+  padding: 6px 10px;
+  font-size: 12px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-body);
+  cursor: pointer;
+  outline: none;
+}
+
+.cat-btn:active {
+  opacity: 0.7;
+}
+
+.cat-btn--primary {
+  border-color: var(--accent);
+  color: var(--accent);
+  font-size: 13px;
+  padding: 8px 14px;
+}
+
+.cat-btn--danger {
+  color: var(--danger, #e24b4a);
+  border-color: var(--danger, #e24b4a);
+}
+
+.cat-loading,
+.cat-empty {
+  padding: 32px 0;
+  text-align: center;
+  font-size: 14px;
+  color: var(--text-dim);
+}

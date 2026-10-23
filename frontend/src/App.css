@@ -765,6 +765,20 @@ body::after {
   padding: 12px 16px;
 }
 
+/* ---- 日期 / 时间输入 ---- */
+
+.form-field-input-wrapper input[type="date"],
+.form-field-input-wrapper input[type="time"] {
+  font-size: 15px;
+  padding: 12px 16px;
+}
+
+/* 深色主题下让原生日期/时间选择器的图标与文字变亮 */
+[data-theme='dark'] .form-field-input-wrapper input[type="date"],
+[data-theme='dark'] .form-field-input-wrapper input[type="time"] {
+  color-scheme: dark;
+}
+
 /* ---- Toggle 开关（替代原生 checkbox）---- */
 
 .toggle-row {
@@ -1346,6 +1360,13 @@ body::after {
   color: var(--text-dim);
   font-weight: 400;
   background: transparent;
+}
+
+.record-unit-price {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  font-variant-numeric: tabular-nums;
 }
 
 .baseline-tag {

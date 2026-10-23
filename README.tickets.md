@@ -1197,6 +1197,55 @@
   - **难度**：★
 
 ---
+
+## Phase 12 — "记账时间 + 分类管理页 + 油耗单价"（2026-10-23）
+
+> **目标**：记账可精确到时分；分类维护独立成页；油耗历史显示单价、录入支持日期与时间分开填。
+
+### Ticket 12.1: 记账时间精确到时分
+
+- [x] **12.1.1 `expense_date` 改 DateTime**
+  - `models/expense.py` + `schemas/expense.py`：Date → datetime；Create/Update 兼容纯日期字符串（`YYYY-MM-DD` → 当日 00:00）
+  - 新增迁移 `081614c00cff_expense_date_to_datetime.py`，历史行时间部分补 `created_at` 的时分
+  - **依赖**：10.1
+  - **难度**：★★
+
+- [x] **12.1.2 范围查询边界修正**
+  - `expense_service.to_start_datetime` / `to_end_datetime`：结束日按 23:59:59.999999 比较，避免当天带时分的记录被漏掉
+  - `expense_stats_service` 三处过滤与 `_case_if` 同步改用边界函数
+  - **依赖**：12.1.1
+  - **难度**：★★
+
+- [x] **12.1.3 记账页时间输入**
+  - `ExpensePage.tsx`：日期 + 时间两个并排 input（默认当前时间），备注独占一行
+  - 列表时间显示 `expense_date` 的时分（原为 `created_at`），日分组按日期部分
+  - **依赖**：12.1.1
+  - **难度**：★
+
+### Ticket 12.2: 分类管理全屏页
+
+- [x] **12.2.1 CategoryManagePage**
+  - 新建 `pages/CategoryManagePage.tsx` + `.css`：三级分类树增删改（重命名 / +子级 / +同级 / 删除），复用 `CategoryModal`
+  - 路由 `/expense/categories`；`TopBar` 在 `/expense` 与 `/expense/stats` 显示 🏷 入口
+  - **依赖**：11.3.3
+  - **难度**：★★
+
+### Ticket 12.3: 油耗单价与录入时间
+
+- [x] **12.3.1 历史记录显示单价**
+  - `App.tsx` 记录项第二行新增 `¥x.xx/L`（`unit_price`），`App.css` 新增 `.record-unit-price`
+  - **依赖**：1.3
+  - **难度**：★
+
+- [x] **12.3.2 日期与时间分开录入**
+  - `FuelRecordCreate` / `FuelRecordUpdate` 支持 `record_date`（Update 为本次新增）
+  - `App.tsx` 表单新增「日期」「时间」两个独立 input，编辑时回填原记录，提交时合并
+  - `update_record` 重算起点取新旧时间较早者，避免区间内记录漏算
+  - **依赖**：1.3
+  - **难度**：★★
+
+---
+
 ## 依赖关系总图
 
 ```
@@ -1229,6 +1278,7 @@ Phase 1 ──→ Phase 2 ──→ Phase 3 ──→ Phase 4 ──→ Phase 5 
 ---
 
 > **更新记录**
+> - 2026-10-23: Phase 12 完成 — 记账时间精确到时分（`expense_date` Date→DateTime + 迁移 + 范围查询边界修正 + 记账页时间输入）、分类管理全屏页 `/expense/categories` + 顶栏 🏷 入口、油耗历史显示单价 + 日期/时间分开录入，共 6 个原子 Ticket
 > - 2026-08-28: 油耗算法修正（ADR-001：油耗参考"上次加满"记录，跳过未加满）+ 规格书漂移修正（e2e/integration/upgrade/PERF 与代码对齐，Fly.io 确认为线上主力）+ 新增 `SPEC/GLOSSARY.md` 全项目术语表与 `SPEC/ADRs/` 架构决策记录
 > - 2026-08-02: Phase 11 完成 — 双数据库 + 设置中心 + 记账统计页 UI 优化（双引擎架构 + SettingsModal + 旭日图移除 + 分类树 tree 线段 + CategoryModal 统一弹框 + SmartFAB 全屏交互 + 记账日分组无边框）共 8 个原子 Ticket
 > - 2026-08-01: Phase 10.6 完成 — 体验增强（记账六区间统计卡片 + 油耗累计统计下拉框 + PullToRefresh 下拉刷新 + 页面骨架屏 + BottomNav Tab 调换 + DataProviders 合并 + 左滑删除动画优化）

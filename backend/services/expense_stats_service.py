@@ -10,6 +10,7 @@ from sqlalchemy import func, text, case, and_
 from core.exceptions import BadRequestError
 
 from models.expense import Expense
+from services.expense_service import to_start_datetime, to_end_datetime
 from schemas.expense_stats import (
     ExpenseStatsResponse,
     BreakdownItem,
@@ -30,8 +31,8 @@ def _build_query_filter(
     """构建查询过滤条件"""
     q = db.query(Expense).filter(
         Expense.user_id == user_id,
-        Expense.expense_date >= start_date,
-        Expense.expense_date <= end_date,
+        Expense.expense_date >= to_start_datetime(start_date),
+        Expense.expense_date <= to_end_datetime(end_date),
     )
     if category_l1:
         q = q.filter(Expense.category_l1 == category_l1)
@@ -207,7 +208,7 @@ def get_multi_summary(db: Session, user_id: int, today: Optional[date] = None) -
 
     def _case_if(start: date, end: date):
         return case((
-            and_(Expense.expense_date >= start, Expense.expense_date <= end),
+            and_(Expense.expense_date >= to_start_datetime(start), Expense.expense_date <= to_end_datetime(end)),
             Expense.amount,
         ), else_=0)
 

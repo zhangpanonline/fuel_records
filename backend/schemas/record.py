@@ -43,6 +43,7 @@ class FuelRecordUpdate(BaseModel):
     fuel_cost: Optional[Decimal] = Field(None, decimal_places=2, gt=0)
     is_full_tank: Optional[bool] = None
     note: Optional[str] = None
+    record_date: Optional[datetime] = Field(None, description="记录日期时间，格式 YYYY-MM-DD 或 YYYY-MM-DDTHH:MM")
 
 
 class FuelRecordListResponse(BaseModel):

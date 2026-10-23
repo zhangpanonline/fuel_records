@@ -1,6 +1,6 @@
 """支出记录业务逻辑"""
 
-from datetime import date
+from datetime import date, datetime, time
 from typing import Optional
 
 from sqlalchemy.orm import Session
@@ -9,6 +9,20 @@ from core.exceptions import NotFoundError, BadRequestError, ForbiddenError
 from models.expense import Expense
 from models.expense_category import ExpenseCategory
 from schemas.expense import ExpenseCreate, ExpenseUpdate
+
+
+def to_start_datetime(d: date) -> datetime:
+    """日期 → 当日 00:00:00（用于范围查询的起始边界）"""
+    return datetime.combine(d, time.min)
+
+
+def to_end_datetime(d: date) -> datetime:
+    """日期 → 当日 23:59:59.999999（用于范围查询的结束边界）
+
+    expense_date 改为 DateTime 后，若直接用 date 比较会被数据库转成
+    当日 00:00:00，导致结束日当天带时分的记录被漏掉，故必须取当日末尾。
+    """
+    return datetime.combine(d, time.max)
 
 
 def _validate_category_chain(
@@ -103,9 +117,9 @@ def get_expenses(
     query = db.query(Expense).filter(Expense.user_id == user_id)
 
     if start_date:
-        query = query.filter(Expense.expense_date >= start_date)
+        query = query.filter(Expense.expense_date >= to_start_datetime(start_date))
     if end_date:
-        query = query.filter(Expense.expense_date <= end_date)
+        query = query.filter(Expense.expense_date <= to_end_datetime(end_date))
     if category_l1:
         query = query.filter(Expense.category_l1 == category_l1)
     if category_l2:

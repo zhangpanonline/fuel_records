@@ -1,6 +1,6 @@
 """支出记录 ORM 模型"""
 
-from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Date, Numeric, Text
+from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Numeric, Text
 from sqlalchemy.sql import func
 from sqlalchemy.orm import relationship
 
@@ -18,7 +18,7 @@ class Expense(Base):
     category_l2 = Column(String(50), nullable=False, comment="二级分类名称（冗余）")
     category_l3 = Column(String(50), nullable=False, comment="三级分类名称（冗余）")
     note = Column(Text, nullable=True, comment="备注")
-    expense_date = Column(Date, nullable=False, comment="支出日期")
+    expense_date = Column(DateTime, nullable=False, comment="支出日期时间（含时分，记账时间）")
     created_at = Column(DateTime, server_default=func.now(), comment="创建时间")
     updated_at = Column(
         DateTime, server_default=func.now(), onupdate=func.now(), comment="修改时间"

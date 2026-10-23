@@ -270,9 +270,13 @@ DEL  /api/v1/records/{id}    删除记录
   "fuel_volume": 12.5,
   "fuel_cost": 98.75,
   "is_full_tank": true,
-  "note": "中石化XX站"
+  "note": "中石化XX站",
+  "record_date": "2026-07-19T14:30"
 }
 ```
+
+> `record_date` 可选，不传则用服务器当前时间；`PUT /api/v1/records/{id}`
+> 同样支持修改 `record_date`，改时间后会从新旧时间中较早的那个起点级联重算油耗。
 
 **响应**：
 
@@ -301,6 +305,8 @@ DEL  /api/v1/records/{id}    删除记录
 | page_size | int | 20 | 每页条数 |
 | start_date | str | 可选 | 开始日期（筛选） |
 | end_date | str | 可选 | 结束日期（筛选） |
+
+**前端展示**：油耗历史记录每条显示里程 / 油量 / 金额三列，第二行显示油耗、单价（`unit_price`，`¥x.xx/L`）与记录时间；录入表单的「日期」「时间」为两个独立输入框，提交时合并为 `record_date`。
 
 ### 5.3 统计 API（Phase 6 + P10 重构）
 
@@ -340,6 +346,9 @@ DELETE /api/v1/expenses/categories/{id} 删除分类
 GET    /api/v1/expenses/stats           多维度统计（group_by + 分类过滤）
 GET    /api/v1/expenses/multi_summary   六区间累计金额（P10.6 新增：当年/当月/当周/近一年/近一月/近一周）
 ```
+
+> `expenses.expense_date` 为 DATETIME（含时分），详见 [`SPEC/EXPENSE_SPEC.md`](./SPEC/EXPENSE_SPEC.md)。
+> 记账页提供 `/expense/categories` 分类管理全屏页（记账页与记账统计页顶栏 🏷 入口）。
 
 ---
 

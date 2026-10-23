@@ -787,6 +787,23 @@ class TestExpenseServiceMoreEdges:
                                    end_date=date(2025, 7, 31))
         assert total == 1
 
+    def test_get_expenses_end_date_includes_time_part(self, db_session):
+        """结束日当天带时分的记录必须被包含（end_date 需按当日 23:59:59 比较）"""
+        _create_user(db_session, user_id=1)
+        cat = create_category(db_session, user_id=1, name="餐饮", parent_id=None)
+        l2 = create_category(db_session, user_id=1, name="午餐", parent_id=cat.id)
+        l3 = create_category(db_session, user_id=1, name="外卖", parent_id=l2.id)
+        create_expense(db_session, 1, ExpenseCreate(
+            amount=Decimal("50"), category_l1="餐饮", category_l2="午餐", category_l3="外卖",
+            expense_date=datetime(2025, 7, 31, 18, 45),
+        ))
+        # 结束日 = 记录当天，必须命中
+        _, total_in = get_expenses(db_session, user_id=1, end_date=date(2025, 7, 31))
+        assert total_in == 1
+        # 结束日提前一天，不应命中
+        _, total_out = get_expenses(db_session, user_id=1, end_date=date(2025, 7, 30))
+        assert total_out == 0
+
     def test_get_expenses_with_category_filter(self, db_session):
         _create_user(db_session, user_id=1)
         cat = create_category(db_session, user_id=1, name="餐饮", parent_id=None)
@@ -1159,13 +1176,14 @@ class TestExpenseServiceFull:
 
         exp = create_expense(db_session, 1, ExpenseCreate(
             amount=Decimal("35.5"), category_l1="餐饮", category_l2="午餐", category_l3="外卖",
-            expense_date=date(2025, 7, 15),
+            expense_date=datetime(2025, 7, 15, 14, 30),
         ))
         assert exp.amount == Decimal("35.5")
         assert exp.category_l1 == "餐饮"
         assert exp.category_l2 == "午餐"
         assert exp.category_l3 == "外卖"
-        assert exp.expense_date == date(2025, 7, 15)
+        # expense_date 为 DateTime，时分必须被保留
+        assert exp.expense_date == datetime(2025, 7, 15, 14, 30)
         assert exp.user_id == 1
 
     def test_create_expense_amount_zero_rejected(self, db_session):
@@ -1420,6 +1438,26 @@ class TestRecordServiceGaps:
         # r2 油耗保持原值
         db_session.refresh(r2)
         assert r2.fuel_consumption == orig_consumption
+
+    def test_update_record_record_date(self, db_session):
+        """编辑加油记录时可修改记录时间，且时间被持久化"""
+        v = _make_vehicle(db_session)
+        create_record(db_session, FuelRecordCreate(
+            mileage=Decimal("10000"), fuel_volume=Decimal("15"), fuel_cost=Decimal("120"),
+            is_full_tank=True, note="", vehicle_id=v.id, record_date=datetime(2025, 1, 1),
+        ), user_id=1)
+        r2 = create_record(db_session, FuelRecordCreate(
+            mileage=Decimal("10200"), fuel_volume=Decimal("10"), fuel_cost=Decimal("80"),
+            is_full_tank=True, note="", vehicle_id=v.id, record_date=datetime(2025, 2, 1),
+        ), user_id=1)
+
+        updated = update_record(
+            db_session, r2.id, FuelRecordUpdate(record_date=datetime(2025, 2, 5, 14, 30)),
+            user_id=1,
+        )
+        assert updated.record_date == datetime(2025, 2, 5, 14, 30)
+        # 里程未变，油耗参考仍是上一条加满记录，结果不变
+        assert updated.fuel_consumption == r2.fuel_consumption
 
     def test_update_record_is_full_tank_toggle(self, db_session):
         """非加满→加满：toogle 后应重新计算 fuel_consumption"""

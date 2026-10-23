@@ -22,6 +22,7 @@ const pageTitles: Record<string, string> = {
   '/fuel/stats': '油耗统计',
   '/expense': '记账',
   '/expense/stats': '记账统计',
+  '/expense/categories': '分类管理',
   '/docs': '文档',
 }
 
@@ -38,6 +39,7 @@ function TopBar({ theme, onToggleTheme, onNavigate }: TopBarProps) {
 
   const title = pageTitles[location.pathname] || '油耗'
   const tabPages = ['/fuel', '/expense']
+  const categoryPages = ['/expense', '/expense/stats']
   const isSubPage = !tabPages.includes(location.pathname)
 
   function handleBack() {
@@ -66,6 +68,15 @@ function TopBar({ theme, onToggleTheme, onNavigate }: TopBarProps) {
         >
           📖
         </button>
+        {categoryPages.includes(location.pathname) && (
+          <button
+            className="topbar-btn categories-btn"
+            onClick={() => navigate('/expense/categories')}
+            title="分类管理"
+          >
+            🏷
+          </button>
+        )}
         <button className="topbar-btn settings-btn" onClick={() => setShowSettings(true)} title="设置">
           ⚙
         </button>

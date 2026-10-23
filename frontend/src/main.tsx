@@ -6,6 +6,7 @@ import LoginPage from './pages/LoginPage.tsx'
 import StatsPage from './pages/StatsPage.tsx'
 import ExpensePage from './pages/ExpensePage.tsx'
 import ExpenseStatsPage from './pages/ExpenseStatsPage.tsx'
+import CategoryManagePage from './pages/CategoryManagePage.tsx'
 import DocsPage from './pages/DocsPage.tsx'
 import PredictRulesPage from './pages/PredictRulesPage.tsx'
 import Layout from './components/Layout.tsx'
@@ -51,6 +52,7 @@ createRoot(document.getElementById('root')!).render(
           <Route element={<DataProviders />}>
             <Route path="/expense" element={<ExpensePage />} />
             <Route path="/expense/stats" element={<ExpenseStatsPage />} />
+            <Route path="/expense/categories" element={<CategoryManagePage />} />
             <Route path="/fuel" element={<App />} />
             <Route path="/fuel/stats" element={<StatsPage />} />
           </Route>

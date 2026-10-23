@@ -61,15 +61,20 @@
   margin-bottom: 16px;
 }
 
-/* ── 日期 + 备注 ── */
+/* ── 记账日期 + 时间 + 备注 ── */
 
 .meta-row {
   display: flex;
   gap: 12px;
+  margin-bottom: 12px;
+}
+
+.note-row {
   margin-bottom: 24px;
 }
 
-.date-input {
+.date-input,
+.time-input {
   flex: 1;
   min-width: 0;
   padding: 14px 16px;
@@ -86,8 +91,7 @@
 }
 
 .note-input {
-  flex: 1;
-  min-width: 0;
+  width: 100%;
   padding: 14px 16px;
   font-size: 15px;
   border-radius: 14px;
@@ -102,6 +106,7 @@
 }
 
 .date-input:focus,
+.time-input:focus,
 .note-input:focus {
   border-color: var(--accent);
   box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.08);

@@ -510,16 +510,19 @@
 
 ### Ticket 7.3: CI/CD
 
-- [ ] **7.3.1 GitHub Actions 配置**
-  - 创建 `.github/workflows/deploy.yml`
-  - 触发条件：push 到 main 分支
-  - Step：
-    1. Checkout 代码
-    2. 运行 pytest 测试
-    3. 测试通过后 build Docker 镜像
-    4. SSH 到 VPS 拉取新镜像并重启容器
+- [x] **7.3.1 GitHub Actions 配置**
+  - `.github/workflows/fly-deploy.yml`：push 到 `main` 且改动 `backend/**` 时执行 `flyctl deploy --remote-only`（secret `FLY_API_TOKEN`）
+  - 原计划的「SSH 到 VPS 拉镜像重启」未采用——部署目标是 Fly.io，不是 VPS
   - **依赖**：7.2.3, 1.5.4
   - **难度**：★★★
+
+- [x] **7.3.2 Supabase 保活心跳**
+  - `.github/workflows/supabase-keepalive.yml`：每 12 小时（UTC 02:00 / 14:00）对生产库发一次 PostgREST 查询，制造活动防止 Free 计划被自动暂停
+  - 失败即变红：HTTP 540（已暂停）、非 200、200 但空数组三种情况一律 `exit 1`，日志给出 Resume 链接
+  - 支持 `workflow_dispatch` 手动触发验证；可用 secrets `SUPABASE_URL` / `SUPABASE_ANON_KEY` 覆盖内置默认值（anon key 本就随 APK 公开）
+  - 已知局限：GitHub 会在仓库 60 天无提交后自动停用 scheduled workflow，心跳本身也可能静默失效
+  - **依赖**：7.3.1
+  - **难度**：★
 
 ### Ticket 7.4: API 版本管理
 
@@ -1278,6 +1281,7 @@ Phase 1 ──→ Phase 2 ──→ Phase 3 ──→ Phase 4 ──→ Phase 5 
 ---
 
 > **更新记录**
+> - 2026-11-02: v1.1.8 发布（`version_code` 10108）+ 新增 Supabase 保活心跳 `.github/workflows/supabase-keepalive.yml`（7.3.2），并把 7.3.1 修正为 Fly.io 实际部署方式
 > - 2026-10-23: Phase 12 完成 — 记账时间精确到时分（`expense_date` Date→DateTime + 迁移 + 范围查询边界修正 + 记账页时间输入）、分类管理全屏页 `/expense/categories` + 顶栏 🏷 入口、油耗历史显示单价 + 日期/时间分开录入，共 6 个原子 Ticket
 > - 2026-08-28: 油耗算法修正（ADR-001：油耗参考"上次加满"记录，跳过未加满）+ 规格书漂移修正（e2e/integration/upgrade/PERF 与代码对齐，Fly.io 确认为线上主力）+ 新增 `SPEC/GLOSSARY.md` 全项目术语表与 `SPEC/ADRs/` 架构决策记录
 > - 2026-08-02: Phase 11 完成 — 双数据库 + 设置中心 + 记账统计页 UI 优化（双引擎架构 + SettingsModal + 旭日图移除 + 分类树 tree 线段 + CategoryModal 统一弹框 + SmartFAB 全屏交互 + 记账日分组无边框）共 8 个原子 Ticket

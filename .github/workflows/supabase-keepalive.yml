@@ -1,0 +1,75 @@
+name: Supabase Keepalive
+
+# 目的：防止 Supabase Free 计划因「连续 7 天低活动」被自动暂停。
+#
+# 背景：Free 项目 7 天无活动即被冻结 —— 数据库 / Auth / Storage / API 全部停服，
+# 所有请求返回 HTTP 540；数据不会丢，但**只能到 Dashboard 手动点 Resume project** 恢复，
+# 没有 API 也没有 CLI 通道。2026-11-02 已经因此掉线过一次。
+#
+# 做法：定时对生产库发一次 PostgREST 查询（真实打到 Postgres），制造活动。
+# 顺带校验更新机制依赖的 app_versions 表仍然可读。
+#
+# ⚠️ 已知局限：GitHub 会在**仓库 60 天无任何提交**后自动停用 scheduled workflow，
+# 且不会重试。所以这个心跳本身也可能悄悄死掉 —— 因此每次失败都会让 workflow 变红
+# （GitHub 会给仓库关注者发邮件），并且保留了手动触发入口。
+
+on:
+  schedule:
+    # UTC 02:00 / 14:00 → 北京时间 10:00 / 22:00，每 12 小时一次
+    - cron: '0 2,14 * * *'
+  workflow_dispatch: # 支持在 Actions 页面手动点一次，用来验证配置
+
+permissions:
+  contents: read
+
+concurrency:
+  group: supabase-keepalive
+  cancel-in-progress: false
+
+jobs:
+  ping:
+    name: Ping production database
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Query app_versions
+        env:
+          # 可用仓库 Secrets 覆盖（Settings → Secrets and variables → Actions）。
+          # 下面的默认值是 anon key —— 它本来就随 APK 公开分发，安全性由 RLS 保证。
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL || 'https://agouobddgpkhipldgzhr.supabase.co' }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFnb3VvYmRkZ3BraGlwbGRnemhyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUxNDU0MDYsImV4cCI6MjEwMDcyMTQwNn0.HMVg6FZt3w4-dX7shI4wohKMX3Xb8j21CSckgQ2Jijs' }}
+        run: |
+          set -euo pipefail
+
+          url="$SUPABASE_URL/rest/v1/app_versions?select=version_code,version_name&order=version_code.desc&limit=1"
+          body="$(mktemp)"
+
+          # curl 自身失败（DNS / 连接被拒 / 超时）时没有 HTTP 状态码，单独报错
+          if ! code=$(curl -sS -o "$body" -w '%{http_code}' --max-time 60 --retry 2 --retry-delay 5 \
+            -H "apikey: $SUPABASE_ANON_KEY" \
+            -H "Authorization: Bearer $SUPABASE_ANON_KEY" \
+            "$url"); then
+            echo "::error::请求发不出去（curl 失败），Supabase 域名不可达。"
+            exit 1
+          fi
+
+          echo "HTTP $code"
+          echo "body: $(head -c 300 "$body")"
+
+          if [ "${code}" = "540" ]; then
+            echo "::error::生产库已被暂停（HTTP 540）。请到 https://supabase.com/dashboard/project/agouobddgpkhipldgzhr 点 Resume project，恢复只能手动操作。"
+            exit 1
+          fi
+
+          if [ "${code}" != "200" ]; then
+            echo "::error::心跳失败（HTTP ${code}），项目可能不可用或密钥已轮换。"
+            exit 1
+          fi
+
+          # 200 但空数组 = 表可读性变了（RLS 改动或表被清空），同样需要人看一眼
+          if ! grep -q 'version_code' "$body"; then
+            echo "::error::返回 200 但没有数据，app_versions 可能为空或 RLS 已限制 anon 读取。"
+            exit 1
+          fi
+
+          echo "✅ 生产库正常：$(head -c 200 "$body")"

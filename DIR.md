@@ -8,6 +8,11 @@ fuel_records/
 │
 ├── .gitignore                    # Git 忽略规则
 │
+├── .github/workflows/            # GitHub Actions
+│   ├── fly-deploy.yml            # push 到 main 且改动 backend/** → flyctl deploy（secret FLY_API_TOKEN）
+│   └── supabase-keepalive.yml    # 每 12h 查一次 app_versions，防止 Supabase Free 计划 7 天无活动被暂停
+│                                 # └ 540 / 非 200 / 空数组 都 exit 1；支持 workflow_dispatch 手动触发
+│
 ├── runtime.txt                   # Render 部署用：指定 Python 3.12 版本
 │
 ├── README.md                     # 项目规格书：架构、数据库设计、API、迭代计划

@@ -32,6 +32,16 @@ if [ -z "${SUPABASE_SERVICE_KEY:-}" ]; then
   exit 1
 fi
 
+# 版本检测是 App 的生命线：这几个变量缺任何一个，打出来的包就查不到更新，
+# 而且旧实现会把失败伪装成"已是最新版本"，线上很难发现。所以缺了直接中止构建。
+for v in SUPABASE_URL VITE_SUPABASE_URL VITE_SUPABASE_ANON_KEY VITE_API_BASE_URL; do
+  if [ -z "${!v:-}" ]; then
+    echo "❌ .env 缺少 $v —— 缺它打出的包检测不到更新，构建已中止"
+    exit 1
+  fi
+done
+echo "   版本检测所需的 4 个变量齐备"
+
 echo "==> 检查 capacitor.config.ts ..."
 if grep -q "url:" frontend/capacitor.config.ts 2>/dev/null; then
   echo "❌ capacitor.config.ts 中仍有 server.url（开发联调配），请先去掉 server 块再打包"

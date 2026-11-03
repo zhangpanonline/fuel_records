@@ -6,6 +6,11 @@
 app = 'fuel-records'
 primary_region = 'nrt'
 
+[env]
+  # App 版本接口回源 APK 用（非敏感）。App 侧走 /api/v1/app/version，
+  # 不再依赖客户端能否访问 supabase.co。
+  SUPABASE_URL = "https://agouobddgpkhipldgzhr.supabase.co"
+
 [build]
 [http_service]
   internal_port = 8000

@@ -15,6 +15,11 @@ class Settings(BaseSettings):
     DB_PG_URL: str = ""          # 生产数据库（DB_TYPE=postgresql）
     DB_PG_URL_TEST: str = ""     # 测试数据库（DB_TYPE=postgresql_test）
 
+    # Supabase 项目地址（如 https://xxxx.supabase.co）
+    # 用途：App 版本接口的 APK 回源地址。后端出网不受 supabase.co 被阻断的影响，
+    # App 侧则经 /api/v1/app/version + /api/v1/app/apk 走自家域名。
+    SUPABASE_URL: str = ""
+
     # MySQL 配置（DB_TYPE=mysql 时生效）
     DB_HOST: str = "127.0.0.1"
     DB_PORT: int = 3306

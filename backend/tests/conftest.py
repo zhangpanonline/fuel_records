@@ -11,6 +11,7 @@ from config import settings
 from database import Base, get_db
 
 # 确保所有模型注册到 Base.metadata
+import models.app_version  # noqa: F401
 import models.expense  # noqa: F401
 import models.expense_category  # noqa: F401
 import models.fuel_record  # noqa: F401
@@ -53,6 +54,7 @@ def client(db_session):
     from routers.stats import router as stats_router
     from routers.expenses import router as expenses_router
     from routers.expense_categories import router as expense_categories_router
+    from routers.app import router as app_router
 
     app = FastAPI()
     app.add_middleware(
@@ -73,6 +75,7 @@ def client(db_session):
     app.include_router(stats_router)
     app.include_router(expenses_router)
     app.include_router(expense_categories_router)
+    app.include_router(app_router)
 
     def _override_get_db():
         yield db_session

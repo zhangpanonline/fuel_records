@@ -23,7 +23,7 @@ interface Props {
   onNavigate?: (path: string) => void
 }
 
-type CheckStatus = 'idle' | 'checking' | 'latest' | 'available'
+type CheckStatus = 'idle' | 'checking' | 'latest' | 'available' | 'error'
 
 export default function SettingsModal({ onClose, onNavigate }: Props) {
   const [dbEnv, setDbEnv] = useState<'prod' | 'test'>(getDatabaseEnv())
@@ -144,16 +144,20 @@ export default function SettingsModal({ onClose, onNavigate }: Props) {
     setUpdateInfo(null)
 
     try {
-      const info = await checkUpdate()
-      if (info) {
-        setUpdateInfo(info)
+      const result = await checkUpdate()
+      if (result.status === 'available') {
+        setUpdateInfo(result.info)
         setCheckStatus('available')
-      } else {
+      } else if (result.status === 'latest') {
         setCheckStatus('latest')
+      } else {
+        // 两条通道都没查成功——绝不能显示成"已是最新版本"
+        setCheckError(`检查失败：${result.message}`)
+        setCheckStatus('error')
       }
-    } catch {
-      setCheckError('检查失败，请检查网络连接')
-      setCheckStatus('idle')
+    } catch (e) {
+      setCheckError(`检查失败：${e instanceof Error ? e.message : '网络异常'}`)
+      setCheckStatus('error')
     }
   }
 

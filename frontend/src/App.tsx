@@ -375,11 +375,32 @@ function App() {
     setRecordTime(nowTimePart())
   }
 
-  // 版本检测（启动时执行一次）
+  // 版本检测：启动时一次；之后每次回到前台且距上次检查超过 5 分钟再查一次
+  // （只在冷启动查的话，App 常驻后台时永远等不到新版本提示）
   useEffect(() => {
-    checkUpdate().then((info) => {
-      if (info) setUpdateInfo(info)
-    })
+    let cancelled = false
+    let lastCheckAt = 0
+
+    const run = () => {
+      const now = Date.now()
+      if (now - lastCheckAt < 5 * 60 * 1000) return
+      lastCheckAt = now
+      checkUpdate().then((result) => {
+        if (cancelled) return
+        if (result.status === 'available') setUpdateInfo(result.info)
+      })
+    }
+
+    run()
+    const onVisible = () => {
+      if (document.visibilityState === 'visible') run()
+    }
+    document.addEventListener('visibilitychange', onVisible)
+
+    return () => {
+      cancelled = true
+      document.removeEventListener('visibilitychange', onVisible)
+    }
   }, [])
 
   function formatDate(iso: string) {

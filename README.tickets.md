@@ -524,6 +524,15 @@
   - **依赖**：7.3.1
   - **难度**：★
 
+- [x] **7.3.3 版本检测双通道（后端转发 + APK 代理）**
+  - 背景：Supabase 域名在部分网络（家用宽带、移动流量）会在 TLS 握手阶段被重置。`upgrade.ts` 直连查版本失败后 `catch → null`，UI 一律显示"已是最新版本"，用户无法区分"真没更新"和"压根没查成功"——v1.1.7 → v1.1.8 的升级就是这样被卡住的
+  - 后端 `GET /api/v1/app/version`：查 `app_versions` 表返回最新版本，`apk_url` 返回相对路径 `/api/v1/app/apk`
+  - 后端 `GET /api/v1/app/apk`：流式代理 Storage 上的 APK。回源地址带 `?v=<version_code>` 作 cache key——发版是覆盖同名对象，Storage 各 CDN 边缘节点失效时间不一致，不加参数会出现"版本表已是新版、下载到的还是旧包"
+  - 前端 `checkUpdate()`：先走自家后端 → 失败回退 Supabase → 两条都失败返回 `error` 并显示具体原因；`App.tsx` 增加回到前台且距上次检查超过 5 分钟时复查
+  - `build_apk.sh`：构建前校验 `SUPABASE_URL` / `VITE_SUPABASE_URL` / `VITE_SUPABASE_ANON_KEY` / `VITE_API_BASE_URL`，缺任一项直接中止
+  - **依赖**：7.3.1
+  - **难度**：★★★
+
 ### Ticket 7.4: API 版本管理
 
 - [ ] **7.4.1 路由版本化**
@@ -1281,6 +1290,7 @@ Phase 1 ──→ Phase 2 ──→ Phase 3 ──→ Phase 4 ──→ Phase 5 
 ---
 
 > **更新记录**
+> - 2026-11-03: v1.1.9 发布（`version_code` 10109）+ 版本检测双通道（7.3.3）：新增后端 `/api/v1/app/version` 与 `/api/v1/app/apk` 代理，Supabase 不可达时自动回退，检测失败不再伪装成"已是最新版本"
 > - 2026-11-02: v1.1.8 发布（`version_code` 10108）+ 新增 Supabase 保活心跳 `.github/workflows/supabase-keepalive.yml`（7.3.2），并把 7.3.1 修正为 Fly.io 实际部署方式
 > - 2026-10-23: Phase 12 完成 — 记账时间精确到时分（`expense_date` Date→DateTime + 迁移 + 范围查询边界修正 + 记账页时间输入）、分类管理全屏页 `/expense/categories` + 顶栏 🏷 入口、油耗历史显示单价 + 日期/时间分开录入，共 6 个原子 Ticket
 > - 2026-08-28: 油耗算法修正（ADR-001：油耗参考"上次加满"记录，跳过未加满）+ 规格书漂移修正（e2e/integration/upgrade/PERF 与代码对齐，Fly.io 确认为线上主力）+ 新增 `SPEC/GLOSSARY.md` 全项目术语表与 `SPEC/ADRs/` 架构决策记录

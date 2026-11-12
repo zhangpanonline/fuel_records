@@ -1290,6 +1290,7 @@ Phase 1 ──→ Phase 2 ──→ Phase 3 ──→ Phase 4 ──→ Phase 5 
 ---
 
 > **更新记录**
+> - 2026-11-12: v1.1.10 发布（`version_code` 10110）：修复分类选择面板滚动穿透误触发下拉刷新（锁定 `.layout-content` + touch 不冒泡 + `overscroll-behavior: contain`），常用分类 Top 5 → Top 8
 > - 2026-11-03: v1.1.9 发布（`version_code` 10109）+ 版本检测双通道（7.3.3）：新增后端 `/api/v1/app/version` 与 `/api/v1/app/apk` 代理，Supabase 不可达时自动回退，检测失败不再伪装成"已是最新版本"
 > - 2026-11-02: v1.1.8 发布（`version_code` 10108）+ 新增 Supabase 保活心跳 `.github/workflows/supabase-keepalive.yml`（7.3.2），并把 7.3.1 修正为 Fly.io 实际部署方式
 > - 2026-10-23: Phase 12 完成 — 记账时间精确到时分（`expense_date` Date→DateTime + 迁移 + 范围查询边界修正 + 记账页时间输入）、分类管理全屏页 `/expense/categories` + 顶栏 🏷 入口、油耗历史显示单价 + 日期/时间分开录入，共 6 个原子 Ticket

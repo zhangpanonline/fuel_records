@@ -83,6 +83,9 @@
   flex: 1;
   overflow-y: auto;
   padding: 4px 0;
+  /* 滚动到顶/底时不再链式带动页面滚动（scroll chaining） */
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
 }
 
 /* ── 搜索结果 ── */
@@ -117,11 +120,11 @@
 }
 
 /* ── Top 5 常用 ── */
-.cp-top5 {
+.cp-frequent {
   padding: 0 0 4px;
 }
 
-.cp-top5-label {
+.cp-frequent-label {
   font-size: 11px;
   color: var(--text-dim);
   padding: 6px 12px 4px;
@@ -129,7 +132,7 @@
   letter-spacing: 0.5px;
 }
 
-.cp-top5-item {
+.cp-frequent-item {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -138,12 +141,12 @@
   transition: background 0.12s;
 }
 
-.cp-top5-item:hover,
-.cp-top5-item:active {
+.cp-frequent-item:hover,
+.cp-frequent-item:active {
   background: var(--border-light);
 }
 
-.cp-top5-count {
+.cp-frequent-count {
   font-size: 11px;
   color: var(--accent);
   background: var(--accent-bg);

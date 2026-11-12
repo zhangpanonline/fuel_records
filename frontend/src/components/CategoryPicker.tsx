@@ -149,11 +149,18 @@ export default function CategoryPicker({
   }, [open])
 
   // 面板打开时锁定背景滚动
+  // 注意：页面真正的滚动容器是 .layout-content，只锁 body 在 WebView 里挡不住它
   useEffect(() => {
     if (open) {
-      const prev = document.body.style.overflow
+      const scrollEl = document.querySelector('.layout-content') as HTMLElement | null
+      const prevBodyOverflow = document.body.style.overflow
+      const prevScrollOverflow = scrollEl ? scrollEl.style.overflow : ''
       document.body.style.overflow = 'hidden'
-      return () => { document.body.style.overflow = prev }
+      if (scrollEl) scrollEl.style.overflow = 'hidden'
+      return () => {
+        document.body.style.overflow = prevBodyOverflow
+        if (scrollEl) scrollEl.style.overflow = prevScrollOverflow
+      }
     }
   }, [open])
 
@@ -167,8 +174,9 @@ export default function CategoryPicker({
     return flatTree.filter((n) => matchNode(n, filterSearch))
   }, [flatTree, filterSearch])
 
-  // ── Top 5 常用 ──
-  const top5 = useMemo(() => {
+  // ── Top N 常用（最近 7 天使用过的分类，按次数排序） ──
+  const TOP_N = 8
+  const frequent = useMemo(() => {
     const counts = parseCounts()
     const entries = Object.entries(counts)
     if (entries.length === 0) return []
@@ -190,9 +198,9 @@ export default function CategoryPicker({
       localStorage.setItem(FREQ_KEY, JSON.stringify(counts))
     }
 
-    // 排序取 Top 5
+    // 排序取 Top N
     valid.sort((a, b) => b[1].count - a[1].count)
-    return valid.slice(0, 5).map(([key]) => {
+    return valid.slice(0, TOP_N).map(([key]) => {
       const [l1Id, l2Id, l3Id] = key.split('|').map(Number)
       // 在树中查找对应节点
       const node = flatTree.find(
@@ -271,6 +279,12 @@ export default function CategoryPicker({
     e.stopPropagation()
   }
 
+  // 面板内的触摸事件绝不能冒泡到 PullToRefresh：
+  // 否则在面板里向下滚动/下拉会误触发页面刷新，把正在填写的记账内容冲掉
+  function handlePanelTouch(e: React.TouchEvent) {
+    e.stopPropagation()
+  }
+
   function handleOpen() {
     setOpen(true)
   }
@@ -313,7 +327,13 @@ export default function CategoryPicker({
       )}
 
       {open && (
-        <div className="cp-panel" onClick={handlePanelClick}>
+        <div
+          className="cp-panel"
+          onClick={handlePanelClick}
+          onTouchStart={handlePanelTouch}
+          onTouchMove={handlePanelTouch}
+          onTouchEnd={handlePanelTouch}
+        >
           {/* 面板内容 */}
           <div className="cp-panel-body">
             {filterSearch ? (
@@ -337,17 +357,17 @@ export default function CategoryPicker({
               </div>
             ) : (
               <>
-                {/* ── Top 5 常用 ── */}
-                {top5.length > 0 && (
-                  <div className="cp-top5">
-                    <div className="cp-top5-label">常用分类</div>
-                    {top5.map(({ node }) => (
+                {/* ── 常用分类（Top N） ── */}
+                {frequent.length > 0 && (
+                  <div className="cp-frequent">
+                    <div className="cp-frequent-label">常用分类</div>
+                    {frequent.map(({ node }) => (
                       <div
                         key={`top-${node.l1.id}-${node.l2.id}-${node.l3.id}`}
-                        className="cp-top5-item"
+                        className="cp-frequent-item"
                         onClick={() => handleSelect(node)}
                       >
-                        <span className="cp-top5-count">{node.l1.name}</span>
+                        <span className="cp-frequent-count">{node.l1.name}</span>
                         <span className="cp-search-path">
                           {node.l1.name} / {node.l2.name} / {node.l3.name}
                         </span>
